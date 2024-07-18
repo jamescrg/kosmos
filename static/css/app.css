@@ -15,7 +15,7 @@ body {
 
 a,
 a:hover {
-    color: var(--lime-800);
+    color: var(--blue-old-school);
     outline: none;
     text-decoration: none;
 }
@@ -51,8 +51,11 @@ a:hover {
     background: none;
     border: none;
     border-radius: 4px;
-    color: var(--lime-800);
     padding: 2px 7px;
+}
+
+.section-title button {
+    color: var(--lime-800);
 }
 
 .section-title a {
@@ -225,13 +228,13 @@ li {
 .button-link {
     background: none;
     border: none;
-    color: var(--lime-800);
+    color: var(--blue-old-school);
     margin: 0;
     padding: 0;
 }
 
 .button-link:hover {
-    color: var(--lime-800);
+    color: var(--blue-old-school);
 }
 
 
@@ -257,7 +260,7 @@ li {
 }
 
 .bi-x-lg {
-    color: var(--lime-800);
+    color: var(--blue-old-school);
     font-size: 0.9rem;
 }
 
