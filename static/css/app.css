@@ -51,10 +51,8 @@ a:hover {
     background: none;
     border: none;
     border-radius: 4px;
+    color: var(--warm-gray-600);
     padding: 2px 7px;
-}
-
-.section-title button {
 }
 
 .section-title a {
@@ -133,7 +131,10 @@ strong {
     padding: 10px;
 }
 
-/* tables */
+
+/* ==========================================================================
+   tables
+   ========================================================================== */
 
 .table {
     color: inherit;
@@ -192,7 +193,10 @@ li {
     padding: 0.5rem 0 0.5rem 1rem;
 }
 
-/* buttons */
+
+/* ==========================================================================
+   buttons
+   ========================================================================== */
 
 .btn {
     font-size: 1em;
@@ -243,13 +247,13 @@ li {
 
 .icon,
 .icon:hover {
-    color: var(--warm-gray-500);
+    color: var(--warm-gray-600);
     font-size: 1rem;
     font-weight: 600;
 }
 
 .filter-icon {
-  color: var(--warm-gray-600);
+  color: var(--yellow-600);
 }
 
 .btn-icon {
@@ -258,13 +262,24 @@ li {
     padding: 0;
 }
 
+.bi-funnel {
+  color: var(--yellow-600);
+}
+
 .bi-plus-lg {
-    color: var(--lime-800);
+    color: var(--green-800);
 }
 
 .bi-x-lg {
-    color: var(--blue-old-school);
+    color: var(--warm-gray-600);
     font-size: 0.9rem;
+}
+
+.bi-cloud-download,
+.bi-cloud-slash,
+.bi-cloud-upload,
+.bi-pencil {
+  color: var(--warm-gray-500)
 }
 
 .bi-folder {
