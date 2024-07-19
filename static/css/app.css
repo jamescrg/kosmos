@@ -141,6 +141,10 @@ strong {
    tables
    ========================================================================== */
 
+.overflow {
+  overflow-x:auto;
+}
+
 .table {
     color: inherit;
 }
