@@ -28,11 +28,20 @@ class Filter:
             "order_field": "matter",
             "order_direction": "ascending",
         },
-        "paralegal": {
+        "james": {
             "date_from": None,
             "date_to": None,
             "matter": None,
-            "user": 4,
+            "user": 3,
+            "status": "Pending",
+            "order_field": "matter",
+            "order_direction": "ascending",
+        },
+        "lexi": {
+            "date_from": None,
+            "date_to": None,
+            "matter": None,
+            "user": 9,
             "status": "Pending",
             "order_field": "matter",
             "order_direction": "ascending",

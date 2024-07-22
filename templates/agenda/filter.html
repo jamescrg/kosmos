@@ -73,8 +73,10 @@
 
                 {% for user in users %}
 
-                    <option value="{{ user.id }}"
-                            {% if user.id == filter.user %} selected {% endif %}>
+                    <option
+                      value="{{ user.id }}"
+                      {% if user.id|stringformat:"d" == filter.user %} selected {% endif %}
+                    >
 
                         {{ user.username }}
 
