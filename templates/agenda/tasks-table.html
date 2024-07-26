@@ -57,18 +57,7 @@
              data-bs-target="#htmx-modal-container"
              hx-swap="innerHTML">{{ task.description }}</a>
         </td>
-        <td id="task-user" class="user">
-          <select name="user"
-                  class="edit-user"
-                  hx-post="/agenda/{{ task.id }}/edit-user"
-                  hx-target="this"
-                  hx-swap="outerHTML"
-                  hx-trigger="change">
-            {% for user in users %}
-              <option value="{{ user.id }}" {% if user == task.user %}selected{% endif %}>{{ user.username }}</option>
-            {% endfor %}
-          </select>
-        </td>
+        <td id="task-user" class="user">{% include "agenda/change-user.html" %}</td>
       </tr>
     {% endfor %}
   </table>
