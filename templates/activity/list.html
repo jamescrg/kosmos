@@ -2,21 +2,22 @@
 {% block content %}
   {% load humanize %}
   <div class="filter-bar">
-    <div class="section-title-left-right">
+    <div class="section-title-left">
       <a {% if filter.show_time %}class="strong"{% endif %}
          href="{% url 'activity:toggle-entries' entry_type='time' %}">Time</a>
       <a {% if filter.show_expenses %}class="strong"{% endif %}
          href="{% url 'activity:toggle-entries' entry_type='expense' %}">Expenses</a>
+      <span class="filter-bar-divider">|</span>
+      <a href={% url 'activity:filter-quick' quick_filter='unentered' %}>Unentered</a>
+      <a href={% url 'activity:filter-quick' quick_filter='today' %}>Today</a>
+    </div>
+    <div class="section-title-right">
       <button hx-get="{% url 'activity:filter' %}"
               hx-target="#htmx-modal-container"
               data-bs-toggle="modal"
               data-bs-target="#htmx-modal-container">
         <i class="bi bi-funnel"></i>
       </button>
-      <a href={% url 'activity:filter-quick' quick_filter='unentered' %}>Unentered</a>
-      <a href={% url 'activity:filter-quick' quick_filter='today' %}>Today</a>
-    </div>
-    <div class="section-title-right">
       <a href={% url 'activity:export' %}>
         <i class="bi bi-cloud-download"></i>
       </a>
@@ -27,14 +28,14 @@
       <div class="section-title">
         <div class="section-title-left">
           <h1>Time</h1>
-          <div class="section-title-left-right">
-            <button hx-get="/activity/add"
-                    hx-target="#htmx-modal-container"
-                    data-bs-toggle="modal"
-                    data-bs-target="#htmx-modal-container">
-              <i class="bi bi-plus-lg"></i>
-            </button>
-          </div>
+        </div>
+        <div class="section-title-right">
+          <button hx-get="/activity/add"
+                  hx-target="#htmx-modal-container"
+                  data-bs-toggle="modal"
+                  data-bs-target="#htmx-modal-container">
+            <i class="bi bi-plus-lg"></i>
+          </button>
         </div>
       </div>
       <div class="table-container">
@@ -56,15 +57,23 @@
                 <a href={% url 'matters:detail' id=entry.matter.id %}>{{ entry.matter.name }}</a>
               </td>
               <td class="actions">
-                <a href="#"
-                   hx-get="{% url 'activity:edit' id=entry.id %}"
-                   hx-target="#htmx-modal-container"
-                   hx-trigger="click"
-                   data-bs-toggle="modal"
-                   data-bs-target="#htmx-modal-container">{{ entry.actions }}</a>
+                {% if entry.invoice %}
+                  {{ entry.actions }}
+                {% else %}
+                  <a href="#"
+                     hx-get="{% url 'activity:edit' id=entry.id %}"
+                     hx-target="#htmx-modal-container"
+                     hx-trigger="click"
+                     data-bs-toggle="modal"
+                     data-bs-target="#htmx-modal-container">{{ entry.actions }}</a>
+                {% endif %}
               </td>
-              <td class="hours {% if not entry.entered %}urgent{% endif %}">
-                <a href={% url 'activity:toggle-entered' id=entry.id %}>{{ entry.hours|floatformat:1 }}</a>
+              <td class="hours {% if not entry.entered and not entry.invoice %}urgent{% endif %}">
+                {% if entry.invoice %}
+                  {{ entry.hours|floatformat:1 }}
+                {% else %}
+                  <a href={% url 'activity:toggle-entered' id=entry.id %}>{{ entry.hours|floatformat:1 }}</a>
+                {% endif %}
               </td>
               <td class="rate">
                 {% if entry.comp %}
@@ -100,14 +109,14 @@
       <div class="section-title">
         <div class="section-title-left">
           <h1>Expenses</h1>
-          <div class="section-title-left-right">
-            <button data-bs-toggle="modal"
-                    hx-target="#htmx-modal-container"
-                    data-bs-target="#htmx-modal-container"
-                    hx-get="{% url 'activity:add-expense' %}">
-              <i class="bi bi-plus-lg"></i>
-            </button>
-          </div>
+        </div>
+        <div class="section-title-right">
+          <button data-bs-toggle="modal"
+                  hx-target="#htmx-modal-container"
+                  data-bs-target="#htmx-modal-container"
+                  hx-get="{% url 'activity:add-expense' %}">
+            <i class="bi bi-plus-lg"></i>
+          </button>
         </div>
       </div>
       <div class="table-container">
@@ -127,15 +136,24 @@
                 <a href={% url 'matters:detail' id=entry.matter.id %}>{{ entry.matter.name }}</a>
               </td>
               <td class="actions">
-                <a href="#"
-                   hx-get="/activity/{{ entry.id }}/edit_expense"
-                   hx-target="#htmx-modal-container"
-                   hx-trigger="click"
-                   data-bs-toggle="modal"
-                   data-bs-target="#htmx-modal-container">{{ entry.category }} - {{ entry.description }}</a>
+                {% if entry.invoice %}
+                  {{ entry.category }} - {{ entry.description }}
+                {% else %}
+                  <a href="#"
+                     hx-get="/activity/{{ entry.id }}/edit_expense"
+                     hx-target="#htmx-modal-container"
+                     hx-trigger="click"
+                     data-bs-toggle="modal"
+                     data-bs-target="#htmx-modal-container">{{ entry.category }}
+                  - {{ entry.description }}</a>
+                {% endif %}
               </td>
-              <td class="hours {% if not entry.entered %}urgent{% endif %}">
-                <a href={% url 'activity:toggle-entered-expense' id=entry.id %}>${{ entry.amount|floatformat:2|intcomma }}</a>
+              <td class="hours {% if not entry.entered and not entry.invoice %}urgent{% endif %}">
+                {% if entry.invoice %}
+                  ${{ entry.amount|floatformat:2|intcomma }}
+                {% else %}
+                  <a href={% url 'activity:toggle-entered-expense' id=entry.id %}>${{ entry.amount|floatformat:2|intcomma }}</a>
+                {% endif %}
               </td>
             </tr>
           {% endfor %}
