@@ -443,7 +443,7 @@ def export(request):
 
     entries = TimeEntry.objects.all()
     entries = entries.filter(matter__firm="Campbell & Brannon")
-    entries = entries.exclude(matter__firm_file_no__isnull=True)
+    entries = entries.exclude(matter__clio_matter_id__isnull=True)
     entries = entries.filter(entered=0)
     entries = entries.order_by("-date", "-id")
 
@@ -474,11 +474,11 @@ def export(request):
 
         writer.writerow(
             [
-                entry.matter.firm_file_no,
+                entry.matter.clio_matter_id,
                 entry.date.strftime("%m/%d/%Y"),
                 "",
                 entry.actions,
-                entry.firm_rate,
+                entry.rate,
                 entry.hours,
                 "TimeEntry",
                 clio_user,
@@ -488,7 +488,7 @@ def export(request):
 
     entries = ExpenseEntry.objects.all()
     entries = entries.filter(matter__firm="Campbell & Brannon")
-    entries = entries.exclude(matter__firm_file_no="")
+    entries = entries.exclude(matter__clio_matter_id="")
     entries = entries.filter(entered=0)
     entries = entries.order_by("-date", "-id")
 
@@ -504,7 +504,7 @@ def export(request):
 
         writer.writerow(
             [
-                entry.matter.firm_file_no,
+                entry.matter.clio_matter_id,
                 entry.date.strftime("%m/%d/%Y"),
                 "",
                 entry.description,

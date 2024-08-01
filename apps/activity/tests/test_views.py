@@ -47,7 +47,7 @@ def test_edit_post(client, matter, entry):
         "matter": matter.id,
         "actions": "new actions",
         "hours": 2.5,
-        "firm_rate": 300,
+        "rate": 300,
     }
     response = client.post(f"/activity/{entry.id}/edit", data)
     assert response.status_code == 302
@@ -82,6 +82,8 @@ def test_filter_update(client):
         "view_rate": "Firm",
         "order": "date, descending",
         "user": "All",
+        "show_time": 1,
+        "show_expenses": 1,
     }
     response = client.post("/activity/filter/update", data)
     assert response.status_code == 302
