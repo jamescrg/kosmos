@@ -4,6 +4,7 @@ from itertools import chain
 
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin
+from django.core.files.base import ContentFile
 from django.db.models import DecimalField, ExpressionWrapper, F, Sum
 from django.http import HttpResponse
 from django.shortcuts import redirect, render
@@ -12,6 +13,7 @@ from django.views.generic import DeleteView, DetailView, FormView, TemplateView,
 
 from apps.activity.models import ExpenseEntry, TimeEntry
 from apps.invoicing.forms import InvoiceForm
+from apps.invoicing.forms.invoice import EditInvoiceForm
 from apps.invoicing.functions import generate_invoice
 from apps.invoicing.models import Invoice
 from apps.matters.models import Matter
@@ -106,6 +108,70 @@ class AddInvoiceView(LoginRequiredMixin, FormView):
         return super().form_valid(form)
 
 
+class EditInvoiceView(LoginRequiredMixin, FormView):
+    template_name = "invoicing/edit-invoice.html"
+    form_class = EditInvoiceForm
+
+    def get_success_url(self):
+        return reverse_lazy(
+            "invoicing:invoice-detail", kwargs={"pk": self.kwargs["pk"]}
+        )
+
+    def get_form_kwargs(self):
+        kwargs = super().get_form_kwargs()
+
+        invoice = Invoice.objects.get(pk=self.kwargs["pk"])
+        kwargs["instance"] = invoice
+
+        return kwargs
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+
+        invoice = Invoice.objects.get(pk=self.kwargs["pk"])
+        context["invoice"] = invoice
+
+        return context
+
+    def form_valid(self, form):
+        form.save()
+
+        invoice = Invoice.objects.get(pk=self.kwargs["pk"])
+
+        date_limit = form.cleaned_data["date_limit"]
+
+        # Remove entries that are not within the new date limit
+        TimeEntry.objects.filter(invoice=invoice, date__gt=date_limit).update(
+            invoice=None
+        )
+
+        ExpenseEntry.objects.filter(invoice=invoice, date__gt=date_limit).update(
+            invoice=None
+        )
+
+        time_entry_amount = (
+            TimeEntry.objects.filter(invoice=invoice)
+            .annotate(
+                fee=ExpressionWrapper(
+                    F("hours") * F("rate"), output_field=DecimalField()
+                )
+            )
+            .aggregate(total_fee=Sum("fee"))["total_fee"]
+        ) or 0
+
+        expense_amount = (
+            ExpenseEntry.objects.filter(invoice=invoice).aggregate(
+                total_amount=Sum("amount")
+            )["total_amount"]
+            or 0
+        )
+
+        invoice.amount = (time_entry_amount + expense_amount) - invoice.discount
+        invoice.save()
+
+        return super().form_valid(form)
+
+
 class DeleteInvoiceView(LoginRequiredMixin, DeleteView):
     model = Invoice
     success_url = reverse_lazy("invoicing:invoicing")
@@ -133,15 +199,22 @@ class InvoicePDFView(LoginRequiredMixin, DetailView):
     def get(self, request, *args, **kwargs):
         invoice = self.get_object()
 
-        file = generate_invoice(invoice, request)
+        if invoice.status == "CANCELED":
+            with open(invoice.pdf_file.path, "rb") as pdf:
+                response = HttpResponse(pdf.read(), content_type="application/pdf")
+                response["Content-Disposition"] = (
+                    f'filename="Invoice {invoice.id} - {invoice.matter} - {invoice.date_issued}.pdf"'
+                )
+        else:
+            file = generate_invoice(invoice, request)
 
-        with open(file.name, "rb") as pdf:
-            response = HttpResponse(pdf.read(), content_type="application/pdf")
-            response["Content-Disposition"] = (
-                f'filename="Invoice {invoice.id} - {invoice.matter} - {invoice.date_issued}.pdf"'
-            )
+            with open(file.name, "rb") as pdf:
+                response = HttpResponse(pdf.read(), content_type="application/pdf")
+                response["Content-Disposition"] = (
+                    f'filename="Invoice {invoice.id} - {invoice.matter} - {invoice.date_issued}.pdf"'
+                )
 
-        os.unlink(file.name)
+            os.unlink(file.name)
 
         return response
 
@@ -166,6 +239,16 @@ class StatusUpdateView(LoginRequiredMixin, View):
         invoice.save()
 
         if invoice_status == "CANCELED":
+            pdf_file = generate_invoice(invoice, request)
+
+            with open(pdf_file.name, "rb") as pdf:
+                invoice.pdf_file.save(
+                    f"Invoice {invoice.id} - {invoice.matter} - {invoice.date_issued}.pdf",
+                    ContentFile(pdf.read()),
+                )
+
+            invoice.save()
+
             TimeEntry.objects.filter(invoice=invoice).update(invoice=None)
             ExpenseEntry.objects.filter(invoice=invoice).update(invoice=None)
 
