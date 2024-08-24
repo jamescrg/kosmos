@@ -1,4 +1,4 @@
-from datetime import date
+from datetime import date, datetime
 
 from django.contrib.auth.decorators import login_required
 from django.core.exceptions import ObjectDoesNotExist
@@ -337,7 +337,7 @@ def time_toggle_entered(request, id):
 
 
 @login_required
-def export(request):
+def export_old(request):
     import csv
 
     from django.http import HttpResponse
@@ -427,12 +427,16 @@ def export(request):
 
 
 @login_required
-def export2(request, format):
+def export_to_csv(request, format):
+
+    # Set the file name
+    current_day_and_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    filename = f"Time Entries - {current_day_and_time} - {format.title()}"
 
     # Create the HttpResponse object with the appropriate CSV header.
     response = HttpResponse(
         content_type="text/csv",
-        headers={"Content-Disposition": 'attachment; filename="time_entries.csv"'},
+        headers={"Content-Disposition": f"attachment; filename={filename}"},
     )
 
     # get the time entries per the user filter
