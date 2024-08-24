@@ -11,7 +11,7 @@ from apps.activity.expenses.views import (
     expenses_toggle_entered,
 )
 from apps.activity.time.views import (
-    export,
+    export_to_csv,
     time_add,
     time_delete,
     time_edit,
@@ -27,7 +27,7 @@ app_name = "activity"
 
 urlpatterns = [
     path("activity/", time_list, name="time-list"),
-    path("activity/export", export, name="export"),
+    path("activity/export/<str:format>", export_to_csv, name="export"),
     path("activity/time/add", time_add, name="time-add"),
     path("activity/time/add/<int:id>", time_add, name="time-add"),
     path("activity/time/<int:id>/edit", time_edit, name="time-edit"),
