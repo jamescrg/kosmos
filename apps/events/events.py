@@ -10,11 +10,12 @@ def get_table_data(request):
 
     table_data = {}
 
-    filter_data = request.session.get("events_filter", None)
+    events_filter = request.session.get("events_filter", None)
 
-    if filter_data:
-        filter = EventFilter(filter_data)
-        events = filter.qs.order_by("date")
+    if events_filter:
+        filter = EventFilter(events_filter)
+        events = filter.qs
+        events = events.order_by("date")
     else:
         events = Event.objects.all().order_by("date")
 
