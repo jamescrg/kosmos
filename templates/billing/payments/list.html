@@ -1,4 +1,5 @@
-{% block content %}
+{% extends "billing/list.html" %}
+{% block subcontent %}
   <div id="payment-list" class="section">
     <div class="section-title">
       <div class="section-title-left">
@@ -6,7 +7,7 @@
         <div class="section-title-left-right">
           <button type="button"
                   class="btn-icon"
-                  hx-get="{% url 'billing:add-payment' %}"
+                  hx-get="{% url 'billing:payments-add' %}"
                   hx-target="#htmx-modal-container"
                   hx-trigger="click"
                   data-bs-toggle="modal"
@@ -15,7 +16,7 @@
           </button>
           <button type="button"
                   class="btn-icon"
-                  hx-get="{% url 'billing:filter-payments' %}"
+                  hx-get="{% url 'billing:payments-filter' %}"
                   hx-target="#htmx-modal-container"
                   hx-trigger="click"
                   data-bs-toggle="modal"
@@ -35,10 +36,10 @@
           <th class="actions">Actions</th>
         </tr>
         {% for payment in objects %}
-          {% include "billing/payments/payment-row.html" %}
+          {% include "billing/payments/row.html" %}
         {% endfor %}
       </table>
       {% include "pagination.html" %}
     </div>
   </div>
-{% endblock content %}
+{% endblock subcontent %}
