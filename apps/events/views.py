@@ -32,11 +32,11 @@ def events_list(request):
 @login_required
 def events_filter(request):
     if request.method == "POST":
-        request.session["event_filter"] = request.POST
+        request.session["events_filter"] = request.POST
         return redirect("/events")
 
     else:
-        filter_data = request.session.get("event_filter", {})
+        filter_data = request.session.get("events_filter", {})
         filter = EventFilter(filter_data, queryset=Event.objects.all())
         return render(request, "agenda/events/filter.html", {"filter": filter})
 
