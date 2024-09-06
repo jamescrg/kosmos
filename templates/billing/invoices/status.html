@@ -6,6 +6,7 @@
         hx-trigger="change">
   {% for option in status_options %}
     <option value="{{ option.0 }}"
+            class="table-option"
             {% if option.0 == invoice.status %}selected{% endif %}>{{ option.1 }}</option>
   {% endfor %}
 </select>
