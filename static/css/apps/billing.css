@@ -2,14 +2,12 @@
 List View
 ========================================================================== */
 
-
 .invoices .invoice-id {
   width: 80px;
 }
 .invoices .date {
   width: 120px;
 }
-
 
 .invoices .amount {
   text-align: right;
@@ -101,12 +99,23 @@ Invoices summary table
 Payments
 ========================================================================== */
 
-.payments-actions {
-  text-align: center;
-  width: 3%;
+.payments .id {
+  width: 80px;
 }
 
-.payments-amount {
+.payments .matter {
+  width: 300px;
+}
+
+.payments .method {
+  width: 150px;
+}
+
+.payments .date {
+  width: 120px;
+}
+
+.payments .amount {
   text-align: right;
   width: 150px;
 }
