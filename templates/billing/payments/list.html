@@ -26,14 +26,14 @@
       </div>
     </div>
     <div class="table-container">
-      <table class="table">
+      <table class="table payments">
         <tr>
-          <th class="number">Number</th>
-          <th>Matter</th>
+          <th class="id">ID</th>
           <th class="date">Date</th>
-          <th>Payment method</th>
-          <th>Payment detail</th>
-          <th class="payments-amount">Amount</th>
+          <th>Matter</th>
+          <th>Method</th>
+          <th>Detail</th>
+          <th class="amount">Amount</th>
         </tr>
         {% for payment in objects %}
           {% include "billing/payments/row.html" %}

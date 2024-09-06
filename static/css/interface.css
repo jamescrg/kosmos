@@ -32,4 +32,10 @@
   background: inherit;
   border: solid 1px var(--warm-gray-200);
   color: inherit;
+  padding: 0 5px;
+  width: 100%;
+}
+
+.table-option {
+  background: var(--warm-gray-50);
 }
