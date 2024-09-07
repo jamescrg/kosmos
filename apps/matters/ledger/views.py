@@ -1,6 +1,10 @@
+from operator import itemgetter
+
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import get_object_or_404, render
 
+from apps.billing.invoices.models import Invoice
+from apps.billing.payments.models import Payment
 from apps.matters.models import Matter
 from apps.matters.proceedings.models import Proceeding
 
@@ -10,11 +14,47 @@ def index(request, id):
     matter = get_object_or_404(Matter, pk=id)
     proceeding = Proceeding.objects.filter(matter=matter.id).order_by("-id").first()
 
+    transactions = []
+    total = 0
+
+    invoices = Invoice.objects.filter(matter=matter).order_by("date_issued") or None
+    payments = Payment.objects.filter(matter=matter).order_by("date") or None
+
+    if invoices:
+        for invoice in invoices:
+            invoice_dict = {
+                "id": invoice.id,
+                "date": invoice.date_issued,
+                "transaction_type": "Charge",
+                "description": f"Invoice {invoice.id}",
+                "amount": invoice.value["final_total"],
+            }
+            transactions.append(invoice_dict)
+            total -= invoice.amount
+
+    if payments:
+        for payment in payments:
+            payment_dict = {
+                "id": payment.id,
+                "date": payment.date,
+                "transaction_type": "Credit",
+                "description": f"Payment by {payment.payment_method.lower()}",
+                "amount": payment.amount,
+            }
+            transactions.append(payment_dict)
+            total += payment.amount
+
+    if transactions:
+        transactions = sorted(transactions, key=itemgetter("transaction_type"))
+        transactions = sorted(transactions, key=itemgetter("date"))
+
     context = {
         "app": "matters",
         "submodule": "ledger",
         "matter": matter,
         "proceeding": proceeding,
+        "transactions": transactions,
+        "total": float(total),
     }
 
     return render(request, "matters/ledger/list.html", context)
