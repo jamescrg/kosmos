@@ -1,17 +1,54 @@
 {% extends "matters/detail.html" %}
 {% block subcontent %}
+  {% load humanize %}
   <div class="section-title">
     <div class="section-title-left">
       <h2>Ledger</h2>
       <div class="section-title-left-right"></div>
     </div>
   </div>
-  <div class="table-container">
-    <table class="table ledger">
-      <tr>
-        <th>Date</th>
-        <th>Amount</th>
-      </tr>
-    </table>
-  </div>
+  {% if transactions %}
+    <div class="table-container">
+      <table class="table ledger">
+        <tr>
+          <th class="date">Date</th>
+          <th class="type">Type</th>
+          <th>Description</th>
+          <th class="numeric">Amount</th>
+        </tr>
+        {% for transaction in transactions %}
+          <tr>
+            <td class="date">{{ transaction.date|date:'Y-m-d' }}</td>
+            <td class="type">{{ transaction.transaction_type }}</td>
+            <td>
+              {% if 'Invoice' in transaction.description %}
+                <a target="_blank"
+                   href="{% url 'billing:invoices-pdf' transaction.id %}">{{ transaction.description }}</a>
+              {% else %}
+                {{ transaction.description }}
+              {% endif %}
+            </td>
+            {% if transaction.transaction_type == 'Charge' %}
+              <td class="numeric urgent">-${{ transaction.amount|floatformat:2|intcomma }}</td>
+            {% else %}
+              <td class="numeric">${{ transaction.amount|floatformat:2|intcomma }}</td>
+            {% endif %}
+          </tr>
+        {% endfor %}
+      </table>
+      <div class="flex-start-space">
+        <br />
+        <div class="totals-table">
+          <table>
+            <tr>
+              <td class="total">Balance</td>
+              <td class="numeric total">${{ total|floatformat:2|intcomma }}</td>
+            </tr>
+          </table>
+        </div>
+      </div>
+    </div>
+  {% else %}
+    No transactions found.
+  {% endif %}
 {% endblock subcontent %}
