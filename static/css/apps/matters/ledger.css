@@ -1,0 +1,16 @@
+
+.ledger .date {
+  width: 200px;
+}
+
+.ledger .type {
+  width: 200px;
+}
+
+.ledger .numeric {
+  width: 200px;
+}
+
+.totals-table .total {
+  width: 200px;
+}
