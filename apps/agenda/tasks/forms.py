@@ -12,6 +12,7 @@ class TaskForm(forms.ModelForm):
         fields = (
             "description",
             "matter",
+            "user",
             "date_due",
             "status",
             "priority",
@@ -31,6 +32,7 @@ class TaskForm(forms.ModelForm):
                 attrs={"autofocus": "autofocus", "required": "required"}
             ),
             "matter": forms.Select(attrs={"required": "required"}),
+            "user": forms.Select(attrs={"required": "required"}),
             "status": forms.Select(choices=STATUSES),
             "date_due": forms.DateInput(attrs={"type": "date"}),
         }

@@ -58,16 +58,13 @@ def tasks_add(request):
 
     if request.method == "POST":
         form = TaskForm(request.POST)
-        if form.is_valid():
 
+        if form.is_valid():
             task = form.save(commit=False)
-            filter_data = request.session.get("tasks_filter", {})
-            user_id = filter_data.get("user", None)
-            if not user_id:
-                user_id = request.user.id
-            task.user = CustomUser.objects.filter(pk=int(user_id)).get()
+
             task.status = "Pending"
             task.save()
+
             return HttpResponse(status=204, headers={"HX-Trigger": "taskTableChanged"})
     else:
         form = TaskForm()
