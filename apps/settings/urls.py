@@ -25,6 +25,9 @@ urlpatterns = [
     path("settings/company/", company_urls.company_index, name="company-index"),
     # Users
     path("settings/users/", user_urls.users_index, name="users-index"),
+    path("settings/users/list/", user_urls.user_list, name="user-list"),
+    path("settings/users/filter/", user_urls.user_filter, name="user-filter"),
+    path("settings/users/sort/<str:order>/", user_urls.user_sort, name="user-sort"),
     # Profile
     path("settings/profile/", profile_urls.profile_index, name="profile-index"),
 ]
