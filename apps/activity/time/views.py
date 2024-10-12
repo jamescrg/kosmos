@@ -231,8 +231,7 @@ def time_add(request, id=None):
                 entry.actions = entry.actions.replace(key, val)
 
             entry.save()
-
-            return render(request, "activity/time/table-row.html", {"entry": entry})
+            return redirect("/activity")
 
     # if no post data has been submitted, show the entry form
     else:
@@ -303,8 +302,7 @@ def time_edit(request, id):
         if form.is_valid():
             entry = form.save(commit=False)
             entry.save()
-
-            return render(request, "activity/time/table-row.html", {"entry": entry})
+            return redirect("/activity")
 
     else:
         # get list of matters for activity form
@@ -346,8 +344,7 @@ def time_edit(request, id):
 def time_delete(request, id):
     entry = get_object_or_404(TimeEntry, pk=id)
     entry.delete()
-
-    return HttpResponse("", status=200)
+    return redirect("/activity")
 
 
 @login_required
