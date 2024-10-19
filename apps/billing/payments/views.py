@@ -1,5 +1,5 @@
 from django.contrib.auth.decorators import login_required
-from django.shortcuts import HttpResponse, render
+from django.shortcuts import HttpResponse, get_object_or_404, render
 
 from apps.billing.invoices.models import Invoice
 from apps.management.pagination import CustomPaginator
@@ -49,25 +49,21 @@ def payments_list(request):
 
 @login_required
 def payments_add(request):
-    if request.method == "POST":
-        form = PaymentForm(request.POST)
+    matters = Matter.objects.exclude(status="Closed").order_by("name")
 
-        if form.is_valid():
-            payment = form.save(commit=False)
-            payment.save()
+    form = PaymentForm(request.POST or None, use_required_attribute=False)
+    form.fields["matter"].queryset = matters
 
-            return HttpResponse(status=204, headers={"HX-Trigger": "paymentsChanged"})
+    if request.method == "POST" and form.is_valid():
+        form.save()
 
-    else:
-        form = PaymentForm()
-        matters = Matter.objects.exclude(status="Closed").order_by("name")
-        form.fields["matter"].queryset = matters
+        return HttpResponse(status=204, headers={"HX-Trigger": "paymentsChanged"})
 
     return render(request, "billing/payments/form.html", {"form": form})
 
 
 @login_required
-def payments_delete(request, pk):
+def payments_delete(_, pk):
     Payment.objects.get(pk=pk).delete()
 
     return HttpResponse(status=204, headers={"HX-Trigger": "paymentsChanged"})
@@ -75,32 +71,24 @@ def payments_delete(request, pk):
 
 @login_required
 def payments_edit(request, pk):
-    payment = Payment.objects.get(pk=pk)
+    payment = get_object_or_404(Payment, pk=pk)
+
+    matter_ids = Invoice.objects.filter(status="SENT").values_list("matter", flat=True)
+    matters = Matter.objects.filter(id__in=matter_ids) | Matter.objects.filter(
+        id=payment.matter.id
+    )
 
     if request.method == "POST":
-        form = PaymentForm(request.POST, instance=payment)
+        form = PaymentForm(request.POST, instance=payment, use_required_attribute=False)
 
         if form.is_valid():
             form.save()
 
             return HttpResponse(status=204, headers={"HX-Trigger": "paymentsChanged"})
     else:
-        form = PaymentForm(instance=payment)
+        form = PaymentForm(instance=payment, use_required_attribute=False)
 
-        matter_ids = Invoice.objects.filter(status="SENT").values_list(
-            "matter", flat=True
-        )
-
-        matters = Matter.objects.filter(id__in=matter_ids) | Matter.objects.filter(
-            id=payment.matter.id
-        )
-
-        form.fields["matter"].queryset = matters
-        form.fields["matter"].initial = payment.matter
-        form.fields["date"].initial = payment.date
-        form.fields["amount"].initial = payment.amount
-        form.fields["payment_method"].initial = payment.payment_method
-        form.fields["detail"].initial = payment.detail
+    form.fields["matter"].queryset = matters
 
     return render(
         request,
