@@ -13,6 +13,7 @@ from apps.intakes.views import (
     intake_edit_status,
     intake_filter,
     order_by,
+    quick_filter_all,
     quick_filter_status,
 )
 
@@ -34,6 +35,7 @@ urlpatterns = [
         quick_filter_status,
         name="quick-filter-status",
     ),
+    path("intakes/quick-filter-all", quick_filter_all, name="quick-filter-all"),
     path("intakes/order-by/<str:order>", order_by, name="order-by"),
     path(
         "intakes/edit-status/<int:pk>/<str:status>",
