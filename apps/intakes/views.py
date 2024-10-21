@@ -54,6 +54,16 @@ def quick_filter_status(request, status):
 
 
 @login_required
+def quick_filter_all(request):
+    filter_data = request.session.get("intake_filter", {})
+
+    filter_data["status"] = None
+    filter_data["order_by"] = "-date"
+
+    return redirect("intakes:list")
+
+
+@login_required
 def order_by(request, order):
     filter_data = request.session.get("intake_filter", {})
 
