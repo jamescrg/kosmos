@@ -5,19 +5,15 @@
       <h1>Events</h1>
       <div class="table-filter">
         <button type="button"
-                class="btn-icon"
                 hx-get="/events/add"
                 hx-target="#htmx-modal-container"
-                hx-trigger="click"
                 data-bs-toggle="modal"
                 data-bs-target="#htmx-modal-container">
           <i class="bi bi-plus-lg"></i>
         </button>
         <button type="button"
-                class="btn-icon"
                 hx-get="{% url 'agenda:events-filter' %}"
                 hx-target="#htmx-modal-container"
-                hx-trigger="click"
                 data-bs-toggle="modal"
                 data-bs-target="#htmx-modal-container">Filter</button>
         <a href={% url 'agenda:events-filter-quick' 'events-pending' %}>Pending</a>

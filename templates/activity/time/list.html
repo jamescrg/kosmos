@@ -14,18 +14,16 @@
                 hx-target="#htmx-modal-container"
                 data-bs-toggle="modal"
                 data-bs-target="#htmx-modal-container">Filter</button>
-        <a href="#" hx-post={% url 'activity:time-filter-quick' 'unbilled' %}>Unbilled</a>
-        <a href="#" hx-post={% url 'activity:time-filter-quick' 'today' %}>Today</a>
-        <form hx-post="{% url 'activity:time-filter-user' %}"
-              hx-trigger="change from:select">
-          {% csrf_token %}
-          <select class="select-user" name="user">
-            <option value="">All</option>
-            {% for user in users %}
-              <option value="{{ user.id }}" {% if user.id == user_id %}selected{% endif %}>{{ user.username|title }}</option>
-            {% endfor %}
-          </select>
-        </form>
+        <button hx-post={% url 'activity:time-filter-quick' 'unbilled' %}>Unbilled</button>
+        <button hx-post={% url 'activity:time-filter-quick' 'today' %}>Today</button>
+        <select hx-post="{% url 'activity:time-filter-user' %}"
+                class="select-user"
+                name="user">
+          <option value="">All</option>
+          {% for user in users %}
+            <option value="{{ user.id }}" {% if user.id == user_id %}selected{% endif %}>{{ user.username|title }}</option>
+          {% endfor %}
+        </select>
       </div>
     </div>
     <div class="section-title-right">
