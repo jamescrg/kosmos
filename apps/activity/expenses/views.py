@@ -245,7 +245,17 @@ def expenses_edit(request, id):
     if request.method == "POST":
         form = ExpenseEntryForm(request.POST, instance=entry)
         if form.is_valid():
+
+            original_entry = get_object_or_404(ExpenseEntry, pk=id)
             entry = form.save(commit=False)
+
+            # if the matter has been changed, be sure to clear the
+            # entry off of any relevant invoice
+            # this will not happen if the invoice has been approved,
+            # because editing will be locked at that point
+            if original_entry.matter != entry.matter:
+                entry.invoice = None
+
             entry.save()
 
             return HttpResponse(status=204, headers={"HX-Trigger": "expensesChanged"})
