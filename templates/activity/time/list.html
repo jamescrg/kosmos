@@ -2,7 +2,6 @@
   {% load humanize %}
   <div class="section-title">
     <div class="section-title-left">
-      <h1>Time</h1>
       <div class="table-filter">
         <button hx-get="{% url 'activity:time-add' %}"
                 hx-target="#htmx-modal-container"
@@ -12,6 +11,7 @@
         </button>
         <button hx-get="{% url 'activity:time-filter' %}"
                 hx-target="#htmx-modal-container"
+                class="{% if filter_label == "custom" %}toggle-active{% endif %}"
                 data-bs-toggle="modal"
                 data-bs-target="#htmx-modal-container">Filter</button>
         <button class="{% if filter_label == "unbilled" %}toggle-active{% endif %}"

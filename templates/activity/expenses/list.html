@@ -2,7 +2,6 @@
   {% load humanize %}
   <div class="section-title">
     <div class="section-title-left">
-      <h1>Expenses</h1>
       <div class="table-filter">
         <button hx-get="/activity/expenses/add"
                 hx-target="#htmx-modal-container"
@@ -12,11 +11,15 @@
         </button>
         <button hx-get="{% url 'activity:expenses-filter' %}"
                 hx-target="#htmx-modal-container"
+                class="{% if filter_label == "custom" %}toggle-active{% endif %}"
                 data-bs-toggle="modal"
                 data-bs-target="#htmx-modal-container">Filter</button>
         <a href="#"
+           class="{% if filter_label == "unbilled" %}toggle-active{% endif %}"
            hx-post="{% url 'activity:expenses-filter-quick' 'unbilled' %}">Unbilled</a>
-        <a href="#" hx-post={% url 'activity:expenses-filter-quick' 'today' %}>Today</a>
+        <a class="{% if filter_label == "today" %}toggle-active{% endif %}"
+           href="#"
+           hx-post="{% url 'activity:expenses-filter-quick' 'today' %}">Today</a>
         <form hx-post="{% url 'activity:expenses-filter-user' %}"
               hx-trigger="change from:select">
           {% csrf_token %}
