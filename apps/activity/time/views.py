@@ -56,7 +56,6 @@ def time_list(request):
     }
 
     filter_data = request.session.get("time_filter", None)
-    print(filter_data)
 
     if filter_data:
         filter = TimeEntryFilter(filter_data)
@@ -96,17 +95,18 @@ def time_list(request):
 def time_filter(request):
     def get_filter(request):
         filter_data = request.session.get("time_filter", request.POST)
-
         return TimeEntryFilter(filter_data, queryset=TimeEntry.objects.all())
 
     if request.method == "POST":
-        request.session["time_filter"] = request.POST
-
+        filter_data = {}
+        for key, val in request.POST.items():
+            filter_data[key] = val
+        filter_data["filter_label"] = "custom"
+        request.session["time_filter"] = filter_data
         return HttpResponse(status=204, headers={"HX-Trigger": "timeChanged"})
 
     else:
         filter = get_filter(request)
-
         return render(
             request,
             "activity/time/filter.html",
