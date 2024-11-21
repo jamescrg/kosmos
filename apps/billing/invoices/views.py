@@ -86,6 +86,7 @@ def pdf_preview_index(request, pk):
     context = {
         "app": "billing",
         "subapp": "preview",
+        "file_url": reverse_lazy("billing:invoices-pdf", kwargs={"pk": invoice.pk}),
         "invoice": invoice,
         "view": "detail",
     }
@@ -112,10 +113,22 @@ def pdf_preview(request, pk):
 def invoice_time_entries_index(request, pk):
     invoice = get_object_or_404(Invoice, pk=pk)
 
+    entries = TimeEntry.objects.filter(invoice=invoice).order_by("date")
+    summary = calculate_time_summary(entries)
+
+    pagination = CustomPaginator(
+        entries, per_page=10, request=request, session_key="invoice_time_pagination"
+    )
+
     context = {
         "app": "billing",
         "subapp": "time",
+        "objects": pagination.get_object_list(),
+        "pagination": pagination,
+        "session_key": "invoice_time_pagination",
+        "trigger_key": "timeChanged",
         "invoice": invoice,
+        "summary": summary,
         "view": "detail",
     }
 
@@ -152,10 +165,25 @@ def invoice_time_entries(request, pk):
 def invoice_expense_entries_index(request, pk):
     invoice = get_object_or_404(Invoice, pk=pk)
 
+    expenses = ExpenseEntry.objects.filter(invoice=invoice).order_by("date")
+    summary = calculate_expense_summary(expenses)
+
+    pagination = CustomPaginator(
+        expenses,
+        per_page=10,
+        request=request,
+        session_key="invoice_expenses_pagination",
+    )
+
     context = {
         "app": "billing",
         "subapp": "expenses",
+        "objects": pagination.get_object_list(),
+        "pagination": pagination,
+        "session_key": "invoice_expenses_pagination",
+        "trigger_key": "expensesChanged",
         "invoice": invoice,
+        "summary": summary,
         "view": "detail",
     }
 
@@ -236,7 +264,9 @@ def invoices_edit(request, pk):
         if form.is_valid():
             invoice.save()
 
-            return redirect("billing:invoice-time-entries-index", pk=pk)
+            return HttpResponse(
+                status=204, headers={"HX-Trigger": "invoiceDetailChanged"}
+            )
 
     else:
         form = EditInvoiceForm(instance=invoice, use_required_attribute=False)

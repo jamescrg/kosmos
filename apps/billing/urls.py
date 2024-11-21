@@ -47,7 +47,7 @@ urlpatterns = [
         name="invoices-detail-index",
     ),
     path(
-        "billing/invoices-detail/<int:pk>/preview/",
+        "billing/invoices-detail/<int:pk>/detail/",
         invoices_detail,
         name="invoices-detail",
     ),
