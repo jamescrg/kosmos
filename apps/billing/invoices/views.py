@@ -30,6 +30,7 @@ def invoices_index(request):
     context = {
         "app": "billing",
         "subapp": "invoices",
+        "view": "list",
     } | invoice_data
 
     return render(request, "billing/invoices/main.html", context)
@@ -42,6 +43,7 @@ def invoices_list(request):
     context = {
         "app": "billing",
         "subapp": "invoices",
+        "view": "list",
     }
 
     context = context | invoice_data
@@ -55,11 +57,12 @@ def invoices_detail_index(request, pk):
 
     context = {
         "app": "billing",
-        "subapp": "preview",
+        "subapp": "time",
         "invoice": invoice,
+        "view": "detail",
     }
 
-    return render(request, "billing/invoices/detail-index.html", context)
+    return render(request, "billing/invoices/detail/detail-index.html", context)
 
 
 @login_required
@@ -68,12 +71,12 @@ def invoices_detail(request, pk):
 
     context = {
         "app": "billing",
-        "subapp": "preview",
-        "file_url": reverse_lazy("billing:invoices-pdf", kwargs={"pk": invoice.pk}),
+        "subapp": "time",
         "invoice": invoice,
+        "view": "detail",
     }
 
-    return render(request, "billing/invoices/preview/preview.html", context)
+    return render(request, "billing/invoices/time/index.html", context)
 
 
 @login_required
@@ -84,6 +87,7 @@ def pdf_preview_index(request, pk):
         "app": "billing",
         "subapp": "preview",
         "invoice": invoice,
+        "view": "detail",
     }
 
     return render(request, "billing/invoices/preview/index.html", context)
@@ -98,26 +102,28 @@ def pdf_preview(request, pk):
         "subapp": "preview",
         "file_url": reverse_lazy("billing:invoices-pdf", kwargs={"pk": invoice.pk}),
         "invoice": invoice,
+        "view": "detail",
     }
 
     return render(request, "billing/invoices/preview/preview.html", context)
 
 
 @login_required
-def invoice_time_entires_index(request, pk):
+def invoice_time_entries_index(request, pk):
     invoice = get_object_or_404(Invoice, pk=pk)
 
     context = {
         "app": "billing",
         "subapp": "time",
         "invoice": invoice,
+        "view": "detail",
     }
 
     return render(request, "billing/invoices/time/index.html", context)
 
 
 @login_required
-def invoice_time_entires(request, pk):
+def invoice_time_entries(request, pk):
     invoice = get_object_or_404(Invoice, pk=pk)
 
     entries = TimeEntry.objects.filter(invoice=invoice).order_by("date")
@@ -136,6 +142,7 @@ def invoice_time_entires(request, pk):
         "trigger_key": "timeChanged",
         "invoice": invoice,
         "summary": summary,
+        "view": "detail",
     }
 
     return render(request, "billing/invoices/time/list.html", context)
@@ -149,6 +156,7 @@ def invoice_expense_entries_index(request, pk):
         "app": "billing",
         "subapp": "expenses",
         "invoice": invoice,
+        "view": "detail",
     }
 
     return render(request, "billing/invoices/expenses/index.html", context)
@@ -177,6 +185,7 @@ def invoice_expense_entries(request, pk):
         "trigger_key": "expensesChanged",
         "invoice": invoice,
         "summary": summary,
+        "view": "detail",
     }
 
     return render(request, "billing/invoices/expenses/list.html", context)
@@ -324,9 +333,12 @@ def order_by_invoices(request, order):
 
 
 @login_required
-def invoices_edit_status(request, pk, status):
+def invoices_edit_status(_, pk, status, view):
     invoice = get_object_or_404(Invoice, pk=pk)
+
     invoice.status = status
     invoice.save()
-    context = {"invoice": invoice}
-    return render(request, "billing/invoices/status.html", context)
+
+    trigger = "invoicesChanged" if view == "list" else "invoiceDetailChanged"
+
+    return HttpResponse(status=204, headers={"HX-Trigger": trigger})
