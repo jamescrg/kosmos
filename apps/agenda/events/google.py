@@ -3,8 +3,6 @@ import os
 from datetime import timedelta
 
 import google.oauth2.credentials
-
-# noinspection PyPackageRequirements
 from googleapiclient.discovery import build
 
 from utils.prepare_path import prepare_path
