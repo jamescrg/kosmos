@@ -79,16 +79,24 @@ def add_event(event):
 
 def delete_event(event):
     service = build_service()
+    result = None
 
     if service:
-        result = (
-            service.events()
-            .delete(
-                calendarId=CALENDAR_ID,
-                eventId=event.google_id,
+        try:
+            result = (
+                service.events()
+                .delete(
+                    calendarId=CALENDAR_ID,
+                    eventId=event.google_id,
+                )
+                .execute()
             )
-            .execute()
-        )
+        except Exception as err:
+            # If the event is not found, it is already deleted, ignore the error
+            print(
+                f"The event was already deleted through the Google Calendar interface: {err}"
+            )
+            pass
 
         if result:
             return True
