@@ -1,6 +1,5 @@
 from logging import getLogger
 
-import apps.agenda.events.google as google
 from apps.accounts.models import CustomUser
 from apps.agenda.events.filter import EventFilter
 from apps.management.pagination import CustomPaginator
@@ -10,12 +9,11 @@ logger = getLogger(__name__)
 
 
 def get_table_data(request):
-    if google.check_credentials():
-        try:
-            google.remove_deleted_events()
-        except Exception as err:
-            logger.error(f"Error removing deleted events: {err}")
-
+    # if google.check_credentials():
+    #     try:
+    #         google.remove_deleted_events()
+    #     except Exception as err:
+    #         logger.error(f"Error removing deleted events: {err}")
     table_data = {}
 
     default_filter = {
