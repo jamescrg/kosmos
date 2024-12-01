@@ -40,7 +40,7 @@ Detail View
 
 .invoices-detail-table {
   height: fit-content;
-  width: 23%;
+  width: 30%;
 }
 
 @media (max-width: 768px) {
