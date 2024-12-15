@@ -9,12 +9,10 @@
       </div>
     </div>
     <div class="modal-body">
-      <form
-        class="form-responsive invoices-add"
-        hx-post="{% url 'billing:credits-edit' credit.id %}"
-        hx-target="#htmx-modal-container"
-        role="form"
-      >
+      <form class="form-responsive invoices-add"
+            hx-post="{% url 'billing:credits-edit' credit.id %}"
+            hx-target="#htmx-modal-container"
+            role="form">
         {% csrf_token %} {{ form }}
         <br />
         <div class="flex-center-space">
