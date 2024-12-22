@@ -3,12 +3,9 @@ from operator import itemgetter
 from apps.billing.credits.models import Credit
 from apps.billing.invoices.models import Invoice
 from apps.billing.payments.models import Payment
-from apps.matters.proceedings.models import Proceeding
 
 
 def get_ledger_data(matter):
-    proceeding = Proceeding.objects.filter(matter=matter.id).order_by("-id").first()
-
     transactions = []
     balance_due = 0
 
@@ -57,7 +54,6 @@ def get_ledger_data(matter):
         transactions = sorted(transactions, key=itemgetter("date"))
 
     return {
-        "proceeding": proceeding,
         "transactions": transactions,
         "balance_due": -1 * float(balance_due),
     }

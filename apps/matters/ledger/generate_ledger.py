@@ -6,6 +6,7 @@ from weasyprint import HTML
 
 from apps.matters.ledger.get_ledger_data import get_ledger_data
 from apps.matters.models import Matter
+from apps.matters.proceedings.models import Proceeding
 
 
 def generate_ledger(matter_id, request):
@@ -18,9 +19,11 @@ def generate_ledger(matter_id, request):
         raise Http404("Matter does not exist")
 
     ledger_data = get_ledger_data(matter)
+    proceeding = Proceeding.objects.filter(matter=matter.id).order_by("-id").first()
 
     context = {
         "matter": matter,
+        "proceeding": proceeding,
     } | ledger_data
 
     html_string = render_to_string("matters/ledger/ledger.html", context)
