@@ -125,7 +125,7 @@ def get_confirmed_account_balance():
 
 def get_client_history(contact_id):
     contact = get_object_or_404(Contact, pk=contact_id)
-    transactions = Transaction.objects.filter(contact=contact)
+    transactions = Transaction.objects.filter(contact=contact).order_by("date", "id")
     return transactions
 
 
