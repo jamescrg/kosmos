@@ -85,6 +85,7 @@ def tasks_add(request):
 
     matters = Matter.objects.filter(status="Open").order_by("name")
     form.fields["matter"].queryset = matters
+    form.fields["matter"].empty_label = "Admin"
     users = CustomUser.objects.filter(is_active=True).order_by("username")
     form.fields["user"].queryset = users
 
@@ -265,10 +266,7 @@ def tasks_priority(request, task_id, priority):
     task = get_object_or_404(Task, pk=task_id)
     task.priority = priority
     task.save()
-    context = {
-        "task": task,
-    }
-    return render(request, "agenda/tasks/priority.html", context)
+    return redirect("agenda:tasks-list")
 
 
 @login_required
@@ -279,10 +277,7 @@ def tasks_date(request, task_id):
         date_due = datetime.strptime(request.POST["date_due"], "%Y-%m-%d")
         task.date_due = date_due
         task.save()
-        context = {
-            "task": task,
-        }
-        return render(request, "agenda/tasks/date-display.html", context)
+        return redirect("agenda:tasks-list")
 
     else:
         context = {
@@ -304,15 +299,9 @@ def tasks_user(request, task_id, user):
 def tasks_matter(request, task_id, matter_id):
     task = get_object_or_404(Task, pk=task_id)
     matter = get_object_or_404(Matter, pk=matter_id)
-    matters = Matter.objects.filter(status="Open").order_by("name")
     task.matter = matter
     task.save()
-    context = {
-        "task": task,
-        "matter": matter,
-        "matters": matters,
-    }
-    return render(request, "agenda/tasks/matter.html", context)
+    return redirect("agenda:tasks-list")
 
 
 @login_required
