@@ -169,7 +169,7 @@ def tasks_filter(request, user=None):
             filter = TasksFilter(filter_data, queryset=Task.objects.all())
         else:
             default_filter = {
-                "status": None,
+                "status": "Pending",
                 "matter": None,
                 "order_by": "date_due",
                 "user": request.user.id,
@@ -186,21 +186,12 @@ def tasks_filter_quick(request, quick_filter):
     end_of_week = end_of_week.strftime("%Y-%m-%d")
     filter_data = request.session.get("tasks_filter", {})
     quick_filters = {
-        "all": {
-            "status": None,
-            "date_due_max": None,
-            "date_due_min": None,
-            "matter": None,
-            "user": None,
-            "order_by": "priority",
-            "filter_label": "all",
-        },
         "today": {
             "status": None,
             "date_due_max": date.today().strftime("%Y-%m-%d"),
             "matter": filter_data.get("matter"),
             "user": filter_data.get("user"),
-            "order_by": "priority",
+            "order_by": filter_data.get("order_by"),
             "filter_label": "today",
         },
         "week": {
@@ -208,7 +199,7 @@ def tasks_filter_quick(request, quick_filter):
             "date_due_max": end_of_week,
             "matter": filter_data.get("matter"),
             "user": filter_data.get("user"),
-            "order_by": "priority",
+            "order_by": filter_data.get("order_by"),
             "filter_label": "week",
         },
     }
