@@ -68,13 +68,20 @@ def tasks_add(request):
             return HttpResponse(status=204, headers={"HX-Trigger": "tasksListChanged"})
 
     else:
-        # save the currently selected matter in the add task form
-        # so multiple tasks can quickly be added to a matter
-        tasks_matter = request.session.get("tasks_matter")
 
         # get the currently filtered user if available
         filter_data = request.session.get("tasks_filter", {})
         user_id = filter_data.get("user")
+
+        # automatically populate to the current matter
+        tasks_matter = filter_data.get("matter")
+
+        # if no current matter is set, use the matter to which
+        # the most recently saved task was assigned
+        if not tasks_matter:
+            tasks_matter = request.session.get("tasks_matter")
+
+        term = filter_data.get("term")
         if user_id and user_id != "":
             try:
                 initial_user = CustomUser.objects.get(pk=int(user_id))
@@ -84,7 +91,11 @@ def tasks_add(request):
             initial_user = request.user
 
         form = TaskForm(
-            initial={"user": initial_user, "matter": tasks_matter},
+            initial={
+                "user": initial_user,
+                "matter": tasks_matter,
+                "term": term,
+            },
             use_required_attribute=False,
         )
 
@@ -261,6 +272,7 @@ def tasks_filter_default(request):
         "matter": None,
         "user": request.user.id,
         "order_by": "priority",
+        "term": "Current",
     }
     request.session["tasks_filter"] = filter_data
     request.session.modified = True
