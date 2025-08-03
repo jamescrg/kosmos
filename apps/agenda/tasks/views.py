@@ -68,7 +68,6 @@ def tasks_add(request):
             return HttpResponse(status=204, headers={"HX-Trigger": "tasksListChanged"})
 
     else:
-
         # get the currently filtered user if available
         filter_data = request.session.get("tasks_filter", {})
         user_id = filter_data.get("user")
@@ -117,7 +116,6 @@ def tasks_add(request):
 
 @login_required
 def tasks_add_quick(request):
-
     task = Task()
 
     # prevent creation of tasks without a description
@@ -381,8 +379,17 @@ def tasks_matter(request, task_id, matter_id):
 @login_required
 def tasks_filter_sort(request, order):
     filter_data = request.session.get("tasks_filter", {})
-    filter_data["order_by"] = order
+
+    current_order = filter_data.get("order_by", "")
+
+    if current_order == order:
+        new_order = f"-{order}" if not current_order.startswith("-") else order
+    else:
+        new_order = order
+
+    filter_data["order_by"] = new_order
     request.session["tasks_filter"] = filter_data
+
     return redirect("agenda:tasks-list")
 
 
