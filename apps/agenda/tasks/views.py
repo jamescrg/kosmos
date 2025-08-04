@@ -45,6 +45,7 @@ def tasks_index(request):
 @login_required
 def tasks_list(request):
     context = get_list_data(request)
+
     return render(request, "agenda/tasks/list.html", context)
 
 
@@ -253,29 +254,37 @@ def tasks_filter_quick(request, quick_filter):
 
 
 @login_required
-def tasks_filter_matter(request):
+def tasks_filter_matter(request, matter_id):
+    print(f"Matter ID: {matter_id}")
     filter_data = request.session.get("tasks_filter", {})
-    matter = request.POST.get("matter")
-    filter_data["matter"] = matter
+    filter_data["matter"] = matter_id
+
     request.session["tasks_filter"] = filter_data
+
     return redirect("agenda:tasks-list")
 
 
 @login_required
-def tasks_filter_user(request):
+def tasks_filter_user(request, user_id):
     filter_data = request.session.get("tasks_filter", {})
-    user = request.POST.get("user")
-    filter_data["user"] = user
+    filter_data["user"] = user_id
+
     request.session["tasks_filter"] = filter_data
+
     return redirect("agenda:tasks-list")
 
 
 @login_required
-def tasks_filter_focus(request):
+def tasks_filter_focus(request, focus):
     filter_data = request.session.get("tasks_filter", {})
-    focus = request.POST.get("focus")
+
+    if focus == "All":
+        focus = None
+
     filter_data["focus"] = focus
+
     request.session["tasks_filter"] = filter_data
+
     return redirect("agenda:tasks-list")
 
 

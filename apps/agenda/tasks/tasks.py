@@ -50,6 +50,14 @@ def get_list_data(request):
         tasks, per_page=20, request=request, session_key="tasks_pagination"
     )
 
+    selected_matter = None
+    if matter_id:
+        selected_matter = Matter.objects.filter(id=matter_id).first()
+
+    selected_user = None
+    if user_id:
+        selected_user = CustomUser.objects.filter(id=user_id).first()
+
     list_data = {
         "pagination": pagination,
         "session_key": "tasks_pagination",
@@ -60,6 +68,8 @@ def get_list_data(request):
         "users": CustomUser.objects.filter(is_active=True).order_by("username"),
         "user_id": user_id,
         "matter_id": matter_id,
+        "selected_matter": selected_matter.name if selected_matter else None,
+        "selected_user": selected_user.username.capitalize() if selected_user else None,
         "focus": focus,
         "filter_label": filter_data.get("filter_label", None) if filter_data else None,
     }
