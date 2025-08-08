@@ -5,7 +5,6 @@ User = get_user_model()
 
 
 class Document(models.Model):
-    id = models.BigAutoField(primary_key=True)
     name = models.CharField(max_length=255)
     description = models.TextField(blank=True, null=True)
     file = models.FileField(upload_to="documents/%Y/%m/%d/")
