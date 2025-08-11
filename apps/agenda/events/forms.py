@@ -14,11 +14,11 @@ class EventForm(forms.ModelForm):
     class Meta:
         model = Event
         fields = (
+            "description",
             "date",
             "matter",
             "party",
             "status",
-            "description",
         )
         PARTIES = (
             ("Client", "Client"),
@@ -37,7 +37,7 @@ class EventForm(forms.ModelForm):
                 attrs={
                     "autofocus": "autofocus",
                     "onfocus": "moveFocusToEnd(this)",
-                    "class": "full-width",
+                    "class": "span2",
                 }
             ),
             "party": forms.Select(choices=PARTIES),

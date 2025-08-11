@@ -30,19 +30,6 @@ select {
   background: white;
 }
 
-input[type="date"] {
-}
-
-input[type="time"] {
-}
-
-input[type="password"] {
-}
-
-textarea {
-  height: 100px;
-  max-width: 550px;
-}
 
 .form-control:focus {
   border: solid 1px var(--stone-300);
@@ -114,41 +101,62 @@ textarea {
   }
 }
 
+.form-spacious input[type="date"] {
+  max-width: 400px;
+}
+
+.form-spacious input[type="time"] {
+  max-width: 140px;
+}
+
+.form-spacious input[type="password"] {
+  max-width: 200px;
+}
+
+.form-spacious textarea {
+  height: 100px;
+  max-width: 550px;
+}
+
 
 /* compact layout */
 
 .form-compact {
   display: grid;
-  gap: 0.5rem;
+  gap: 1rem;
+}
+
+.col2 {
+  grid-template-columns: 1fr 1fr;
+}
+
+.col3 {
+  grid-template-columns: 1fr 1fr 1fr;
+}
+
+.col5 {
+  grid-template-columns: 1fr 1fr 1fr 1fr 1fr;
+}
+
+.form-compact .form-group:has(div>input.span2) {
+  grid-column: span 2;
+}
+
+.form-compact .form-group:has(div>input.span3) {
+  grid-column: span 3;
+}
+
+.form-compact .form-group:has(div>input.span5) {
+  grid-column: span 5;
 }
 
 .form-compact .form-group label {
-  font-weight: 500;
+  margin-bottom: 0.5rem;
 }
 
-.form-compact > div {
-  margin-block-end: 1rem;
-}
-
-.form-compact {
-  grid-template-columns: 1fr 4fr;
-}
-
-.modal-md .form-compact {
-  grid-template-columns: 1fr 1fr;
-}
-
-.modal-lg .form-compact {
-  grid-template-columns: 1fr 1fr;
-}
-
-.full-width-field {
-  grid-column: span 2;
-}
-
-
-.form-group:has(div>input.full-width) {
-  grid-column: span 2;
+.form-compact .flex-center-space {
+  padding-bottom: 0.5rem;
+  padding-top: 0.35rem;
 }
 
 

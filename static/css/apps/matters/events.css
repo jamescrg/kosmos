@@ -3,10 +3,10 @@
 form
 ------------------------------------------------*/
 
-#id_date,
-#id_matter,
-#id_party,
-#id_status {
+.events-form #id_date,
+.events-form #id_matter,
+.events-form #id_party,
+.events-form #id_status {
   width: 100% !important;
 }
 
