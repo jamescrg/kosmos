@@ -1,18 +1,21 @@
 from django import forms
 
+from config.settings import CustomFormRendererCompact
+
 from .models import TimeEntry
 
 
 class TimeEntryForm(forms.ModelForm):
+
     class Meta:
         model = TimeEntry
 
         fields = (
-            "date",
             "matter",
-            "rate",
+            "date",
             "actions",
             "hours",
+            "rate",
             "comp",
             "entered",
         )
@@ -31,10 +34,19 @@ class TimeEntryForm(forms.ModelForm):
             "matter": forms.Select(attrs={"onchange": "updateRate()"}),
             "date": forms.DateInput(attrs={"type": "date"}),
             "actions": forms.Textarea(
-                attrs={"autofocus": "autofocus", "onfocus": "moveFocusToEnd(this)"}
+                attrs={
+                    "autofocus": "autofocus",
+                    "onfocus": "moveFocusToEnd(this)",
+                    "rows": "3",
+                    "class": "span2",
+                }
             ),
             "comp": forms.Select(choices=COMP_CHOICES),
             "entered": forms.Select(choices=ENTERED_CHOICES),
         }
 
         labels = {"rate": "Rate"}
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.renderer = CustomFormRendererCompact()

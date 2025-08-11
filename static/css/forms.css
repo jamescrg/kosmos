@@ -39,7 +39,7 @@ select {
 
 .submit {
   background: var(--button-form);
-  border: solid 1px var(--stone-600);
+  border: solid 1px var(--button-form);
   border-radius: 5px;
   color: var(--stone-200);
   padding: 4px 10px;
@@ -138,15 +138,15 @@ select {
   grid-template-columns: 1fr 1fr 1fr 1fr 1fr;
 }
 
-.form-compact .form-group:has(div>input.span2) {
+.form-compact .form-group:has(div>.span2) {
   grid-column: span 2;
 }
 
-.form-compact .form-group:has(div>input.span3) {
+.form-compact .form-group:has(div>.span3) {
   grid-column: span 3;
 }
 
-.form-compact .form-group:has(div>input.span5) {
+.form-compact .form-group:has(div>.span5) {
   grid-column: span 5;
 }
 
@@ -165,36 +165,26 @@ select {
 Time entry form
 ------------------------------------------------*/
 
-#id_matter {
-  width: auto;
-}
-
-#id_actions {
-  max-width: 500px;
-  vertical-align: top;
-  width: 95%;
-}
-
-#id_hours {
-  max-width: 80px;
-}
-
-#id_firm_rate {
-  max-width: 80px;
-}
-
-#id_comp {
-  max-width: 80px;
-}
-
-#id_entered {
-  max-width: 80px;
+.time-form #id_date,
+.time-form #id_matter,
+.time-form #id_hours,
+.time-form #id_rate,
+.time-form #id_comp,
+.time-form #id_entered,
+.time-form #id_actions {
+  width: 100%;
 }
 
 /*------------------------------------------------
 Expense entry form
 ------------------------------------------------*/
 
-#id_amount {
-  max-width: 120px;
+.expenses-form #id_date,
+.expenses-form #id_matter,
+.expenses-form #id_category,
+.expenses-form #id_amount,
+.expenses-form #id_comp,
+.expenses-form #id_entered,
+.expenses-form #id_description {
+  width: 100%;
 }

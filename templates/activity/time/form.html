@@ -15,7 +15,7 @@
     {% endfor %}
 
 </script>
-<div class="modal-dialog modal-lg">
+<div class="modal-dialog modal-md">
   <div class="modal-content">
     <div class="modal-header">
       <h1 class="modal-title">
@@ -34,7 +34,7 @@
     <div class="modal-body">
       <form hx-post="{{ action }}"
             hx-target="#htmx-modal-container"
-            class="form-responsive form-spacious time-form">
+            class="form-compact col2 time-form">
         {% csrf_token %}
         {{ form }}
         <br />
