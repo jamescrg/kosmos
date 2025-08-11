@@ -28,19 +28,15 @@ textarea {
 
 select {
   background: white;
-  max-width: 200px;
 }
 
 input[type="date"] {
-  max-width: 140px;
 }
 
 input[type="time"] {
-  max-width: 140px;
 }
 
 input[type="password"] {
-  max-width: 200px;
 }
 
 textarea {
@@ -89,33 +85,27 @@ textarea {
   margin-block-end: 1rem;
 }
 
-@media screen and (min-width: 800px) and (max-width: 1199px) {
-  .form-responsive {
-    grid-template-columns: 1fr 3fr;
-  }
-
-  .modal-md .form-responsive {
-    grid-template-columns: 1fr 2fr;
-  }
-
-  .modal-lg .form-responsive {
-    grid-template-columns: 1fr 4fr;
-  }
+.form-responsive {
+  grid-template-columns: 1fr 4fr;
 }
 
-@media screen and (min-width: 1200px) {
-  .form-responsive {
-    grid-template-columns: 1fr 4fr;
-  }
-
-  .modal-md .form-responsive {
-    grid-template-columns: 1fr 2fr;
-  }
-
-  .modal-lg .form-responsive {
-    grid-template-columns: 1fr 4fr;
-  }
+.modal-md .form-responsive {
+  grid-template-columns: 1fr 1fr;
 }
+
+.modal-lg .form-responsive {
+  grid-template-columns: 1fr 1fr;
+}
+
+.full-width-field {
+  grid-column: span 2;
+}
+
+
+.form-group:has(div>input.full-width) {
+  grid-column: span 2;
+}
+
 
 /*------------------------------------------------
 Time entry form

@@ -7,11 +7,11 @@ class EventForm(forms.ModelForm):
     class Meta:
         model = Event
         fields = (
-            "matter",
             "date",
+            "matter",
             "party",
-            "description",
             "status",
+            "description",
         )
         PARTIES = (
             ("Client", "Client"),
@@ -27,7 +27,11 @@ class EventForm(forms.ModelForm):
         widgets = {
             "date": forms.DateInput(attrs={"type": "date"}),
             "description": forms.TextInput(
-                attrs={"autofocus": "autofocus", "onfocus": "moveFocusToEnd(this)"}
+                attrs={
+                    "autofocus": "autofocus",
+                    "onfocus": "moveFocusToEnd(this)",
+                    "class": "full-width",
+                }
             ),
             "party": forms.Select(choices=PARTIES),
             "status": forms.Select(choices=STATUSES),

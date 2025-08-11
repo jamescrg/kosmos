@@ -261,6 +261,8 @@ LOGGING = {
 
 class CustomFormRenderer(TemplatesSetting):
     form_template_name = "components/form-fields-template.html"
+    label_suffix = ""
 
 
 FORM_RENDERER = "config.settings.CustomFormRenderer"
+FORM_SETTINGS = {"label_suffix": ""}
