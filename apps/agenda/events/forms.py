@@ -7,10 +7,6 @@ from .models import Event
 
 class EventForm(forms.ModelForm):
 
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.renderer = CustomFormRendererCompact()
-
     class Meta:
         model = Event
         fields = (
@@ -43,3 +39,7 @@ class EventForm(forms.ModelForm):
             "party": forms.Select(choices=PARTIES),
             "status": forms.Select(choices=STATUSES),
         }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.renderer = CustomFormRendererCompact()

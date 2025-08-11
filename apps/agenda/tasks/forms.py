@@ -2,9 +2,11 @@ from django import forms
 from django.core.exceptions import ValidationError
 
 from apps.agenda.tasks.models import Task
+from config.settings import CustomFormRendererCompact
 
 
 class TaskForm(forms.ModelForm):
+
     class Meta:
         model = Task
 
@@ -46,6 +48,7 @@ class TaskForm(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        self.renderer = CustomFormRendererCompact()
         self.fields["priority"].initial = 3
 
     def clean_description(self):
