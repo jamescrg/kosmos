@@ -77,8 +77,8 @@ textarea {
   gap: 0.5rem;
 }
 
-.form-responsive > label {
-  font-weight: 600;
+.form-responsive .form-group label {
+  font-weight: 500;
 }
 
 .form-responsive > div {
@@ -105,6 +105,7 @@ textarea {
 .form-group:has(div>input.full-width) {
   grid-column: span 2;
 }
+
 
 
 /*------------------------------------------------
