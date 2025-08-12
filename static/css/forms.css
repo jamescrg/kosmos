@@ -30,7 +30,6 @@ select {
   background: white;
 }
 
-
 .form-control:focus {
   border: solid 1px var(--stone-300);
   box-shadow: none;
@@ -86,7 +85,6 @@ select {
   }
 }
 
-
 @media screen and (min-width: 1200px) {
   .form-spacious {
     grid-template-columns: 1fr 4fr;
@@ -118,12 +116,22 @@ select {
   max-width: 550px;
 }
 
-
 /* compact layout */
 
 .form-compact {
   display: grid;
   gap: 1rem;
+}
+
+.form-compact select,
+.form-compact input[type="date"],
+.form-compact input[type="time"],
+.form-compact input[type="text"],
+.form-compact input[type="password"],
+.form-compact input[type="number"],
+.form-compact input[type="email"],
+.form-compact textarea {
+  width: 100%;
 }
 
 .col2 {
@@ -138,15 +146,15 @@ select {
   grid-template-columns: 1fr 1fr 1fr 1fr 1fr;
 }
 
-.form-compact .form-group:has(div>.span2) {
+.form-compact .form-group:has(div > .span2) {
   grid-column: span 2;
 }
 
-.form-compact .form-group:has(div>.span3) {
+.form-compact .form-group:has(div > .span3) {
   grid-column: span 3;
 }
 
-.form-compact .form-group:has(div>.span5) {
+.form-compact .form-group:has(div > .span5) {
   grid-column: span 5;
 }
 
@@ -169,34 +177,4 @@ select {
 .form-compact .flex-center-space {
   padding-bottom: 0.5rem;
   padding-top: 0.35rem;
-}
-
-
-
-/*------------------------------------------------
-Time entry form
-------------------------------------------------*/
-
-.time-form #id_date,
-.time-form #id_matter,
-.time-form #id_hours,
-.time-form #id_rate,
-.time-form #id_comp,
-.time-form #id_entered,
-.time-form #id_actions {
-  width: 100%;
-}
-
-/*------------------------------------------------
-Expense entry form
-------------------------------------------------*/
-
-.expenses-form #id_date,
-.expenses-form #id_matter,
-.expenses-form #id_category,
-.expenses-form #id_amount,
-.expenses-form #id_comp,
-.expenses-form #id_entered,
-.expenses-form #id_description {
-  width: 100%;
 }
