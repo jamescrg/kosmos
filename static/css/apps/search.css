@@ -17,6 +17,10 @@
   width: 70%;
 }
 
+.search-results-placeholder {
+  margin-top: 0.5rem;
+}
+
 .search-form .input-group {
   margin: 0 auto;
   text-align: center;
@@ -75,6 +79,5 @@
 
 .search-results .contact-email,
 .search-results .intake-email {
-	text-align: right;
   width: 300px;
 }
