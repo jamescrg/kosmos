@@ -49,7 +49,6 @@
       <table class="table">
         <tr>
           <th>Name</th>
-          <th>Folder</th>
           <th>Phone1</th>
           <th>Email</th>
         </tr>
@@ -57,13 +56,6 @@
           <tr>
             <td class="contact-name">
               <a href={% url 'contacts:select' id=contact.id %}>{{ contact.name }}</a>
-            </td>
-            <td class="contact-folder">
-              {% if contact.folder %}
-                <a href="{% url 'folders:list' folder_id=contact.folder.id folder_type=contact.folder.name|lower %}">{{ contact.folder.name }}</a>
-              {% else %}
-                <a href={% url 'folders:list' "unsorted" %}>Unsorted</a>
-              {% endif %}
             </td>
             <td class="contact-phone1">{{ contact.phone1 }}</td>
             <td class="contact-email">{{ contact.email }}</td>
