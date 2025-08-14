@@ -19,23 +19,36 @@ def index(request):
 
 @login_required
 def select(request, contact_id):
-    request.session["selected_contact_id"] = contact_id
-    context = get_list_data(request)
-    return render(request, "contacts/main.html", context)
+    # select a contact
+    # and adjust the context to match the selected contact
 
-
-@login_required
-def go_to_contact(request, contact_id):
+    # identify the contact
     contact = get_object_or_404(Contact, pk=contact_id)
+
+    # persist the id of the selected contact
     request.session["selected_contact_id"] = contact.id
 
-    if contact.client_status == "Current" or contact.client_status == "Former":
-        request.session["contacts_client_status"] = contact.client_status
-        request.session["contacts_selected_folder_id"] = None
+    # check whether a the user is viewing a list of contacts
+    # based on client status, or whether the user is
+    # viewing a specific folder
+    client_status = request.session.get("contacts_client_status")
+    folder = request.session.get("contacts_selected_folder_id")
 
-    elif contact.folder:
+    # if the user is viewing a list of clients,
+    # set the list to match the contact
+    if client_status and client_status != "Nonclient":
+        if client_status != "Nonclient":
+            request.session["contacts_client_status"] = contact.client_status
+            request.session["contacts_selected_folder_id"] = None
+
+    # if the viewer is viewing a list of folders,
+    # set the list to match the folder
+    elif folder or contact.folder:
         request.session["contacts_client_status"] = None
         request.session["contacts_selected_folder_id"] = contact.folder_id
+
+    # if the user is viewing unsorted contacts
+    # remove all sorting parameters
     else:
         request.session["contacts_client_status"] = None
         request.session["contacts_selected_folder_id"] = None
@@ -72,7 +85,7 @@ def add(request):
 
             # select newest contact for display
             new = Contact.objects.all().latest("id")
-            return redirect("contacts:go-to-contact", contact_id=new.id)
+            return redirect("contacts:select", contact_id=new.id)
 
     else:
         if selected_folder_id:
