@@ -1,40 +1,128 @@
 {% load humanize %}
+{% load dict_extras %}
 <div class="toolbar">
   <div class="toolbar-left">
-    <h2>Activity Report - Last 6 Months</h2>
+    <h1>Activity Report</h1>
+    <div class="filter-tools">
+      <button type="button"
+              class="btn-icon"
+              hx-get="{% url 'reports:activity-filter' %}"
+              hx-target="#htmx-modal-container"
+              hx-trigger="click"
+              data-bs-toggle="modal"
+              data-bs-target="#htmx-modal-container">
+        <i class="bi bi-funnel"></i> Filter
+      </button>
+    </div>
+  </div>
+  <div class="toolbar-right">
+    {% if date_from or date_to %}
+      <div class="date-range-display">
+        <strong>Date Range:</strong>
+        {% if date_from and date_to %}
+          {{ date_from }} to {{ date_to }}
+        {% elif date_from %}
+          From {{ date_from }}
+        {% elif date_to %}
+          Up to {{ date_to }}
+        {% endif %}
+      </div>
+    {% endif %}
   </div>
 </div>
-<div class="table-container">
-  <table class="table">
-    <tr>
-      <th>User</th>
-      {% for month in months %}<th class="numeric">{{ month }}</th>{% endfor %}
-      <th class="numeric">Total Hours</th>
-    </tr>
-    {% for user_data in activity_data %}
+{% if date_from or date_to %}
+  <div class="table-container">
+    <table class="table">
       <tr>
-        <td>
-          <strong>{{ user_data.user.first_name }} {{ user_data.user.last_name }}</strong>
-        </td>
-        {% for month in user_data.months %}
-          <td class="numeric">
-            {% if month.hours > 0 %}
-              {{ month.hours|floatformat:1 }}h
-              <br>
-              <small class="text-muted">({{ month.entries_count }} entries)</small>
-            {% else %}
-              -
-            {% endif %}
+        <th>Month</th>
+        {% for user in users %}<th class="numeric">{{ user.first_name }} {{ user.last_name }}</th>{% endfor %}
+        <th class="numeric">Month Total</th>
+      </tr>
+      {% for month_data in activity_data %}
+        <tr>
+          <td>
+            <strong>{{ month_data.name }}</strong>
           </td>
-        {% endfor %}
-        <td class="numeric">
-          <strong>{{ user_data.total_hours|floatformat:1 }}h</strong>
-        </td>
-      </tr>
-    {% empty %}
-      <tr>
-        <td colspan="{{ months|length|add:2 }}">No activity data available for the last 6 months.</td>
-      </tr>
-    {% endfor %}
-  </table>
-</div>
+          {% for user_activity in month_data.users %}
+            <td class="numeric">
+              {% if user_activity.hours > 0 %}
+                {{ user_activity.hours|floatformat:1 }}h
+                <br>
+                <small class="text-muted">({{ user_activity.entries_count }} entries)</small>
+                <br>
+                <small class="text-muted">${{ user_activity.fees|floatformat:2|intcomma }}</small>
+              {% else %}
+                -
+              {% endif %}
+            </td>
+          {% endfor %}
+          <td class="numeric">
+            <strong>{{ month_data.total_hours|floatformat:1 }}h</strong>
+            <br>
+            <small class="text-muted">${{ month_data.total_fees|floatformat:2|intcomma }}</small>
+          </td>
+        </tr>
+      {% empty %}
+        <tr>
+          <td colspan="{{ users|length|add:2 }}">No activity data available.</td>
+        </tr>
+      {% endfor %}
+      {% if users %}
+        <tr class="table-total">
+          <td>
+            <strong>Total</strong>
+          </td>
+          {% for user in users %}
+            {% with user_data=user_totals|get_item:user.id %}
+              <td class="numeric">
+                <strong>{{ user_data.hours|floatformat:1 }}h</strong>
+                <br>
+                <small class="text-muted">${{ user_data.fees|floatformat:2|intcomma }}</small>
+              </td>
+            {% endwith %}
+          {% endfor %}
+          <td class="numeric">
+            <strong>{{ grand_total_hours|floatformat:1 }}h</strong>
+            <br>
+            <small class="text-muted">${{ grand_total_fees|floatformat:2|intcomma }}</small>
+          </td>
+        </tr>
+        <tr class="table-average">
+          <td>
+            <strong>Average per Month</strong>
+          </td>
+          {% for user in users %}
+            {% with user_avg=user_averages|get_item:user.id %}
+              <td class="numeric">
+                <strong>{{ user_avg.hours|floatformat:1 }}h</strong>
+                <br>
+                <small class="text-muted">${{ user_avg.fees|floatformat:2|intcomma }}</small>
+              </td>
+            {% endwith %}
+          {% endfor %}
+          <td class="numeric">
+            <strong>{{ grand_average_hours|floatformat:1 }}h</strong>
+            <br>
+            <small class="text-muted">${{ grand_average_fees|floatformat:2|intcomma }}</small>
+          </td>
+        </tr>
+      {% endif %}
+    </table>
+  </div>
+{% else %}
+  <div class="no-filter-message">
+    <div class="alert alert-info">
+      <h4>Select a Date Range</h4>
+      <p>Please use the Filter button to select a date range to view activity data.</p>
+      <button type="button"
+              class="btn btn-primary"
+              hx-get="{% url 'reports:activity-filter' %}"
+              hx-target="#htmx-modal-container"
+              hx-trigger="click"
+              data-bs-toggle="modal"
+              data-bs-target="#htmx-modal-container">
+        <i class="bi bi-funnel"></i> Select Date Range
+      </button>
+    </div>
+  </div>
+{% endif %}
