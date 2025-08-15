@@ -40,11 +40,13 @@
 .deadline-calculator-results {
   margin-bottom: 1.5rem;
   margin-top: 0.5rem;
+  table-layout: fixed;
   width: 100%;
 }
 
 .deadline-calculator-results td {
   text-align: right;
+  width: 50%;
 }
 
 
