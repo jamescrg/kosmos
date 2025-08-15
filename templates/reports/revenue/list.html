@@ -1,45 +1,99 @@
 {% load humanize %}
 <div class="toolbar">
   <div class="toolbar-left">
-    <h2>Revenue Report - Last 6 Months</h2>
+    <h1>Revenue Report</h1>
+    <div class="filter-tools">
+      <button type="button"
+              class="btn-icon"
+              hx-get="{% url 'reports:revenue-filter' %}"
+              hx-target="#htmx-modal-container"
+              hx-trigger="click"
+              data-bs-toggle="modal"
+              data-bs-target="#htmx-modal-container">
+        <i class="bi bi-funnel"></i> Filter
+      </button>
+    </div>
+  </div>
+  <div class="toolbar-right">
+    {% if date_from or date_to %}
+      <div class="date-range-display">
+        <strong>Date Range:</strong>
+        {% if date_from and date_to %}
+          {{ date_from }} to {{ date_to }}
+        {% elif date_from %}
+          From {{ date_from }}
+        {% elif date_to %}
+          Up to {{ date_to }}
+        {% endif %}
+      </div>
+    {% endif %}
   </div>
 </div>
-<div class="table-container">
-  <table class="table">
-    <tr>
-      <th>Month</th>
-      <th class="numeric">Payments</th>
-      <th class="numeric">Revenue</th>
-    </tr>
-    {% for month_data in revenue_data %}
+{% if date_from or date_to %}
+  <div class="table-container">
+    <table class="table">
       <tr>
+        <th>Month</th>
+        <th class="numeric">Payments</th>
+        <th class="numeric">Revenue</th>
+      </tr>
+      {% for month_data in revenue_data %}
+        <tr>
+          <td>
+            <strong>{{ month_data.name }}</strong>
+          </td>
+          <td class="numeric">{{ month_data.payments_count }}</td>
+          <td class="numeric">
+            {% if month_data.revenue > 0 %}
+              ${{ month_data.revenue|floatformat:2|intcomma }}
+            {% else %}
+              $0.00
+            {% endif %}
+          </td>
+        </tr>
+      {% empty %}
+        <tr>
+          <td colspan="3">No revenue data available for the last 6 months.</td>
+        </tr>
+      {% endfor %}
+      <tr class="table-total">
         <td>
-          <strong>{{ month_data.name }}</strong>
+          <strong>Total</strong>
         </td>
-        <td class="numeric">{{ month_data.payments_count }}</td>
         <td class="numeric">
-          {% if month_data.revenue > 0 %}
-            ${{ month_data.revenue|floatformat:2|intcomma }}
-          {% else %}
-            $0.00
-          {% endif %}
+          <strong>-</strong>
+        </td>
+        <td class="numeric">
+          <strong>${{ total_revenue|floatformat:2|intcomma }}</strong>
         </td>
       </tr>
-    {% empty %}
-      <tr>
-        <td colspan="3">No revenue data available for the last 6 months.</td>
+      <tr class="table-average">
+        <td>
+          <strong>Average per Month</strong>
+        </td>
+        <td class="numeric">
+          <strong>-</strong>
+        </td>
+        <td class="numeric">
+          <strong>${{ average_revenue|floatformat:2|intcomma }}</strong>
+        </td>
       </tr>
-    {% endfor %}
-    <tr class="table-total">
-      <td>
-        <strong>Total</strong>
-      </td>
-      <td class="numeric">
-        <strong>-</strong>
-      </td>
-      <td class="numeric">
-        <strong>${{ total_revenue|floatformat:2|intcomma }}</strong>
-      </td>
-    </tr>
-  </table>
-</div>
+    </table>
+  </div>
+{% else %}
+  <div class="no-filter-message">
+    <div class="alert alert-info">
+      <h4>Select a Date Range</h4>
+      <p>Please use the Filter button to select a date range to view revenue data.</p>
+      <button type="button"
+              class="btn btn-primary"
+              hx-get="{% url 'reports:revenue-filter' %}"
+              hx-target="#htmx-modal-container"
+              hx-trigger="click"
+              data-bs-toggle="modal"
+              data-bs-target="#htmx-modal-container">
+        <i class="bi bi-funnel"></i> Select Date Range
+      </button>
+    </div>
+  </div>
+{% endif %}

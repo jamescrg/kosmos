@@ -15,9 +15,11 @@ urlpatterns = [
     # Activity
     path("reports/activity/", activity.activity_index, name="activity-index"),
     path("reports/activity/list/", activity.activity_list, name="activity"),
+    path("reports/activity/filter/", activity.activity_filter, name="activity-filter"),
     # Revenue
     path("reports/revenue/", revenue.revenue_index, name="revenue-index"),
     path("reports/revenue/list/", revenue.revenue_list, name="revenue"),
+    path("reports/revenue/filter/", revenue.revenue_filter, name="revenue-filter"),
     # Clients
     path("reports/clients/", clients.clients_index, name="clients-index"),
     path("reports/clients/list/", clients.clients_list, name="clients"),
