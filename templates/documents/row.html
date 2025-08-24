@@ -7,10 +7,8 @@
        data-bs-toggle="modal"
        data-bs-target="#htmx-modal-container">{{ document.name }}</a>
   </td>
-  <td class="matter">
-    <a href="{% url 'matters:detail' id=document.matter.id %}">{{ document.matter.name|slice:":35" }}</a>
-  </td>
   <td>{{ document.description }}</td>
+  <td>{{ document.date|date:'Y-m-d' }}</td>
   <td>{{ document.uploaded_by.full_name }}</td>
   <td>
     <a href="{% url 'documents:download' document.id %}" class="button-link">
