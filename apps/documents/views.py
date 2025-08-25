@@ -6,6 +6,7 @@ from apps.documents.filters import DocumentsFilter
 from apps.documents.forms import DocumentsForm
 from apps.documents.get_document_data import get_document_data
 from apps.documents.models import Document
+from apps.matters.models import Matter
 
 
 @login_required
@@ -102,6 +103,10 @@ def documents_add(request):
     else:
         form = DocumentsForm(use_required_attribute=False)
 
+        form.fields["matter"].queryset = Matter.objects.filter(status="Open").order_by(
+            "name"
+        )
+
         return render(request, "documents/form.html", {"form": form, "edit": False})
 
 
@@ -112,10 +117,17 @@ def documents_edit(request, document_id):
     except Document.DoesNotExist:
         return HttpResponse(status=404)
 
+    matter_list = Matter.objects.filter(status="Open").order_by("name")
+
+    if document.matter not in matter_list:
+        matter_list |= Matter.objects.filter(pk=document.matter.id)
+
     if request.method == "POST":
         form = DocumentsForm(
             request.POST, instance=document, use_required_attribute=False
         )
+
+        form.fields["matter"].queryset = matter_list
 
         uploaded_file = request.FILES.get("file")
 
@@ -141,6 +153,8 @@ def documents_edit(request, document_id):
         )
     else:
         form = DocumentsForm(instance=document, use_required_attribute=False)
+
+        form.fields["matter"].queryset = matter_list
 
         return render(
             request,
