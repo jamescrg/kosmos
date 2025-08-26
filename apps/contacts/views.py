@@ -1,4 +1,5 @@
 from django.contrib.auth.decorators import login_required
+from django.http import HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
 
 import apps.contacts.google as google
@@ -84,9 +85,31 @@ def add(request):
             # save the contact
             contact.save()
 
-            # select newest contact for display
-            new = Contact.objects.all().latest("id")
-            return redirect("contacts:select", contact_id=new.id)
+            # For HTMX requests, return 204 to close modal and trigger refresh
+            if request.headers.get("HX-Request"):
+                # select newest contact for display
+                new = Contact.objects.all().latest("id")
+                request.session["selected_contact_id"] = new.id
+                return HttpResponse(
+                    status=204,
+                    headers={"HX-Trigger": "contactChanged", "HX-Refresh": "true"},
+                )
+            else:
+                # select newest contact for display
+                new = Contact.objects.all().latest("id")
+                return redirect("contacts:select", contact_id=new.id)
+        else:
+            # Form is invalid - need to set up context for re-rendering
+            form.fields["folder"].queryset = Folder.objects.filter(
+                app="contacts"
+            ).order_by("name")
+            context = {
+                "app": "contacts",
+                "edit": False,
+                "add": True,
+                "action": "/contacts/add",
+                "form": form,
+            }
 
     else:
         if selected_folder_id:
@@ -140,7 +163,23 @@ def edit(request, id):
 
             contact.save()
 
-            return redirect("contacts:select", contact_id=id)
+            # For HTMX requests, return 204 to close modal and trigger refresh
+            if request.headers.get("HX-Request"):
+                return HttpResponse(
+                    status=204,
+                    headers={"HX-Trigger": "contactChanged", "HX-Refresh": "true"},
+                )
+            else:
+                return redirect("contacts:select", contact_id=id)
+        else:
+            # Form is invalid - need to set up context for re-rendering
+            context = {
+                "app": "contacts",
+                "edit": True,
+                "action": f"/contacts/{id}/edit",
+                "contact": contact,
+                "form": form,
+            }
 
     else:
         form = ContactForm(instance=contact, use_required_attribute=False)
@@ -156,7 +195,7 @@ def edit(request, id):
             "form": form,
         }
 
-        return render(request, "contacts/form.html", context)
+    return render(request, "contacts/form.html", context)
 
 
 @login_required
