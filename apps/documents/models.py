@@ -47,12 +47,24 @@ def document_upload_path(instance, filename):
 
 
 class Document(models.Model):
+    CATEGORY_CHOICES = [
+        ("Evidence", "Evidence"),
+        ("Record", "Record"),
+        ("Correspondence", "Correspondence"),
+        ("Discovery", "Discovery"),
+    ]
+
     matter = models.ForeignKey(
         Matter, on_delete=models.CASCADE, related_name="documents"
     )
     date = models.DateField(blank=True, null=True)
     name = models.CharField(max_length=255)
     description = models.TextField(blank=True, null=True)
+    category = models.CharField(
+        max_length=20,
+        choices=CATEGORY_CHOICES,
+        default="Evidence",
+    )
     file = models.FileField(upload_to=document_upload_path)
     labels = models.ManyToManyField(Label, related_name="documents", blank=True)
     uploaded_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True)
