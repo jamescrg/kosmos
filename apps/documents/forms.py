@@ -7,7 +7,7 @@ from config.settings import CustomFormRendererCompact
 class DocumentsForm(forms.ModelForm):
     class Meta:
         model = Document
-        fields = ["name", "matter", "date", "description"]
+        fields = ["name", "matter", "date", "description", "category"]
         widgets = {
             "name": forms.TextInput(attrs={"class": "span2"}),
             "date": forms.DateInput(attrs={"type": "date"}),
