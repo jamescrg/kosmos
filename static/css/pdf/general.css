@@ -149,30 +149,30 @@ Utility Classes
 Fact Color Classes
 ========================================================================== */
 
-.fact-color-blue td {
+.hl-blue td {
   background-color: var(--sky-50) !important; /* Using sky instead of blue for better distinction */
 }
 
-.fact-color-gray td {
+.hl-gray td {
   background-color: var(--slate-50) !important; /* Using slate for better gray contrast */
 }
 
-.fact-color-green td {
+.hl-green td {
   background-color: var(--green-50) !important;
 }
 
-.fact-color-orange td {
+.hl-orange td {
   background-color: var(--orange-50) !important;
 }
 
-.fact-color-purple td {
+.hl-purple td {
   background-color: var(--purple-50) !important;
 }
 
-.fact-color-red td {
+.hl-red td {
   background-color: var(--red-50) !important;
 }
 
-.fact-color-yellow td {
+.hl-yellow td {
   background-color: var(--yellow-50) !important;
 }

@@ -26,34 +26,6 @@ Display
   width: 350px}
 
 
-.fact-color-blue {
-  background: var(--sky-50) !important; /* Using sky instead of blue for better distinction */
-}
-
-.fact-color-gray {
-  background: var(--stone-125) !important; /* Using slate for better gray contrast */
-}
-
-.fact-color-green {
-  background: var(--green-50) !important;
-}
-
-.fact-color-orange {
-  background: var(--orange-50) !important;
-}
-
-.fact-color-purple {
-  background: var(--purple-50) !important;
-}
-
-.fact-color-red {
-  background: var(--red-50) !important;
-}
-
-.fact-color-yellow {
-  background: var(--yellow-50) !important;
-}
-
 .edit-fact-description-input {
   background: inherit;
   border: none;
