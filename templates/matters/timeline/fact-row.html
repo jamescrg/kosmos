@@ -1,5 +1,5 @@
 <tr id="fact-{{ fact.id }}">
-  <td class="date-time{% if fact.color %} fact-color-{{ fact.color|lower }}{% endif %}">
+  <td class="date-time{% if fact.color %} hl-{{ fact.color|lower }}{% endif %}">
     <a href="#"
        type="button"
        class="btn-icon"
@@ -10,7 +10,7 @@
        data-bs-target="#htmx-modal-container">{{ fact.date|date:'Y-m-d' }} {{ fact.time|time:'g:i A' }}</a>
   </td>
   <td id="show-fact-description-{{ fact.id }}"
-      class="description{% if fact.color %} fact-color-{{ fact.color|lower }}{% endif %}">
+      class="description{% if fact.color %} hl-{{ fact.color|lower }}{% endif %}">
     <a class="button-link show-description-form-button"
        href="#"
        hx-target="#show-fact-description-{{ fact.id }}"
@@ -18,7 +18,7 @@
        hx-get="{% url 'matters:timeline-edit-description' matter_id=matter.id fact_id=fact.id %}">{{ fact.description }}</a>
   </td>
   <td id="show-fact-citations-{{ fact.id }}"
-      class="citations{% if fact.color %} fact-color-{{ fact.color|lower }}{% endif %}">
+      class="citations{% if fact.color %} hl-{{ fact.color|lower }}{% endif %}">
     <a class="button-link show-citations-form-button"
        href="#"
        hx-target="#show-fact-citations-{{ fact.id }}"
