@@ -8,7 +8,7 @@ from django.shortcuts import get_object_or_404, render
 from apps.matters.models import Matter
 from apps.matters.timeline.filter import TimelineFilter
 from apps.matters.timeline.forms import FactForm
-from apps.matters.timeline.generate_timeline import generate_timeline
+from apps.matters.timeline.generate_pdf import generate_pdf
 from apps.matters.timeline.models import Fact
 
 
@@ -143,7 +143,7 @@ def print(request, id):
 @login_required
 def timeline_pdf(request, pk):
     matter = get_object_or_404(Matter, pk=pk)
-    file = generate_timeline(matter.id, request)
+    file = generate_pdf(matter.id, request)
 
     current_date = datetime.now().strftime("%Y-%m-%d")
 
