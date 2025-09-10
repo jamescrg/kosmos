@@ -1,6 +1,7 @@
 from django.contrib.auth import get_user_model
 from django.db import models
 
+from apps.documents.utils import sanitize_filename
 from apps.matters.models import Matter
 from apps.matters.proceedings.models import Proceeding
 
@@ -44,7 +45,10 @@ def document_upload_path(instance, filename):
     file_extension = filename.split(".")[-1].lower()
     file_name = instance.name if instance.name else filename
 
-    return f"documents/{instance.matter_id}/{instance.category.lower()}{file_name}.{file_extension}"
+    matter_name = instance.matter.name if instance.matter else "unknown"
+    matter_name = sanitize_filename(matter_name)
+
+    return f"documents/{matter_name}/{instance.matter_id}/{instance.category.lower()}/{file_name}.{file_extension}"
 
 
 class Document(models.Model):
