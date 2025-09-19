@@ -5,9 +5,11 @@ from apps.documents.views import (
     documents_delete,
     documents_edit,
     documents_filter,
+    documents_filter_matter,
     documents_list,
     documents_sort,
     download_document,
+    get_proceedings,
     index,
 )
 
@@ -21,6 +23,12 @@ urlpatterns = [
     path("documents/delete/<int:document_id>/", documents_delete, name="delete"),
     path("documents/list/", documents_list, name="list"),
     path("documents/filter/", documents_filter, name="filter"),
+    path(
+        "documents/filter/matter/<int:matter_id>/",
+        documents_filter_matter,
+        name="filter-matter",
+    ),
     path("documents/sort/<str:order>/", documents_sort, name="sort"),
     path("documents/download/<int:document_id>/", download_document, name="download"),
+    path("documents/get-proceedings/", get_proceedings, name="get-proceedings"),
 ]
