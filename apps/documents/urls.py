@@ -2,6 +2,7 @@ from django.urls import path
 
 from apps.documents.views import (
     add_label,
+    delete_label,
     documents_add,
     documents_delete,
     documents_edit,
@@ -43,6 +44,7 @@ urlpatterns = [
     path("documents/labels/list/", labels_list, name="labels-list"),
     path("documents/labels/add/", add_label, name="add-label"),
     path("documents/labels/edit/<int:label_id>/", edit_label, name="edit-label"),
+    path("documents/labels/delete/<int:label_id>/", delete_label, name="delete-label"),
     path("documents/labels/filter/", labels_filter, name="filter-labels"),
     path("documents/labels/sort/<str:order>/", labels_sort, name="sort-labels"),
 ]
