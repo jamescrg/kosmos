@@ -448,3 +448,13 @@ def labels_sort(request, order):
     request.session["labels_filter"] = filter_data
 
     return HttpResponse(status=204, headers={"HX-Trigger": "labelsChanged"})
+
+
+@login_required
+def delete_label(request, label_id):
+    try:
+        Label.objects.get(id=label_id).delete()
+    except Label.DoesNotExist:
+        return HttpResponse(status=404)
+
+    return HttpResponse(status=204, headers={"HX-Trigger": "labelsChanged"})
