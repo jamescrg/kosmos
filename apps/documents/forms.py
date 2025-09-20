@@ -46,7 +46,7 @@ class LabelsForm(forms.ModelForm):
         fields = ["name", "matter", "color"]
         widgets = {
             "name": forms.TextInput(attrs={"class": "span2"}),
-            "matter": forms.Select(attrs={"class": "span2"}),
+            "matter": forms.Select(attrs={"class": "span1"}),
             "color": forms.TextInput(attrs={"type": "color", "class": "span1"}),
         }
 
