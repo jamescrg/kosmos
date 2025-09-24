@@ -115,6 +115,24 @@ def documents_add(request, matter_id=None):
             form.add_error(None, "FILE_REQUIRED: Please select a file to upload.")
 
         if form.is_valid() and uploaded_file:
+            form_matter = form.cleaned_data.get("matter")
+            name = form.cleaned_data.get("name")
+            category = form.cleaned_data.get("category")
+            date = form.cleaned_data.get("date")
+
+            if category == "Record" and date:
+                if Document.objects.filter(
+                    matter=form_matter, name=name, date=date
+                ).exists():
+                    form.add_error(
+                        "name",
+                        f'A record with the name "{name}" and date "{date}" already exists for the selected matter."',
+                    )
+
+                    return render(
+                        request, "documents/form.html", {"form": form, "edit": False}
+                    )
+
             document = form.save(commit=False)
 
             document.uploaded_by = request.user
@@ -190,6 +208,28 @@ def documents_edit(request, document_id):
             form.add_error(None, "FILE_REQUIRED: Please select a file to upload.")
 
         if form.is_valid():
+            form_matter = form.cleaned_data.get("matter")
+            name = form.cleaned_data.get("name")
+            category = form.cleaned_data.get("category")
+            date = form.cleaned_data.get("date")
+
+            if category == "Record" and date:
+                if (
+                    Document.objects.filter(matter=form_matter, name=name, date=date)
+                    .exclude(id=document.id)
+                    .exists()
+                ):
+                    form.add_error(
+                        "name",
+                        f'A record with the name "{name}" and date "{date}" already exists for the selected matter."',
+                    )
+
+                    return render(
+                        request,
+                        "documents/form.html",
+                        {"form": form, "document": document, "edit": True},
+                    )
+
             document = form.save(commit=False)
 
             document.uploaded_by = request.user
@@ -243,9 +283,13 @@ def download_document(request, document_id):
         content_type="application/octet-stream",
     )
 
-    response["Content-Disposition"] = (
-        f'attachment; filename="{document.name}.{document.file.name.split(".")[-1]}"'
-    )
+    file_extension = document.file.name.split(".")[-1]
+    full_file_name = f"{document.name}.{file_extension}"
+
+    if document.category == "Record" and document.date:
+        full_file_name = f"{document.date}_{full_file_name}"
+
+    response["Content-Disposition"] = f'attachment; filename="{full_file_name}"'
     response["Content-Length"] = document.file.size
 
     return response
