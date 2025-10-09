@@ -1,4 +1,5 @@
 import django_filters
+from django.db import models
 
 from apps.documents.models import Document
 from apps.matters.models import Matter
@@ -21,7 +22,15 @@ class DocumentsFilter(django_filters.FilterSet):
             ("date", "date"),
         ]
     )
+    keyword = django_filters.CharFilter(method="filter_by_keyword", label="Keyword")
+
+    def filter_by_keyword(self, queryset, name, value):
+        return queryset.filter(
+            models.Q(name__icontains=value)
+            | models.Q(description__icontains=value)
+            | models.Q(matter__name__icontains=value)
+        )
 
     class Meta:
         model = Document
-        fields = ["name", "matter", "order_by"]
+        fields = ["name", "matter", "order_by", "keyword"]
