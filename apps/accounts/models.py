@@ -15,6 +15,7 @@ class CustomUser(AbstractUser):
     user_rate = models.IntegerField(default=0)
     initials = models.CharField(max_length=100, null=True, blank=True)
     role = models.CharField(max_length=5, choices=ROLE_OPTIONS, default="USER")
+    is_attorney = models.BooleanField(default=True)
 
     objects = CustomUserManager()
 
