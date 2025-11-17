@@ -9,13 +9,29 @@ class UserForm(forms.ModelForm):
         model = CustomUser
         fields = [
             "username",
+            "email",
             "first_name",
             "last_name",
-            "email",
             "role",
-            "is_active",
+            "is_attorney",
             "initials",
+            "user_rate",
+            "is_active",
         ]
+
+        ATTORNEY_CHOICES = (
+            (True, "Yes"),
+            (False, "No"),
+        )
+
+        widgets = {
+            "is_attorney": forms.Select(choices=ATTORNEY_CHOICES),
+        }
+
+        labels = {
+            "is_attorney": "Attorney",
+            "user_rate": "Hourly Rate",
+        }
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
