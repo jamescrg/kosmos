@@ -5,7 +5,7 @@ from django.shortcuts import render
 from apps.accounts.models import CustomUser
 from apps.settings.users.filters import UserFilter
 from apps.settings.users.forms import CreateUserForm, UserForm
-from apps.settings.users.users import get_user_list
+from apps.settings.users.users import DEFAULT_USER_FILTER, get_user_list
 
 
 @login_required
@@ -30,6 +30,11 @@ def user_filter(request):
         return HttpResponse(status=204, headers={"HX-Trigger": "userListReload"})
 
     filter_data = request.session.get("user_filter", {})
+
+    # If no filter data exists, apply default filter
+    if not filter_data:
+        filter_data = DEFAULT_USER_FILTER
+
     filter = UserFilter(
         filter_data, queryset=CustomUser.objects.all().order_by("username")
     )

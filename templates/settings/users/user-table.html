@@ -54,6 +54,33 @@
           <i class="bi bi-chevron-expand"></i>
         </button>
       </th>
+      <th>
+        Initials
+        <button class="btn-sort btn-task-status"
+                hx-target="#users"
+                hx-swap="innerHTML"
+                hx-post="{% url 'settings:user-sort' 'initials' %}">
+          <i class="bi bi-chevron-expand"></i>
+        </button>
+      </th>
+      <th>
+        Attorney
+        <button class="btn-sort btn-task-status"
+                hx-target="#users"
+                hx-swap="innerHTML"
+                hx-post="{% url 'settings:user-sort' 'is_attorney' %}">
+          <i class="bi bi-chevron-expand"></i>
+        </button>
+      </th>
+      <th>
+        Hourly Rate
+        <button class="btn-sort btn-task-status"
+                hx-target="#users"
+                hx-swap="innerHTML"
+                hx-post="{% url 'settings:user-sort' 'user_rate' %}">
+          <i class="bi bi-chevron-expand"></i>
+        </button>
+      </th>
       <th class="center-data">
         Active
         <button class="btn-sort btn-task-status"
@@ -108,6 +135,9 @@
             </ul>
           </div>
         </td>
+        <td>{{ user.initials }}</td>
+        <td>{{ user.is_attorney|yesno:"Attorney,Staff" }}</td>
+        <td>${{ user.user_rate }}</td>
         <td class="center-data">
           {% if user.is_active %}
             <i class="bi bi-check-circle-fill true-bool"></i>
