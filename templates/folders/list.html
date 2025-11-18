@@ -6,6 +6,12 @@
       </div>
     </div>
     <ul class="list-group">
+      <li class="folder-item-container list-group-item{% if client_status == 'Pending' %} item-selected-highlight{% endif %}">
+        <div>
+          <i class="bi bi-folder"></i>
+          <a href="{% url 'folders:client' 'Pending' %}">Pending</a>
+        </div>
+      </li>
       <li class="folder-item-container list-group-item{% if client_status == 'Current' %} item-selected-highlight{% endif %}">
         <div>
           <i class="bi bi-folder"></i>
