@@ -6,6 +6,10 @@ from apps.contacts.views import (  # go_to_contact,
     assign,
     assign_store,
     delete,
+    detail_financial,
+    detail_info,
+    detail_intake,
+    detail_matters,
     edit,
     google_list,
     index,
@@ -34,4 +38,10 @@ urlpatterns = [
         name="toggle-google-sync",
     ),
     path("contacts/google_list", google_list, name="google"),
+    path("contacts/<int:contact_id>/info", detail_info, name="detail-info"),
+    path("contacts/<int:contact_id>/matters", detail_matters, name="detail-matters"),
+    path(
+        "contacts/<int:contact_id>/financial", detail_financial, name="detail-financial"
+    ),
+    path("contacts/<int:contact_id>/intake", detail_intake, name="detail-intake"),
 ]

@@ -6,6 +6,7 @@ from apps.contacts.models import Contact
 from apps.folders.models import CLIENT_FOLDERS, Folder
 from apps.matters.models import Matter, Relationship
 from apps.trust.models import Transaction
+from apps.trust.trust import get_confirmed_client_balance, get_pending_client_balance
 
 
 def get_list_data(request):
@@ -40,18 +41,38 @@ def get_list_data(request):
         except ObjectDoesNotExist:
             selected_contact = None
 
-        relationships = Relationship.objects.filter(contact=selected_contact).order_by(
-            "-matter__status", "matter__name"
-        )
+        relationships = list(Relationship.objects.filter(contact=selected_contact))
 
         # For each matter this contact is related to, add a static relationship object
         related_matters = Matter.objects.filter(client=selected_contact)
 
         for matter in related_matters:
             relationship = Relationship(contact=selected_contact, matter=matter)
-
-            relationships = list(relationships)
             relationships.append(relationship)
+
+        # Group and sort relationships by status
+        # Order: Pending, Open, Complete/Closed
+        # Within each group, sort by matter name descending
+        pending_relationships = sorted(
+            [r for r in relationships if r.matter.status == "Pending"],
+            key=lambda r: r.matter.name,
+            reverse=True,
+        )
+        open_relationships = sorted(
+            [r for r in relationships if r.matter.status == "Open"],
+            key=lambda r: r.matter.name,
+            reverse=True,
+        )
+        complete_relationships = sorted(
+            [r for r in relationships if r.matter.status in ["Complete", "Closed"]],
+            key=lambda r: r.matter.name,
+            reverse=True,
+        )
+
+        # Combine in the desired order
+        relationships = (
+            pending_relationships + open_relationships + complete_relationships
+        )
     else:
         selected_contact = None
         relationships = None
@@ -62,9 +83,13 @@ def get_list_data(request):
         google_logged_in = False
 
     trust = False
+    confirmed_balance = 0
+    pending_balance = 0
     if selected_contact:
         if Transaction.objects.filter(contact=selected_contact).exists():
             trust = True
+            confirmed_balance = get_confirmed_client_balance(selected_contact.id)
+            pending_balance = get_pending_client_balance(selected_contact.id)
 
     context = {
         "app": "contacts",
@@ -77,6 +102,8 @@ def get_list_data(request):
         "google_logged_in": google_logged_in,
         "relationships": relationships,
         "trust": trust,
+        "confirmed_balance": confirmed_balance,
+        "pending_balance": pending_balance,
         "client_folders": CLIENT_FOLDERS,
     }
 

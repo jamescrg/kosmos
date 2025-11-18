@@ -55,8 +55,8 @@ def select(request, contact_id):
         request.session["contacts_client_status"] = None
         request.session["contacts_selected_folder_id"] = None
 
-    context = get_list_data(request)
-    return render(request, "contacts/main.html", context)
+    # Redirect to the contact info tab
+    return redirect("contacts:detail-info", contact_id=contact.id)
 
 
 @login_required
@@ -332,3 +332,39 @@ def google_list(request):
     }
 
     return render(request, "contacts/google.html", context)
+
+
+@login_required
+def detail_info(request, contact_id):
+    """Contact detail - Info tab"""
+    request.session["selected_contact_id"] = contact_id
+    context = get_list_data(request)
+    context["contact_subapp"] = "info"
+    return render(request, "contacts/detail/info.html", context)
+
+
+@login_required
+def detail_matters(request, contact_id):
+    """Contact detail - Matters tab"""
+    request.session["selected_contact_id"] = contact_id
+    context = get_list_data(request)
+    context["contact_subapp"] = "matters"
+    return render(request, "contacts/detail/matters.html", context)
+
+
+@login_required
+def detail_financial(request, contact_id):
+    """Contact detail - Financial tab"""
+    request.session["selected_contact_id"] = contact_id
+    context = get_list_data(request)
+    context["contact_subapp"] = "financial"
+    return render(request, "contacts/detail/financial.html", context)
+
+
+@login_required
+def detail_intake(request, contact_id):
+    """Contact detail - Intake tab"""
+    request.session["selected_contact_id"] = contact_id
+    context = get_list_data(request)
+    context["contact_subapp"] = "intake"
+    return render(request, "contacts/detail/intake.html", context)

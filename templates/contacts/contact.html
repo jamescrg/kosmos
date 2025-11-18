@@ -1,8 +1,21 @@
 {% load phone_numbers %}
-<div class="section">
+<div class="section detail-title">
   <div class="toolbar">
     <div class="toolbar-left">
       <h1>{{ selected_contact.name }}</h1>
+      <div class="filter-tools">
+        <span class="client-status-badge status-{{ selected_contact.client_status|lower }}">
+          {% if selected_contact.client_status == 'Current' %}
+            Current Client
+          {% elif selected_contact.client_status == 'Pending' %}
+            Potential Client
+          {% elif selected_contact.client_status == 'Former' %}
+            Former Client
+          {% else %}
+            Nonclient
+          {% endif %}
+        </span>
+      </div>
     </div>
     <div class="toolbar-right">
       <a href="{% url 'contacts:toggle-google-sync' id=selected_contact.id %}">
@@ -17,96 +30,40 @@
          hx-target="#htmx-modal-container"
          hx-trigger="click"
          data-bs-toggle="modal"
-         data-bs-target="#htmx-modal-container"><i class="bi bi-pencil"></i></a>
+         data-bs-target="#htmx-modal-container">
+        <i class="bi bi-pencil"></i>
+      </a>
     </div>
   </div>
-  <div class="contact-item">
-    <div class="contact-address-block flex-start-left">
-      <div class="contact-item-left">
-        <span class="strong">{{ selected_contact.name }}</span>
-        <br />
-        {% if selected_contact.company %}
-          {{ selected_contact.company }}
-          <br />
-        {% endif %}
-        {% if selected_contact.address %}{{ selected_contact.address|linebreaks }}{% endif %}
-      </div>
-      <div class="contact-copy-button">
-        {% if selected_contact.address %}
-          <button type="button"
-                  class="btn btn-sm copy-btn copy-btn-left"
-                  data-copy="{{ selected_contact.name }}&#10;{% if selected_contact.company %}{{ selected_contact.company }}&#10;{% endif %}{{ selected_contact.address }}"
-                  title="Copy address">
-            <i class="bi bi-clipboard"></i>
-          </button>
-        {% endif %}
-      </div>
-    </div>
-    {% if selected_contact.phone1 %}
-      <div class="contact-item">{{ selected_contact.phone1|phone_number }} - {{ selected_contact.phone1_label|lower }}</div>
+</div>
+<div class="subnav detail-subnav">
+  <ul>
+    <li {% if not contact_subapp or contact_subapp == 'info' %}class="active"{% endif %}>
+      <a href="{% url 'contacts:detail-info' selected_contact.id %}">Contact Info</a>
+    </li>
+    {% if selected_contact.client_status == 'Current' or selected_contact.client_status == 'Pending' or selected_contact.client_status == 'Former' %}
+      <li {% if contact_subapp == 'matters' %}class="active"{% endif %}>
+        <a href="{% url 'contacts:detail-matters' selected_contact.id %}">Matters</a>
+      </li>
+      <li {% if contact_subapp == 'financial' %}class="active"{% endif %}>
+        <a href="{% url 'contacts:detail-financial' selected_contact.id %}">Financial</a>
+      </li>
+      <li {% if contact_subapp == 'intake' %}class="active"{% endif %}>
+        <a href="{% url 'contacts:detail-intake' selected_contact.id %}">Intake</a>
+      </li>
     {% endif %}
-    {% if selected_contact.phone2 %}
-      <div class="contact-item">{{ selected_contact.phone2|phone_number }} - {{ selected_contact.phone2_label|lower }}</div>
-    {% endif %}
-    {% if selected_contact.phone3 %}
-      <div class="contact-item">{{ selected_contact.phone3|phone_number }} - {{ selected_contact.phone3_label|lower }}</div>
-    {% endif %}
-    {% if selected_contact.email != null %}
-      <div class="contact-item flex-start-left">
-        <div class="contact-item-left">{{ selected_contact.email }}</div>
-        <div class="contact-copy-button">
-          <button type="button"
-                  class="btn btn-sm copy-btn copy-btn-left"
-                  data-copy="{{ selected_contact.email }}"
-                  title="Copy email">
-            <i class="bi bi-clipboard"></i>
-          </button>
-        </div>
-      </div>
-    {% endif %}
-    {% if selected_contact.website %}
-      <div class="contact-item">
-        <a href="{{ selected_contact.website }}">{{ selected_contact.website }}</a>
-      </div>
-    {% endif %}
-    {% if selected_contact.map %}
-      <div class="contact-item">
-        <a href="{{ selected_contact.map }}">Map</a>
-      </div>
-    {% endif %}
-    {% if selected_contact.notes %}<div class="contact-item">{{ selected_contact.notes|linebreaks }}</div>{% endif %}
-    {% if relationships %}
-      <div id="contact-matters">
-        <div class="contacts-related">Related Matters</div>
-        <ul>
-          {% for relationship in relationships %}
-            <li>
-              <a href={% url 'matters:contacts' id=relationship.matter.id %}>{{ relationship.matter.name }}</a> -
-              {{ relationship.matter.status }}
-            </li>
-          {% endfor %}
-        </ul>
-      </div>
-    {% endif %}
-    <div class="contact-item"></div>
-    {% if selected_contact.intake %}
-      <a href={% url 'intakes:detail-index' id=selected_contact.intake.id %}>View Intake</a>&nbsp;&nbsp;&nbsp;&nbsp;
-    {% endif %}
-    {% if trust %}
-      <a href={% url 'trust:client-index' selected_contact.id %}>View Trust</a>
-    {% endif %}
-    <div class="contacts-assignment">
-      <a href="#"
-         hx-get="/contacts/{{ selected_contact.id }}/assign"
-         hx-target="#htmx-modal-container"
-         data-bs-toggle="modal"
-         data-bs-target="#htmx-modal-container">Assign</a>
-      &nbsp;&nbsp;|&nbsp;&nbsp;
-      <a href="#"
-         hx-get="/contacts/{{ selected_contact.id }}/remove"
-         hx-target="#htmx-modal-container"
-         data-bs-toggle="modal"
-         data-bs-target="#htmx-modal-container">Remove</a>
-    </div>
-  </div>
+  </ul>
+</div>
+<div class="section subsection">
+  {% if contact_subapp == 'info' %}
+    {% include "contacts/tabs/contact_info.html" %}
+  {% elif contact_subapp == 'matters' %}
+    {% include "contacts/tabs/matters.html" %}
+  {% elif contact_subapp == 'financial' %}
+    {% include "contacts/tabs/financial.html" %}
+  {% elif contact_subapp == 'intake' %}
+    {% include "contacts/tabs/intake.html" %}
+  {% else %}
+    {% include "contacts/tabs/contact_info.html" %}
+  {% endif %}
 </div>
