@@ -16,9 +16,9 @@ class ExpenseFilter(django_filters.FilterSet):
         empty_label="All",
     )
     matter = django_filters.ModelChoiceFilter(
-        queryset=Matter.objects.filter(status__in=["Open", "Complete"]).order_by(
-            "name"
-        ),
+        queryset=Matter.objects.filter(
+            status__in=["Pending", "Open", "Complete"]
+        ).order_by("name"),
         empty_label="All",
     )
     description = django_filters.CharFilter(

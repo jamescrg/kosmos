@@ -7,7 +7,9 @@ from config.helpers import MultipleOrderingFilter
 
 class CreditsFilter(django_filters.FilterSet):
     matter = django_filters.ModelChoiceFilter(
-        queryset=Matter.objects.exclude(status="Closed").order_by("name"),
+        queryset=Matter.objects.exclude(status__in=["Pending", "Closed"]).order_by(
+            "name"
+        ),
         empty_label="All",
     )
     date = django_filters.DateFromToRangeFilter(

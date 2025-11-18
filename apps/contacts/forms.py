@@ -37,6 +37,7 @@ class ContactForm(forms.ModelForm):
 
         CLIENT_STATUSES = (
             ("Nonclient", "Nonclient"),
+            ("Pending", "Pending"),
             ("Current", "Current"),
             ("Former", "Former"),
         )

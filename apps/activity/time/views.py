@@ -275,9 +275,9 @@ def time_add(request, id=None, request_app="activity"):
             form = TimeEntryForm(initial={"date": today, "hours": 0.2})
 
     # get list of matters for activity form
-    matter_list = Matter.objects.filter(status__in=["Open", "Complete"]).order_by(
-        "name"
-    )
+    matter_list = Matter.objects.filter(
+        status__in=["Pending", "Open", "Complete"]
+    ).order_by("name")
 
     # if a single matter is selected,  pull that matter as a quersyset
     if id:
@@ -331,9 +331,9 @@ def time_edit(request, id):
 
     else:
         # get list of matters for activity form
-        matter_list = Matter.objects.filter(status__in=["Open", "Complete"]).order_by(
-            "name"
-        )
+        matter_list = Matter.objects.filter(
+            status__in=["Pending", "Open", "Complete"]
+        ).order_by("name")
 
         selected_matter = Matter.objects.filter(id=entry.matter.id)
         if selected_matter.first().status == "Closed":

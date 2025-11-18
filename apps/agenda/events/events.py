@@ -45,7 +45,9 @@ def get_table_data(request):
     table_data["session_key"] = "events_pagination"
     table_data["trigger_key"] = "eventsChanged"
     table_data["objects"] = pagination.get_object_list()
-    table_data["matters"] = Matter.objects.filter(status="Open").order_by("name")
+    table_data["matters"] = Matter.objects.filter(
+        status__in=["Pending", "Open"]
+    ).order_by("name")
     table_data["users"] = CustomUser.objects.all().order_by("username")
 
     return table_data

@@ -40,9 +40,21 @@ class Matter(models.Model):
                 .exists()
             ):
                 Contact.objects.filter(pk=self.client.pk).update(client_status="Former")
+        elif self.status == "Pending":
+            # Mark client as pending if they have no open/complete matters
+            if self.client and (
+                not Matter.objects.filter(
+                    client=self.client, status__in=["Open", "Complete"]
+                )
+                .exclude(pk=self.pk)
+                .exists()
+            ):
+                Contact.objects.filter(pk=self.client.pk).update(
+                    client_status="Pending"
+                )
         elif self.status == "Open":
             # Mark client as current if the matter was reopened
-            if self.client and self.client.client_status == "Former":
+            if self.client and self.client.client_status in ["Former", "Pending"]:
                 Contact.objects.filter(pk=self.client.pk).update(
                     client_status="Current"
                 )

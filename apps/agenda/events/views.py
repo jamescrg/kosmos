@@ -121,9 +121,9 @@ def events_add(request, matter_id=None, origin="events"):
                 use_required_attribute=False,
             )
 
-    form.fields["matter"].queryset = Matter.objects.filter(status="Open").order_by(
-        "name"
-    )
+    form.fields["matter"].queryset = Matter.objects.filter(
+        status__in=["Pending", "Open"]
+    ).order_by("name")
 
     google_connected = google.check_credentials()
 
@@ -157,7 +157,9 @@ def events_edit(request, id, origin="events"):
         form = EventForm(request.POST, instance=event, use_required_attribute=False)
 
         # get list of open matters
-        matter_list = Matter.objects.filter(status="Open").order_by("name")
+        matter_list = Matter.objects.filter(status__in=["Pending", "Open"]).order_by(
+            "name"
+        )
 
         # make sure the matter associated with the event is in the list
         # if not, add it
@@ -193,7 +195,7 @@ def events_edit(request, id, origin="events"):
         )
 
     # pull the list of matters
-    matter_list = Matter.objects.filter(status="Open").order_by("name")
+    matter_list = Matter.objects.filter(status__in=["Pending", "Open"]).order_by("name")
 
     # make sure the matter associated with the event is in the list
     # if not, add it
