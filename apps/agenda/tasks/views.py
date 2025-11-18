@@ -99,7 +99,7 @@ def tasks_add(request):
             use_required_attribute=False,
         )
 
-    matters = Matter.objects.filter(status="Open").order_by("name")
+    matters = Matter.objects.filter(status__in=["Pending", "Open"]).order_by("name")
     form.fields["matter"].queryset = matters
     form.fields["matter"].empty_label = "Admin"
     users = CustomUser.objects.filter(is_active=True).order_by("username")
@@ -168,7 +168,7 @@ def tasks_edit(request, id):
         form = TaskForm(instance=task)
 
     # pull the list of matters
-    matter_list = Matter.objects.filter(status="Open").order_by("name")
+    matter_list = Matter.objects.filter(status__in=["Pending", "Open"]).order_by("name")
 
     # make sure the matter associated with the event is in the list
     # if not, add it

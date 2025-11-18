@@ -64,7 +64,9 @@ def get_list_data(request):
         "session_key": "tasks_pagination",
         "trigger_key": "tasksListChanged",
         "objects": pagination.get_object_list(),
-        "matters": Matter.objects.filter(status="Open").order_by("name"),
+        "matters": Matter.objects.filter(status__in=["Pending", "Open"]).order_by(
+            "name"
+        ),
         "today": today,
         "users": CustomUser.objects.filter(is_active=True).order_by("username"),
         "user_id": user_id,

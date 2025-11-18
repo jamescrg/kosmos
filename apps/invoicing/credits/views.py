@@ -37,7 +37,7 @@ def credits_list(request):
 
 @login_required
 def credits_add(request):
-    matters = Matter.objects.exclude(status="Closed").order_by("name")
+    matters = Matter.objects.exclude(status__in=["Pending", "Closed"]).order_by("name")
 
     form = CreditsForm(request.POST or None, use_required_attribute=False)
     form.fields["matter"].queryset = matters
@@ -54,7 +54,7 @@ def credits_add(request):
 def credits_edit(request, pk):
     credit = get_object_or_404(Credit, pk=pk)
 
-    matters = Matter.objects.exclude(status="Closed").order_by("name")
+    matters = Matter.objects.exclude(status__in=["Pending", "Closed"]).order_by("name")
 
     if request.method == "POST":
         form = CreditsForm(request.POST, instance=credit, use_required_attribute=False)

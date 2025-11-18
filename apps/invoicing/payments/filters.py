@@ -10,7 +10,9 @@ class PaymentFilter(django_filters.FilterSet):
         choices=PAYMENT_METHOD_CHOICES, empty_label="All"
     )
     matter = django_filters.ModelChoiceFilter(
-        queryset=Matter.objects.exclude(status="Closed").order_by("name"),
+        queryset=Matter.objects.exclude(status__in=["Pending", "Closed"]).order_by(
+            "name"
+        ),
         empty_label="All",
     )
     date = django_filters.DateFromToRangeFilter(

@@ -25,7 +25,7 @@ class EventFilter(django_filters.FilterSet):
     )
     matter = django_filters.ModelChoiceFilter(
         field_name="matter",
-        queryset=Matter.objects.filter(status="Open").order_by("name"),
+        queryset=Matter.objects.filter(status__in=["Pending", "Open"]).order_by("name"),
         empty_label="All",
     )
     date = django_filters.DateFromToRangeFilter(

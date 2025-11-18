@@ -40,7 +40,7 @@ def payments_list(request):
 
 @login_required
 def payments_add(request):
-    matters = Matter.objects.exclude(status="Closed").order_by("name")
+    matters = Matter.objects.exclude(status__in=["Pending", "Closed"]).order_by("name")
 
     form = PaymentForm(request.POST or None, use_required_attribute=False)
     form.fields["matter"].queryset = matters

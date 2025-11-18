@@ -3,7 +3,7 @@ from apps.matters.models import Matter
 
 
 def get_collection_data(request):
-    matters = Matter.objects.filter(status__in=["Open", "Complete"])
+    matters = Matter.objects.filter(status__in=["Pending", "Open", "Complete"])
 
     # Convert queryset to list so it's sortable by custom properties
     matter_list = list(matters)
