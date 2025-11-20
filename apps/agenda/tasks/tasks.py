@@ -1,9 +1,26 @@
-from datetime import date
+from datetime import date, timedelta
 
 from apps.accounts.models import CustomUser
 from apps.agenda.tasks.filter import TasksFilter
+from apps.agenda.tasks.models import Task
 from apps.management.pagination import CustomPaginator
 from apps.matters.models import Matter
+
+
+def get_upcoming_tasks(request):
+    """Get tasks due in the next 3 days (today + 2 days) for all users"""
+    today = date.today()
+    end_date = today + timedelta(days=2)
+
+    # Query tasks due in the next 3 days - show ALL users' tasks
+    upcoming = Task.objects.filter(
+        date_due__gte=today, date_due__lte=end_date, status="Pending"
+    )
+
+    # Order by due date, then priority
+    upcoming = upcoming.order_by("date_due", "priority")
+
+    return upcoming
 
 
 def get_list_data(request):
@@ -46,6 +63,14 @@ def get_list_data(request):
         user_id = request.user.id
         matter_id = None
         focus = ""
+
+    # Exclude upcoming tasks from main list if they're being shown separately
+    show_upcoming_tasks = request.session.get("show_upcoming_tasks", True)
+    if show_upcoming_tasks:
+        upcoming_tasks = get_upcoming_tasks(request)
+        upcoming_ids = list(upcoming_tasks.values_list("id", flat=True))
+        if upcoming_ids:
+            tasks = tasks.exclude(id__in=upcoming_ids)
 
     pagination = CustomPaginator(
         tasks, per_page=20, request=request, session_key="tasks_pagination"

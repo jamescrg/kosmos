@@ -54,6 +54,14 @@
  Tasks
 ========================================================================== */
 
+.tasks-table .upcoming-task {
+  /* border-left: 3px solid var(--orange-400); */
+}
+
+.tasks-table .due-today {
+  background: var(--yellow-50);
+}
+
 .tasks-add-quick-input {
   background: var(--stone-25);
   color: var(--stone-600);
@@ -125,7 +133,7 @@ th.priority .bi-caret-up {
 }
 
 .tasks-table .focus {
-  width: 100px;
+  width: 120px;
 }
 
 .task-date {
