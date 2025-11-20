@@ -33,6 +33,7 @@ from apps.agenda.tasks.views import (
     tasks_select,
     tasks_set_status,
     tasks_status,
+    tasks_toggle_upcoming,
     tasks_user,
 )
 
@@ -41,6 +42,11 @@ app_name = "agenda"
 urlpatterns = [
     path("", tasks_index, name="tasks-index"),
     path("agenda/tasks", tasks_select, name="tasks-select"),
+    path(
+        "agenda/tasks/toggle-upcoming",
+        tasks_toggle_upcoming,
+        name="tasks-toggle-upcoming",
+    ),
     path("agenda/tasks/add", tasks_add, name="tasks-add"),
     path("agenda/tasks/add/quick", tasks_add_quick, name="tasks-add-quick"),
     path("agenda/tasks/<int:id>/edit", tasks_edit, name="tasks-edit"),

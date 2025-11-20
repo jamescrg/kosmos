@@ -9,7 +9,7 @@ from apps.agenda.tasks.filter import TasksFilter
 from apps.agenda.tasks.forms import TaskForm
 from apps.agenda.tasks.models import Task
 from apps.agenda.tasks.services import process_quick_task_description
-from apps.agenda.tasks.tasks import get_list_data
+from apps.agenda.tasks.tasks import get_list_data, get_upcoming_tasks
 from apps.matters.models import Matter
 
 
@@ -31,12 +31,28 @@ def tasks_index(request):
             request.session["show_events"] = True
             return redirect("/events")
 
+    # Check whether upcoming tasks section has been hidden
+    show_upcoming_tasks = request.session.get("show_upcoming_tasks", True)
+    if not show_upcoming_tasks:
+        # Check if the hide date has expired (new day)
+        hide_upcoming_expire = request.session.get("hide_upcoming_expire")
+        if hide_upcoming_expire:
+            old_date = date.fromtimestamp(int(hide_upcoming_expire))
+            if today > old_date:
+                show_upcoming_tasks = True
+                request.session["show_upcoming_tasks"] = True
+
+    # Get upcoming tasks
+    upcoming_tasks = get_upcoming_tasks(request) if show_upcoming_tasks else []
+
     context = get_list_data(request)
 
     context = context | {
         "app": "agenda",
         "subapp": "tasks",
         "show_events": show_events,
+        "show_upcoming_tasks": show_upcoming_tasks,
+        "upcoming_tasks": upcoming_tasks,
         "today": today,
     }
 
@@ -45,7 +61,28 @@ def tasks_index(request):
 
 @login_required
 def tasks_list(request):
+    today = date.today()
+
+    # Check whether upcoming tasks section has been hidden
+    show_upcoming_tasks = request.session.get("show_upcoming_tasks", True)
+    if not show_upcoming_tasks:
+        # Check if the hide date has expired (new day)
+        hide_upcoming_expire = request.session.get("hide_upcoming_expire")
+        if hide_upcoming_expire:
+            old_date = date.fromtimestamp(int(hide_upcoming_expire))
+            if today > old_date:
+                show_upcoming_tasks = True
+                request.session["show_upcoming_tasks"] = True
+
+    # Get upcoming tasks
+    upcoming_tasks = get_upcoming_tasks(request) if show_upcoming_tasks else []
+
     context = get_list_data(request)
+
+    context = context | {
+        "show_upcoming_tasks": show_upcoming_tasks,
+        "upcoming_tasks": upcoming_tasks,
+    }
 
     return render(request, "agenda/tasks/list.html", context)
 
@@ -55,6 +92,19 @@ def tasks_select(request):
     request.session["show_events"] = False
     request.session["hide_expire"] = date.today().strftime("%s")
     return redirect("agenda:tasks-index")
+
+
+@login_required
+def tasks_toggle_upcoming(request):
+    # Toggle the show_upcoming_tasks setting
+    show_upcoming = request.session.get("show_upcoming_tasks", True)
+    request.session["show_upcoming_tasks"] = not show_upcoming
+
+    # If hiding, set expiry for tomorrow
+    if not request.session["show_upcoming_tasks"]:
+        request.session["hide_upcoming_expire"] = date.today().strftime("%s")
+
+    return redirect("agenda:tasks-list")
 
 
 @login_required
