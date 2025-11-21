@@ -104,10 +104,24 @@ th.priority .bi-caret-up {
 }
 
 .tasks-table .priority {
+  overflow: visible;
   padding-left: 7px !important;
   padding-right: 7px !important;
   text-align: center;
   width: 20px;
+}
+
+/* Fix dropdown overflow issues */
+.table-container.table-responsive-xl {
+  overflow: visible !important;
+}
+
+.tasks-table tbody {
+  overflow: visible;
+}
+
+.tasks-table {
+  overflow: visible;
 }
 
 .status .bi-chevron-expand {
@@ -116,6 +130,8 @@ th.priority .bi-caret-up {
 
 .tasks-table .priority .dropdown-menu {
   min-width: 44px;
+  position: absolute;
+  z-index: 1050;
 }
 
 .tasks-table .date .dropdown-menu {
