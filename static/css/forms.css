@@ -243,6 +243,20 @@ select {
   gap: 1rem;
 }
 
+/* Mobile: increase gap for better readability and touch targets */
+@media (max-width: 767px) {
+  .form-compact {
+    gap: 1.25rem;
+  }
+
+  .form-compact input,
+  .form-compact select,
+  .form-compact textarea {
+    padding: 0.6rem;
+    font-size: 1rem;
+  }
+}
+
 .form-compact select,
 .form-compact input[type="date"],
 .form-compact input[type="time"],
@@ -261,40 +275,54 @@ select {
   border: solid 1px var(--stone-300);
 }
 
-.col2 {
-  grid-template-columns: 1fr 1fr;
-}
-
-.col3 {
-  grid-template-columns: 1fr 1fr 1fr;
-}
-
+/* Mobile: single column for all form-compact layouts */
+.col2,
+.col3,
 .col5 {
-  grid-template-columns: 1fr 1fr 1fr 1fr 1fr;
+  grid-template-columns: 1fr;
 }
 
-.form-compact .form-group:has(div > .span2) {
-  grid-column: span 2;
+/* Tablet/Desktop: multi-column layouts */
+@media (min-width: 768px) {
+  .col2 {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .col3 {
+    grid-template-columns: 1fr 1fr 1fr;
+  }
+
+  .col5 {
+    grid-template-columns: 1fr 1fr 1fr 1fr 1fr;
+  }
 }
 
-.form-compact .form-group:has(div > .span3) {
-  grid-column: span 3;
-}
-
-.form-compact .form-group:has(div > .span5) {
-  grid-column: span 5;
-}
-
-.form-compact .span2 {
-  grid-column: span 2;
-}
-
-.form-compact .span3 {
-  grid-column: span 3;
-}
-
+/* Mobile: all spans are full-width (single column) */
+.form-compact .form-group:has(div > .span2),
+.form-compact .form-group:has(div > .span3),
+.form-compact .form-group:has(div > .span5),
+.form-compact .span2,
+.form-compact .span3,
 .form-compact .span5 {
-  grid-column: span 5;
+  grid-column: span 1;
+}
+
+/* Tablet/Desktop: restore multi-column spanning */
+@media (min-width: 768px) {
+  .form-compact .form-group:has(div > .span2),
+  .form-compact .span2 {
+    grid-column: span 2;
+  }
+
+  .form-compact .form-group:has(div > .span3),
+  .form-compact .span3 {
+    grid-column: span 3;
+  }
+
+  .form-compact .form-group:has(div > .span5),
+  .form-compact .span5 {
+    grid-column: span 5;
+  }
 }
 
 .form-compact .form-group label {

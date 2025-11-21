@@ -10,3 +10,25 @@
 .hide {
   display: none;
 }
+
+
+/* ==========================================================================
+ Responsive Modal Sizing
+========================================================================== */
+
+/* Mobile: Make modals full-width with small margins */
+@media (max-width: 767px) {
+  .modal-dialog {
+    margin: 0.5rem;
+    max-width: calc(100% - 1rem);
+  }
+
+  .modal-md,
+  .modal-lg {
+    max-width: calc(100% - 1rem);
+  }
+
+  .modal-body {
+    padding: 1rem;
+  }
+}
