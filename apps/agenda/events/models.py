@@ -23,9 +23,25 @@ class Event(models.Model):
     )
     status = models.CharField(max_length=50, null=True)
     google_id = models.CharField(max_length=255, blank=True, null=True)
+    created_at = models.DateTimeField(auto_now_add=True, null=True)
+    updated_at = models.DateTimeField(auto_now=True, null=True)
 
     def __str__(self):
         return f"{self.description} : {self.id}"
 
     class Meta:
         db_table = "app_event"
+
+
+class CalendarSyncState(models.Model):
+    """Stores Google Calendar sync token for incremental sync."""
+
+    calendar_id = models.CharField(max_length=255, unique=True)
+    sync_token = models.TextField(null=True, blank=True)
+    last_sync_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return f"Sync state for {self.calendar_id}"
+
+    class Meta:
+        db_table = "app_calendar_sync_state"
