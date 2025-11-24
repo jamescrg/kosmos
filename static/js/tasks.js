@@ -126,8 +126,23 @@ style.textContent = `
     }
 
     .sortable-ghost {
-        opacity: 0.4;
-        background: #f8f9fa;
+        background: transparent !important;
+    }
+
+    .sortable-ghost td {
+        border: none !important;
+        padding: 0 !important;
+        height: 4px !important;
+        background: transparent !important;
+    }
+
+    .sortable-ghost td * {
+        display: none !important;
+    }
+
+    .sortable-ghost td:first-child {
+        background: var(--stone-400, #a8a29e) !important;
+        border-radius: 2px;
     }
 
     .sortable-drag {
