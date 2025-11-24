@@ -19,26 +19,14 @@
   color: var(--stone-400);
 }
 
-th.priority .bi-caret-up {
-  font-size: 1.1rem;
-}
-
-.tasks-table .priority {
-  overflow: visible;
-  padding-left: 7px !important;
-  padding-right: 7px !important;
-  text-align: center;
-  width: 20px;
-}
-
-.tasks-table .priority .dropdown-menu {
-  min-width: 44px;
-  position: absolute;
-  z-index: 1050;
-}
-
 .tasks-table .matter {
   width: 250px;
+}
+
+.matter-cell-content {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
 }
 
 .tasks-table .description {
@@ -123,7 +111,6 @@ th.priority .bi-caret-up {
 .tasks-form #id_description,
 .tasks-form #id_matter,
 .tasks-form #id_user,
-.tasks-form #id_priority,
 .tasks-form #id_date {
   width: 100%
 }

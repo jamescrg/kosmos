@@ -13,6 +13,9 @@ class Task(models.Model):
     matter = models.ForeignKey(Matter, on_delete=models.CASCADE, blank=True, null=True)
     status = models.CharField(max_length=50, null=True)
     priority = models.IntegerField(default=1)
+    custom_order = models.DecimalField(
+        max_digits=18, decimal_places=8, null=True, blank=True, default=None
+    )
 
     def __str__(self):
         return f"{self.description} : {self.id}"
