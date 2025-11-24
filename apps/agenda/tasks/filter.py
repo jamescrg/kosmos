@@ -20,18 +20,22 @@ class TasksOrderingFilter(django_filters.OrderingFilter):
             if ordering[0] == "date_due":
                 return qs.order_by(
                     F("date_due").asc(nulls_first=True),
-                    "priority",
                     "matter__name",
                     "description",
-                    "id",
                     "id",
                 )
-            if ordering[0] == "priority":
+            # Removed: Priority ordering (priority column removed from table)
+            # if ordering[0] == "priority":
+            #     return qs.order_by(
+            #         "-status",
+            #         "priority",
+            #         "matter__name",
+            #         "description",
+            #         "id",
+            #     )
+            if ordering[0] == "custom_order":
                 return qs.order_by(
-                    "-status",
-                    "priority",
-                    "matter__name",
-                    "description",
+                    F("custom_order").asc(nulls_first=True),
                     "id",
                 )
             return qs.order_by("-status", *ordering, "id")
@@ -52,16 +56,18 @@ class TasksFilter(django_filters.FilterSet):
         queryset=CustomUser.objects.filter(is_active=True).order_by("username"),
         empty_label="All",
     )
-    priority = django_filters.NumberFilter(
-        field_name="priority",
-        lookup_expr="lte",
-        label="Priority (≤)",
-    )
+    # Removed: Priority filter (priority column and filter removed from UI)
+    # Priority field still exists in model and can be edited in task forms
+    # priority = django_filters.NumberFilter(
+    #     field_name="priority",
+    #     lookup_expr="lte",
+    #     label="Priority (≤)",
+    # )
 
     order_by = TasksOrderingFilter(
         fields=(
             ("date_due", "date_due"),
-            ("priority", "priority"),
+            ("custom_order", "custom_order"),
         ),
     )
 
@@ -69,7 +75,6 @@ class TasksFilter(django_filters.FilterSet):
         model = Task
         fields = [
             "status",
-            "priority",
             "matter",
             "user",
             "date_due",

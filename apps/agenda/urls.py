@@ -13,6 +13,8 @@ from apps.agenda.events.views import (
     events_list,
     events_select,
 )
+
+# Removed imports: tasks_filter_priority, tasks_priority (priority column removed)
 from apps.agenda.tasks.views import (
     clear_tasks,
     tasks_add,
@@ -23,17 +25,16 @@ from apps.agenda.tasks.views import (
     tasks_filter,
     tasks_filter_default,
     tasks_filter_matter,
-    tasks_filter_priority,
     tasks_filter_quick,
     tasks_filter_sort,
     tasks_filter_user,
     tasks_index,
     tasks_list,
     tasks_matter,
-    tasks_priority,
     tasks_select,
     tasks_set_status,
     tasks_status,
+    tasks_update_order,
     tasks_user,
 )
 
@@ -52,11 +53,12 @@ urlpatterns = [
         tasks_set_status,
         name="tasks-set-status",
     ),
-    path(
-        "agenda/tasks/<int:task_id>/task-priority/<int:priority>",
-        tasks_priority,
-        name="tasks-task-priority",
-    ),
+    # Removed: Inline priority editing route (priority column removed from table)
+    # path(
+    #     "agenda/tasks/<int:task_id>/task-priority/<int:priority>",
+    #     tasks_priority,
+    #     name="tasks-task-priority",
+    # ),
     path(
         "agenda/tasks/<int:task_id>/task-user/<int:user>",
         tasks_user,
@@ -86,11 +88,12 @@ urlpatterns = [
         tasks_filter_user,
         name="tasks-filter-user",
     ),
-    path(
-        "agenda/tasks/filter/priority/<int:priority_value>/",
-        tasks_filter_priority,
-        name="tasks-filter-priority",
-    ),
+    # Removed: Priority filter route (priority filter removed from toolbar)
+    # path(
+    #     "agenda/tasks/filter/priority/<int:priority_value>/",
+    #     tasks_filter_priority,
+    #     name="tasks-filter-priority",
+    # ),
     path(
         "agenda/tasks/filter/default/",
         tasks_filter_default,
@@ -100,6 +103,11 @@ urlpatterns = [
         "agenda/tasks/filter/sort/<str:order>/",
         tasks_filter_sort,
         name="tasks-filter-sort",
+    ),
+    path(
+        "agenda/tasks/update-order/",
+        tasks_update_order,
+        name="tasks-update-order",
     ),
     path("events/", events_index, name="events-index"),
     path("events/list/", events_list, name="events-list"),
