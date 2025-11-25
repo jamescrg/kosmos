@@ -26,8 +26,8 @@
       </div>
     </div>
     <div class="modal-body">
-      <form hx-post="{% url 'activity:time-add' id=matter_id request_app='matters' %}"
-            hx-target="#htmx-modal-container"
+      <form action="{% url 'activity:time-add' id=matter_id request_app='matters' %}"
+            method="post"
             class="form-compact col2 time-form"
             id="time-entry-form">
         {% csrf_token %}
