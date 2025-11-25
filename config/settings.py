@@ -210,6 +210,7 @@ EMAIL_PORT = 587
 EMAIL_HOST_USER = env("EMAIL_HOST_USER")
 EMAIL_HOST_PASSWORD = env("EMAIL_HOST_PASSWORD")
 SERVER_EMAIL = env("SERVER_EMAIL")
+DEFAULT_FROM_EMAIL = env("SERVER_EMAIL")
 ADMINS = env("ADMINS")
 
 # set cookies (sessions) to last for two months

@@ -1,6 +1,17 @@
+from django import forms
 from django.contrib.auth.forms import UserChangeForm, UserCreationForm
 
 from .models import CustomUser
+
+
+class VerificationCodeForm(forms.Form):
+    code = forms.CharField(
+        max_length=6,
+        min_length=6,
+        widget=forms.TextInput(
+            attrs={"placeholder": "Enter 6-digit code", "autocomplete": "off"}
+        ),
+    )
 
 
 class CustomUserCreationForm(UserCreationForm):

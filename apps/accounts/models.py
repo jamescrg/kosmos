@@ -1,5 +1,6 @@
 from django.contrib.auth.models import AbstractUser
 from django.db import models
+from django.utils import timezone
 
 from apps.accounts.managers import CustomUserManager
 
@@ -29,3 +30,15 @@ class CustomUser(AbstractUser):
     @property
     def role_display(self):
         return dict(ROLE_OPTIONS)[self.role]
+
+
+class EmailVerificationCode(models.Model):
+    user = models.ForeignKey(CustomUser, on_delete=models.CASCADE)
+    code = models.CharField(max_length=6)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        db_table = "app_accounts_email_verification_code"
+
+    def is_expired(self):
+        return (timezone.now() - self.created_at).seconds > 300  # 5 minutes

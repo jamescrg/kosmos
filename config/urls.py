@@ -6,6 +6,9 @@ from django.urls import include, path
 
 from apps.agenda.tasks.views import tasks_index
 
+# Override admin login to use 2FA
+admin.site.login_url = "/accounts/login/"
+
 urlpatterns = [
     path("", tasks_index, name="tasks-index"),
     # Admin

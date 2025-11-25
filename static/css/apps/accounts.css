@@ -45,6 +45,24 @@ body {
   text-align: center;
 }
 
+.auth-info {
+  color: var(--stone-600);
+  font-size: 0.9em;
+  margin-bottom: 10px;
+  text-align: center;
+}
+
+.auth-error {
+  background: var(--red-100);
+  border: 1px solid var(--red-300);
+  border-radius: 5px;
+  color: var(--red-700);
+  font-size: 0.9em;
+  margin-bottom: 10px;
+  padding: 10px;
+  text-align: center;
+}
+
 .prompt {
   margin-bottom: 30px;
 }
@@ -84,7 +102,7 @@ body {
 
 .account-form button {
   background: var(--link);
-  border: solid 1px var(--stone-600);
+  border: solid 1px var(--link);
   border-radius: 5px;
   color: var(--stone-200);
   font-size: 1em;
