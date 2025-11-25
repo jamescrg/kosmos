@@ -85,13 +85,15 @@ def test_entry_string(entry):
 
 
 def test_entry_content(entry, user, matter):
+    from decimal import Decimal
+
     expected_values = {
-        "user_id": user.id,
+        "user": user,
         "matter": matter,
         "date": "2020-08-07",
         "medium": "Email",
         "type": "Demand",
-        "amount": "10000",
+        "amount": Decimal("10000.00"),
         "notes": "With full release",
     }
     for key, val in expected_values.items():

@@ -25,7 +25,6 @@ class Invoice(models.Model):
     show_comp = models.BooleanField(default=False)
     discount = models.DecimalField(max_digits=7, decimal_places=2, default=0)
     status = models.CharField(max_length=20, choices=INVOICE_STATUS, default="DRAFT")
-    amount = models.DecimalField(max_digits=10, decimal_places=2, default=0)
     pdf_file = models.FileField(upload_to="invoices/", null=True, blank=True)
 
     def __str__(self):
@@ -45,14 +44,14 @@ class Invoice(models.Model):
             matter=self.matter,
             date__lte=self.date_limit,
             invoice__isnull=True,
-            entered=0,
+            entered=False,
         ).update(invoice_id=self.id)
 
         ExpenseEntry.objects.filter(
             matter=self.matter,
             date__lte=self.date_limit,
             invoice__isnull=True,
-            entered=0,
+            entered=False,
         ).update(invoice_id=self.id)
 
         return invoice
@@ -105,7 +104,7 @@ class Invoice(models.Model):
             ),
             comp_fees=Sum(
                 Case(
-                    When(comp=1, then=F("hours") * F("rate")),
+                    When(comp=True, then=F("hours") * F("rate")),
                     default=Value(0),
                     output_field=DecimalField(max_digits=10, decimal_places=2),
                 )
@@ -120,7 +119,7 @@ class Invoice(models.Model):
             gross_expenses=Sum("amount"),
             comp_expenses=Sum(
                 Case(
-                    When(comp=1, then=F("amount")),
+                    When(comp=True, then=F("amount")),
                     default=Value(0),
                     output_field=DecimalField(max_digits=10, decimal_places=2),
                 )

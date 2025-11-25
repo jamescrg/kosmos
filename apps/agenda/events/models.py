@@ -11,17 +11,19 @@ class Event(models.Model):
         ("In-person", "In-person"),
     ]
 
-    user_id = models.IntegerField(null=True)
+    user = models.ForeignKey(
+        "accounts.CustomUser", on_delete=models.SET_NULL, null=True, blank=True
+    )
     matter = models.ForeignKey(Matter, on_delete=models.CASCADE, null=True)
     date = models.DateField(null=True)
     start_time = models.TimeField(blank=True, null=True)
     end_time = models.TimeField(blank=True, null=True)
     party = models.CharField(max_length=50, blank=True, null=True)
-    description = models.CharField(max_length=255, null=True)
+    description = models.CharField(max_length=255, blank=True, null=True)
     location = models.CharField(
         max_length=50, choices=LOCATION_CHOICES, blank=True, null=True
     )
-    status = models.CharField(max_length=50, null=True)
+    status = models.CharField(max_length=50, blank=True, null=True)
     google_id = models.CharField(max_length=255, blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True, null=True)
     updated_at = models.DateTimeField(auto_now=True, null=True)

@@ -16,10 +16,10 @@ def get_unbilled_data(request):
     unbilled_hours_subquery = (
         TimeEntry.objects.filter(
             matter=OuterRef("pk"),
-            entered=0,
+            entered=False,
             invoice__isnull=True,
         )
-        .exclude(comp=1)
+        .exclude(comp=True)
         .values("matter")
         .annotate(total=Sum("hours"))
         .values("total")
@@ -28,10 +28,10 @@ def get_unbilled_data(request):
     unbilled_fees_subquery = (
         TimeEntry.objects.filter(
             matter=OuterRef("pk"),
-            entered=0,
+            entered=False,
             invoice__isnull=True,
         )
-        .exclude(comp=1)
+        .exclude(comp=True)
         .values("matter")
         .annotate(total=Sum(F("hours") * F("rate")))
         .values("total")
@@ -40,10 +40,10 @@ def get_unbilled_data(request):
     unbilled_expenses_subquery = (
         ExpenseEntry.objects.filter(
             matter=OuterRef("pk"),
-            entered=0,
+            entered=False,
             invoice__isnull=True,
         )
-        .exclude(comp=1)
+        .exclude(comp=True)
         .values("matter")
         .annotate(total=Sum("amount"))
         .values("total")

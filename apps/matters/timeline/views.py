@@ -58,7 +58,7 @@ def add(request, id):
         form = FactForm(request.POST, use_required_attribute=False)
         if form.is_valid():
             fact = form.save(commit=False)
-            fact.user_id = request.user.id
+            fact.user = request.user
             fact.matter = matter
             fact.save()
 
@@ -94,7 +94,7 @@ def edit(request, id, fact_id):
         form = FactForm(request.POST, instance=fact, use_required_attribute=False)
         if form.is_valid():
             fact = form.save(commit=False)
-            fact.user_id = request.user.id
+            fact.user = request.user
             fact.matter = matter
             fact.save()
 

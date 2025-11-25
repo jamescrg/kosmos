@@ -4,7 +4,9 @@ from apps.matters.models import Matter
 
 
 class Proceeding(models.Model):
-    user_id = models.IntegerField()
+    user = models.ForeignKey(
+        "accounts.CustomUser", on_delete=models.SET_NULL, null=True, blank=True
+    )
     matter = models.ForeignKey(Matter, on_delete=models.CASCADE, null=True)
     date_filed = models.DateField(null=True)
     forum = models.CharField(max_length=150, null=True)

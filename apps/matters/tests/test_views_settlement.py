@@ -32,6 +32,8 @@ def test_edit_get(client, matter, entry):
 
 
 def test_edit_post(client, matter, entry):
+    from decimal import Decimal
+
     data = {
         "date": "2020-08-12",
         "medium": "Call In",
@@ -41,7 +43,7 @@ def test_edit_post(client, matter, entry):
     }
     response = client.post(f"/matters/{matter.id}/settlement/{entry.id}/edit", data)
     assert response.status_code == 204
-    found = SettlementEntry.objects.filter(amount="500000").exists()
+    found = SettlementEntry.objects.filter(amount=Decimal("500000")).exists()
     assert found
 
 

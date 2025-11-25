@@ -92,7 +92,7 @@ def events_add(request, matter_id=None, origin="events"):
         if form.is_valid():
             # initialize event data
             event = form.save(commit=False)
-            event.user_id = request.user.id
+            event.user = request.user
 
             # Auto-set end_time to 1 hour after start_time if only start_time provided
             if event.start_time and not event.end_time:
@@ -186,7 +186,7 @@ def events_edit(request, id, origin="events"):
 
         if form.is_valid():
             event = form.save(commit=False)
-            event.user_id = request.user.id
+            event.user = request.user
 
             # Auto-set end_time to 1 hour after start_time if only start_time provided
             if event.start_time and not event.end_time:

@@ -4,7 +4,9 @@ from apps.contacts.models import Contact
 
 
 class Matter(models.Model):
-    user_id = models.IntegerField(null=True)
+    user = models.ForeignKey(
+        "accounts.CustomUser", on_delete=models.SET_NULL, null=True, blank=True
+    )
     name = models.CharField(max_length=50, null=True)
     work_status = models.CharField(max_length=255, null=True)
     description = models.CharField(max_length=255, null=True)
@@ -84,7 +86,7 @@ class Matter(models.Model):
                 ),
                 comp_fees=Sum(
                     Case(
-                        When(comp=1, then=F("hours") * F("rate")),
+                        When(comp=True, then=F("hours") * F("rate")),
                         default=Value(0),
                         output_field=DecimalField(max_digits=10, decimal_places=2),
                     )
@@ -100,7 +102,7 @@ class Matter(models.Model):
                 gross_expenses=Sum("amount"),
                 comp_expenses=Sum(
                     Case(
-                        When(comp=1, then=F("amount")),
+                        When(comp=True, then=F("amount")),
                         default=Value(0),
                         output_field=DecimalField(max_digits=10, decimal_places=2),
                     )
@@ -129,14 +131,16 @@ class Matter(models.Model):
             "net_fees_and_expenses": net_fees + net_expenses,
         }
 
-        # Unbilled fees and expenses (entered=0, no invoice)
+        # Unbilled fees and expenses (entered=False, no invoice)
         unbilled_gross_fees, unbilled_comp_fees = aggregate_fees(
-            TimeEntry.objects.filter(matter=self, entered=0, invoice__isnull=True)
+            TimeEntry.objects.filter(matter=self, entered=False, invoice__isnull=True)
         )
         unbilled_net_fees = unbilled_gross_fees - unbilled_comp_fees
 
         unbilled_gross_expenses, unbilled_comp_expenses = aggregate_expenses(
-            ExpenseEntry.objects.filter(matter=self, entered=0, invoice__isnull=True)
+            ExpenseEntry.objects.filter(
+                matter=self, entered=False, invoice__isnull=True
+            )
         )
         unbilled_net_expenses = unbilled_gross_expenses - unbilled_comp_expenses
 

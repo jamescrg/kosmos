@@ -6,7 +6,7 @@ PAYMENT_METHOD_CHOICES = (("CHECK", "Check"), ("CARD", "Card"), ("TRUST", "Trust
 
 
 class Payment(models.Model):
-    matter = models.ForeignKey(Matter, on_delete=models.CASCADE)
+    matter = models.ForeignKey(Matter, on_delete=models.PROTECT)
     date = models.DateField()
     amount = models.DecimalField(max_digits=10, decimal_places=2)
     payment_method = models.CharField(max_length=10, choices=PAYMENT_METHOD_CHOICES)
