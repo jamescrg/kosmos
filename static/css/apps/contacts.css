@@ -240,16 +240,19 @@
 
 /* Matters Tab */
 
-.matter-status-group {
-  margin-bottom: 1rem;
+.contact-matters-list th.status,
+.contact-matters-list td.status {
+  width: 10ch;
+  max-width: 10ch;
 }
 
-.matter-status-heading {
-  margin-bottom: 0.5rem;
+.contact-matters-list th.id {
+  text-align: right;
 }
 
-.matter-status-group:last-child {
-  margin-bottom: 0;
+.contact-matters-list td.id {
+  width: 80px;
+  text-align: right;
 }
 
 
