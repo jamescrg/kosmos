@@ -1,34 +1,35 @@
 {% load humanize %}
 <div class="contact-tab-content">
-  {# Related Matters List - Grouped by Status #}
   {% if relationships %}
     <div class="contact-matters-section">
-      {% regroup relationships by matter.status as status_groups %}
-      {% for status_group in status_groups %}
-        <div class="matter-status-group">
-          <div class="matter-status-heading">{{ status_group.grouper }}</div>
-          <div class="table-container">
-            <table class="table matter-list">
-              <tbody>
-                {% for relationship in status_group.list %}
-                  <tr id="matter-{{ relationship.matter.id }}">
-                    <td class="name">
-                      <a href="{% url 'matters:contacts' id=relationship.matter.id %}">{{ relationship.matter.name|truncatechars:32 }}</a>
-                    </td>
-                    <td class="id">
-                      {% if relationship.matter.client_reference_id %}
-                        {{ relationship.matter.client_reference_id }}
-                      {% else %}
-                        {{ relationship.matter.id }}
-                      {% endif %}
-                    </td>
-                  </tr>
-                {% endfor %}
-              </tbody>
-            </table>
-          </div>
-        </div>
-      {% endfor %}
+      <div class="table-container">
+        <table class="table contact-matters-list">
+          <thead>
+            <tr>
+              <th class="status">Status</th>
+              <th>Matter</th>
+              <th class="id">ID</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for relationship in relationships %}
+              <tr id="matter-{{ relationship.matter.id }}">
+                <td class="status">{{ relationship.matter.status }}</td>
+                <td class="name">
+                  <a href="{% url 'matters:contacts' id=relationship.matter.id %}">{{ relationship.matter.name|truncatechars:32 }}</a>
+                </td>
+                <td class="id">
+                  {% if relationship.matter.client_reference_id %}
+                    {{ relationship.matter.client_reference_id }}
+                  {% else %}
+                    {{ relationship.matter.id }}
+                  {% endif %}
+                </td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
     </div>
   {% else %}
     <div class="contact-empty-state">
