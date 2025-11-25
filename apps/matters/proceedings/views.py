@@ -68,7 +68,7 @@ def add(request, id):
         form = ProceedingForm(request.POST, use_required_attribute=False)
         if form.is_valid():
             proceeding = form.save(commit=False)
-            proceeding.user_id = request.user.id
+            proceeding.user = request.user
             proceeding.matter = matter
             proceeding.save()
 
@@ -111,7 +111,7 @@ def edit(request, id, proceeding_id):
         )
         if form.is_valid():
             proceeding_for_edits = form.save(commit=False)
-            proceeding_for_edits.user_id = request.user.id
+            proceeding_for_edits.user = request.user
             proceeding_for_edits.matter = matter
             proceeding_for_edits.save()
 

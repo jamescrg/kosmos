@@ -22,7 +22,7 @@ def get_collection_data(request):
     # Subquery to calculate net fees for an invoice (excluding comp'd entries)
     invoice_fees_subquery = (
         TimeEntry.objects.filter(invoice=OuterRef("pk"))
-        .exclude(comp=1)
+        .exclude(comp=True)
         .values("invoice")
         .annotate(total=Sum(F("hours") * F("rate"), output_field=DecimalField()))
         .values("total")
@@ -31,7 +31,7 @@ def get_collection_data(request):
     # Subquery to calculate net expenses for an invoice (excluding comp'd entries)
     invoice_expenses_subquery = (
         ExpenseEntry.objects.filter(invoice=OuterRef("pk"))
-        .exclude(comp=1)
+        .exclude(comp=True)
         .values("invoice")
         .annotate(total=Sum("amount"))
         .values("total")

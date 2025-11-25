@@ -27,7 +27,7 @@ def client(user):
 @pytest.fixture
 def event(user, matter):
     event = Event.objects.create(
-        user_id=user.id,
+        user=user,
         matter=matter,
         date="2022-12-28",
         party="Client",
@@ -40,11 +40,13 @@ def event(user, matter):
 
 @pytest.fixture
 def event_data(event):
-    event_data = event.__dict__
-    keys = "_state id google_id".split()
-    for key in keys:
-        del event_data[key]
-    event_data["matter"] = event_data["matter_id"]
+    exclude_keys = {"_state", "id", "google_id", "user_id", "matter_id"}
+    event_data = {
+        key: value
+        for key, value in event.__dict__.items()
+        if key not in exclude_keys and value is not None
+    }
+    event_data["matter"] = event.matter_id
     return event_data
 
 

@@ -25,7 +25,7 @@ def calculate_inv_amount(invoice: Invoice):
 
     # total fees for comp hours
     entries_comp_total = (
-        entries.filter(comp=1)
+        entries.filter(comp=True)
         .annotate(
             fee=ExpressionWrapper(F("hours") * F("rate"), output_field=DecimalField())
         )
@@ -49,7 +49,7 @@ def calculate_inv_amount(invoice: Invoice):
         expenses.aggregate(total_amount=Sum("amount"))["total_amount"] or 0
     )
     expenses_comp_total = (
-        expenses.filter(comp=1).aggregate(total_amount=Sum("amount"))["total_amount"]
+        expenses.filter(comp=True).aggregate(total_amount=Sum("amount"))["total_amount"]
         or 0
     )
     expenses_net_total = expenses_gross_total - expenses_comp_total

@@ -9,8 +9,8 @@ class Transaction(models.Model):
     type = models.CharField(max_length=10, null=True)
     description = models.CharField(max_length=255, null=True)
     amount = models.DecimalField(max_digits=9, decimal_places=2, null=True)
-    entered = models.IntegerField(blank=True, null=True)
-    confirmed = models.IntegerField(blank=True, null=True)
+    entered = models.BooleanField(default=False)
+    confirmed = models.BooleanField(default=False)
 
     def __str__(self):
         return f"{self.description} : {self.id}"

@@ -7,13 +7,13 @@ from apps.matters.models import Matter
 
 class TimeEntry(models.Model):
     date = models.DateField(null=True)
-    matter = models.ForeignKey(Matter, on_delete=models.CASCADE, null=True)
+    matter = models.ForeignKey(Matter, on_delete=models.PROTECT, null=True)
     user = models.ForeignKey(CustomUser, on_delete=models.SET_NULL, null=True)
     actions = models.TextField(null=True)
     hours = models.DecimalField(max_digits=3, decimal_places=1, default=0)
     rate = models.IntegerField(null=True)
-    comp = models.IntegerField(blank=True, null=True)
-    entered = models.IntegerField(blank=True, null=True)
+    comp = models.BooleanField(default=False)
+    entered = models.BooleanField(default=False)
     invoice = models.ForeignKey(
         Invoice, on_delete=models.SET_NULL, null=True, blank=True
     )

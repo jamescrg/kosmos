@@ -46,8 +46,8 @@ def entry(user, matter):
         actions="Call with client",
         hours=0.2,
         rate=300,
-        comp=0,
-        entered=0,
+        comp=False,
+        entered=False,
     )
     entry.save()
     return entry

@@ -8,10 +8,10 @@ from apps.matters.models import Matter
 class Task(models.Model):
     user = models.ForeignKey(CustomUser, on_delete=models.CASCADE, null=True)
     folder = models.ForeignKey(Folder, on_delete=models.SET_NULL, null=True)
-    description = models.CharField(max_length=200, null=True)
+    description = models.CharField(max_length=200, blank=True, null=True)
     date_due = models.DateField(blank=True, null=True)
     matter = models.ForeignKey(Matter, on_delete=models.CASCADE, blank=True, null=True)
-    status = models.CharField(max_length=50, null=True)
+    status = models.CharField(max_length=50, blank=True, null=True)
     priority = models.IntegerField(default=1)
     custom_order = models.DecimalField(
         max_digits=18, decimal_places=8, null=True, blank=True, default=None

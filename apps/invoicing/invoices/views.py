@@ -311,11 +311,11 @@ def invoices_add(request):
         matter_id = request.GET.get("matter")
 
         entries = TimeEntry.objects.filter(
-            invoice__isnull=True, entered=0, date__gte="2024-01-01"
+            invoice__isnull=True, entered=False, date__gte="2024-01-01"
         ).values_list("matter", flat=True)
 
         expenses = ExpenseEntry.objects.filter(
-            invoice__isnull=True, entered=0
+            invoice__isnull=True, entered=False
         ).values_list("matter", flat=True)
 
         # Combine all matter IDs (including the specified one if provided)

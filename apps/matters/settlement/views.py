@@ -50,7 +50,7 @@ def add(request, id):
         form = SettlementEntryForm(request.POST, use_required_attribute=False)
         if form.is_valid():
             entry = form.save(commit=False)
-            entry.user_id = request.user.id
+            entry.user = request.user
             entry.matter = matter
             entry.save()
 
@@ -90,7 +90,7 @@ def edit(request, id, entry_id):
         )
         if form.is_valid():
             entry = form.save(commit=False)
-            entry.user_id = request.user.id
+            entry.user = request.user
             entry.matter = matter
             entry.save()
 

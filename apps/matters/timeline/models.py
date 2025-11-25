@@ -15,7 +15,9 @@ class Fact(models.Model):
         ("Yellow", "Yellow"),
     ]
 
-    user_id = models.IntegerField()
+    user = models.ForeignKey(
+        "accounts.CustomUser", on_delete=models.SET_NULL, null=True, blank=True
+    )
     matter = models.ForeignKey(Matter, on_delete=models.CASCADE, null=True)
     date = models.DateField(null=True)
     time = models.TimeField(auto_now=False, auto_now_add=False, null=True, blank=True)

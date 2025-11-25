@@ -25,7 +25,7 @@ def get_pending_client_balance(contact_id):
 
 def get_confirmed_client_balance(contact_id):
     contact = get_object_or_404(Contact, pk=contact_id)
-    transactions = Transaction.objects.filter(contact=contact, confirmed=1)
+    transactions = Transaction.objects.filter(contact=contact, confirmed=True)
     balance = calculate_balance(transactions)
     return balance
 
@@ -52,7 +52,7 @@ def get_asymmetric_client_balance(contact_id):
     contact = get_object_or_404(Contact, pk=contact_id)
     deposits = Transaction.objects.filter(contact=contact, type="Deposit")
     withdrawals = Transaction.objects.filter(
-        contact=contact, type="Withdrawal", confirmed=1
+        contact=contact, type="Withdrawal", confirmed=True
     )
 
     total_deposits = calculate_balance(deposits)
@@ -118,7 +118,7 @@ def get_pending_account_balance():
 
 
 def get_confirmed_account_balance():
-    transactions = Transaction.objects.filter(confirmed=1)
+    transactions = Transaction.objects.filter(confirmed=True)
     balance = calculate_balance(transactions)
     return balance
 

@@ -40,7 +40,7 @@ def folder(user):
 @pytest.fixture
 def matter(user):
     matter = Matter.objects.create(
-        user_id=user.id,
+        user=user,
         name="Sample Test Matter",
         work_status="Awaiting response from OC",
         status="Open",
@@ -67,9 +67,11 @@ def task(user, folder, matter):
 
 @pytest.fixture
 def task_data(task, folder, user, matter):
-    exclude_keys = {"_state", "id"}
+    exclude_keys = {"_state", "id", "user_id", "folder_id", "matter_id"}
     task_data = {
-        key: value for key, value in task.__dict__.items() if key not in exclude_keys
+        key: value
+        for key, value in task.__dict__.items()
+        if key not in exclude_keys and value is not None
     }
 
     task_data["id"] = task.id

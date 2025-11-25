@@ -65,7 +65,7 @@ def contact(user, folder):
 @pytest.fixture
 def matter(user, contact):
     matter = Matter.objects.create(
-        user_id=user.id,
+        user=user,
         name="Sample Test Matter",
         work_status="Awaiting response from OC",
         status="Open",
@@ -82,12 +82,17 @@ def matter(user, contact):
 
 @pytest.fixture
 def matter_data(matter, contact):
-    exclude_keys = {"_state", "id"}
+    exclude_keys = {"_state", "id", "user_id"}
     matter_data = {
-        key: value for key, value in matter.__dict__.items() if key not in exclude_keys
+        key: value
+        for key, value in matter.__dict__.items()
+        if key not in exclude_keys and value is not None
     }
 
     matter_data["client"] = contact
+    # Ensure description has a value for form validation
+    if "description" not in matter_data:
+        matter_data["description"] = "Test description"
 
     return matter_data
 
@@ -115,7 +120,7 @@ def relationship(matter, contact, role):
 @pytest.fixture
 def proceeding(user, matter):
     proceeding = Proceeding.objects.create(
-        user_id=user.id,
+        user=user,
         matter=matter,
         date_filed="2020-08-07",
         forum="Fulton Superior",
@@ -137,13 +142,15 @@ def proceeding_data(proceeding):
 
 @pytest.fixture
 def entry(user, matter):
+    from decimal import Decimal
+
     entry = SettlementEntry.objects.create(
-        user_id=user.id,
+        user=user,
         matter=matter,
         date="2020-08-07",
         medium="Email",
         type="Demand",
-        amount="10000",
+        amount=Decimal("10000.00"),
         notes="With full release",
     )
     entry.save()
@@ -162,7 +169,7 @@ def entry_data(entry):
 @pytest.fixture
 def fact(user, matter):
     fact = Fact.objects.create(
-        user_id=user.id,
+        user=user,
         matter=matter,
         date="2020-08-07",
         description="Email to OC",

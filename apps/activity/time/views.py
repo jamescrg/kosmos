@@ -154,7 +154,7 @@ def time_filter_quick(request, quick_filter):
             "matter": None,
             "keyword": "",
             "comp": None,
-            "entered": 0,
+            "entered": False,
             "invoice": 0,
             "order_by": "date",
             "filter_label": "unbilled",
@@ -343,10 +343,7 @@ def time_delete(_, id):
 @login_required
 def time_toggle_entered(request, id):
     entry = get_object_or_404(TimeEntry, pk=id)
-    if entry.entered == 1:
-        entry.entered = 0
-    else:
-        entry.entered = 1
+    entry.entered = not entry.entered
     entry.save()
     return redirect("/activity")
 
@@ -366,7 +363,7 @@ def export_old(request):
     entries = TimeEntry.objects.all()
     entries = entries.filter(matter__firm="Campbell & Brannon")
     entries = entries.exclude(matter__clio_matter_id__isnull=True)
-    entries = entries.filter(entered=0)
+    entries = entries.filter(entered=False)
     entries = entries.order_by("-date", "-id")
 
     writer = csv.writer(response)
@@ -410,7 +407,7 @@ def export_old(request):
     entries = ExpenseEntry.objects.all()
     entries = entries.filter(matter__firm="Campbell & Brannon")
     entries = entries.exclude(matter__clio_matter_id="")
-    entries = entries.filter(entered=0)
+    entries = entries.filter(entered=False)
     entries = entries.order_by("-date", "-id")
 
     for entry in entries:

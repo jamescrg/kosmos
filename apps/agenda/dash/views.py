@@ -34,10 +34,10 @@ def dash_index(request):
     # Unbilled hours and fees by user
     unbilled_by_user = (
         TimeEntry.objects.filter(
-            entered=0,
+            entered=False,
             invoice__isnull=True,
         )
-        .exclude(comp=1)
+        .exclude(comp=True)
         .values("user__username")
         .annotate(
             total_hours=Coalesce(Sum("hours"), 0, output_field=DecimalField()),
@@ -57,10 +57,10 @@ def dash_index(request):
     unbilled_fees_subquery = (
         TimeEntry.objects.filter(
             matter=OuterRef("pk"),
-            entered=0,
+            entered=False,
             invoice__isnull=True,
         )
-        .exclude(comp=1)
+        .exclude(comp=True)
         .values("matter")
         .annotate(total=Sum(F("hours") * F("rate")))
         .values("total")
@@ -69,10 +69,10 @@ def dash_index(request):
     unbilled_expenses_subquery = (
         ExpenseEntry.objects.filter(
             matter=OuterRef("pk"),
-            entered=0,
+            entered=False,
             invoice__isnull=True,
         )
-        .exclude(comp=1)
+        .exclude(comp=True)
         .values("matter")
         .annotate(total=Sum("amount"))
         .values("total")

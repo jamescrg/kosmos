@@ -4,7 +4,7 @@ from apps.matters.models import Matter
 
 
 class Credit(models.Model):
-    matter = models.ForeignKey(Matter, on_delete=models.CASCADE)
+    matter = models.ForeignKey(Matter, on_delete=models.PROTECT)
     date = models.DateField()
     amount = models.DecimalField(max_digits=10, decimal_places=2)
     detail = models.CharField(max_length=255, null=True, blank=True)
