@@ -1,6 +1,7 @@
 from django import forms
 from django.core.exceptions import ValidationError
 
+from apps.matters.models import PracticeArea
 from config.helpers import normalize_phone
 from config.settings import CustomFormRendererCompact
 
@@ -31,18 +32,6 @@ class IntakeForm(forms.ModelForm):
             ("Referred Out", "Referred Out"),
             ("Client Declined", "Client Declined"),
             ("Unresponsive", "Unresponsive"),
-        )
-
-        PRACTICE_AREAS = (
-            ("General", "General"),
-            ("Boundary", "Boundary"),
-            ("Title", "Title"),
-            ("LLT - LL", "LLT - LL"),
-            ("LLT - T", "LLT - T"),
-            ("QT", "QT"),
-            ("HOA", "HOA"),
-            ("Fraud", "Fraud"),
-            ("Construction", "Construction"),
         )
 
         SOURCES = (
@@ -76,7 +65,6 @@ class IntakeForm(forms.ModelForm):
             ),
             "value": forms.TextInput(attrs={"class": "span2"}),
             "status": forms.Select(choices=STATUSES),
-            "practice_area": forms.Select(choices=PRACTICE_AREAS),
             "source": forms.Select(choices=SOURCES),
             "date": forms.DateInput(attrs={"type": "date"}),
         }
@@ -91,6 +79,11 @@ class IntakeForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.renderer = CustomFormRendererCompact()
+
+        # Filter practice areas to only show active ones
+        self.fields["practice_area"].queryset = PracticeArea.objects.filter(
+            is_active=True
+        )
 
     def clean_name(self):
         name = self.cleaned_data["name"]

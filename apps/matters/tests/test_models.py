@@ -15,10 +15,11 @@ def test_content(matter):
         "name": "Sample Test Matter",
         "work_status": "Awaiting response from OC",
         "status": "Open",
-        "practice_area": "General",
     }
     for key, val in expected_values.items():
         assert getattr(matter, key) == val
+    # Check practice area separately since it's now a FK
+    assert matter.practice_area.name == "General"
 
 
 # -----------------------------------------------------

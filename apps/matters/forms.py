@@ -2,7 +2,7 @@ from django import forms
 
 from config.settings import CustomFormRendererCompact
 
-from .models import Matter
+from .models import Matter, PracticeArea
 
 
 class MatterForm(forms.ModelForm):
@@ -30,18 +30,6 @@ class MatterForm(forms.ModelForm):
         FIRMS = (
             ("Craig Legal", "Craig Legal"),
             ("Campbell & Brannon", "Campbell & Brannon"),
-        )
-
-        PRACTICE_AREAS = (
-            ("General", "General"),
-            ("Interpleader", "Interpleader"),
-            ("Construction", "Construction"),
-            ("Boundary", "Boundary"),
-            ("LLT-L", "LLT-L"),
-            ("LLT-T", "LLT-T"),
-            ("QT", "QT"),
-            ("HOA", "HOA"),
-            ("Fraud", "Fraud"),
         )
 
         widgets = {
@@ -73,9 +61,6 @@ class MatterForm(forms.ModelForm):
             "firm": forms.Select(
                 choices=FIRMS,
             ),
-            "practice_area": forms.Select(
-                choices=PRACTICE_AREAS,
-            ),
             "date_start": forms.DateInput(attrs={"type": "date"}),
         }
 
@@ -89,6 +74,11 @@ class MatterForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.renderer = CustomFormRendererCompact()
+
+        # Filter practice areas to only show active ones
+        self.fields["practice_area"].queryset = PracticeArea.objects.filter(
+            is_active=True
+        )
 
         # Set Craig Legal as default for new matters
         if not self.instance.pk:

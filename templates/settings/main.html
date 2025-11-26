@@ -19,6 +19,9 @@
           <li {% if subapp == "contacts" %}class="active"{% endif %}>
             <a href="{% url 'settings:contacts-index' %}">Contacts</a>
           </li>
+          <li {% if subapp == "matters" %}class="active"{% endif %}>
+            <a href="{% url 'settings:matters-index' %}">Matters</a>
+          </li>
           <li {% if subapp == "integrations" %}class="active"{% endif %}>
             <a href="{% url 'settings:integrations-index' %}">Integrations</a>
           </li>

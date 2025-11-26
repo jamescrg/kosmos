@@ -4,6 +4,7 @@ from django.urls import path
 import apps.settings.company.views as company_urls
 import apps.settings.contacts.views as contact_urls
 import apps.settings.integrations.views as integration_urls
+import apps.settings.matters.views as matter_urls
 import apps.settings.profile.views as profile_urls
 import apps.settings.session.views as session_urls
 import apps.settings.users.views as user_urls
@@ -105,5 +106,32 @@ urlpatterns = [
         "settings/contacts/groups/update-order/",
         contact_urls.update_group_order,
         name="update-group-order",
+    ),
+    # Matters (Practice Areas)
+    path("settings/matters/", matter_urls.matters_index, name="matters-index"),
+    path(
+        "settings/matters/practice-areas/",
+        matter_urls.practice_area_list,
+        name="practice-area-list",
+    ),
+    path(
+        "settings/matters/practice-areas/filter/<str:status>/",
+        matter_urls.practice_area_filter,
+        name="practice-area-filter",
+    ),
+    path(
+        "settings/matters/practice-areas/add/",
+        matter_urls.add_practice_area,
+        name="add-practice-area",
+    ),
+    path(
+        "settings/matters/practice-areas/edit/<int:practice_area_id>/",
+        matter_urls.edit_practice_area,
+        name="edit-practice-area",
+    ),
+    path(
+        "settings/matters/practice-areas/delete/<int:practice_area_id>/",
+        matter_urls.delete_practice_area,
+        name="delete-practice-area",
     ),
 ]

@@ -65,9 +65,7 @@
             </td>
             <td class="intake-phone">{{ intake.phone|phone_number|default:'' }}</td>
             <td class="intake-source">{{ intake.source|default:'' }}</td>
-            <td class="intake-practice-area">
-              {% if intake.source %}{{ intake.practice_area|slice:':14' }}{% endif %}
-            </td>
+            <td class="intake-practice-area dropdown-cell">{% include "intakes/intake-practice-area.html" %}</td>
             <td class="intake-status dropdown-cell">{% include "intakes/intake-status.html" %}</td>
           </tr>
         {% empty %}

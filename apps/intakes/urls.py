@@ -50,7 +50,7 @@ urlpatterns = [
         name="edit-status",
     ),
     path(
-        "intakes/edit-practice-area/<int:pk>/<str:practice_area>",
+        "intakes/edit-practice-area/<int:pk>/<int:practice_area_id>",
         intake_edit_practice_area,
         name="edit-practice-area",
     ),

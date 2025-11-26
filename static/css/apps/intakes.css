@@ -15,6 +15,14 @@ List View
   min-width: 70.5rem;
 }
 
+/* Fix dropdown overflow issues */
+#intakes .table-container {
+  overflow-x: auto;
+  overflow-y: clip;
+  padding-bottom: 12.5rem;
+  margin-bottom: -12.5rem;
+}
+
 .intake-date {
   width: 7.5rem;
 }

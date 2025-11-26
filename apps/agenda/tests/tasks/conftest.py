@@ -4,7 +4,7 @@ from django.test import Client
 from apps.accounts.models import CustomUser
 from apps.agenda.tasks.models import Task
 from apps.folders.models import Folder
-from apps.matters.models import Matter
+from apps.matters.models import Matter, PracticeArea
 
 
 @pytest.fixture
@@ -38,13 +38,19 @@ def folder(user):
 
 
 @pytest.fixture
-def matter(user):
+def practice_area():
+    practice_area = PracticeArea.objects.create(name="General", is_active=True)
+    return practice_area
+
+
+@pytest.fixture
+def matter(user, practice_area):
     matter = Matter.objects.create(
         user=user,
         name="Sample Test Matter",
         work_status="Awaiting response from OC",
         status="Open",
-        practice_area="General",
+        practice_area=practice_area,
     )
     matter.save()
 

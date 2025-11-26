@@ -5,7 +5,7 @@ from apps.accounts.models import CustomUser
 from apps.contacts.models import Contact
 from apps.folders.models import Folder
 from apps.intakes.models import Intake
-from apps.matters.models import Matter, Relationship, Role
+from apps.matters.models import Matter, PracticeArea, Relationship, Role
 
 
 @pytest.fixture
@@ -68,15 +68,21 @@ def contact_data(contact):
 
 
 @pytest.fixture
-def matter():
+def practice_area():
+    practice_area = PracticeArea.objects.create(name="General", is_active=True)
+    return practice_area
+
+
+@pytest.fixture
+def matter(practice_area):
     matter = Matter.objects.create(
         name="Sample Test Matter",
         work_status="Awaiting response from OC",
         status="Open",
-        practice_area="General",
+        practice_area=practice_area,
     )
     matter.save()
-    return
+    return matter
 
 
 @pytest.fixture

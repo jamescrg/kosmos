@@ -3,6 +3,7 @@ from django.urls import reverse
 from pytest_django.asserts import assertTemplateUsed
 
 from apps.intakes.models import Intake, Note
+from apps.matters.models import PracticeArea
 
 pytestmark = pytest.mark.django_db
 
@@ -41,14 +42,14 @@ def test_intake_edit_get(client, intake):
     assertTemplateUsed(response, "intakes/form.html")
 
 
-def test_intake_edit_post(client, intake):
+def test_intake_edit_post(client, intake, practice_area):
     data = {
         "date": "2020-01-01",
         "name": "Desmond Tutu",
         "address": "225 Paper Street, Porbandar, India",
         "phone": "123.456.7890",
         "email": "tutu@gandhi.com",
-        "practice_area": "General",
+        "practice_area": practice_area.id,
         "source": "Internet",
         "status": "Open",
     }
@@ -138,8 +139,10 @@ def test_note_delete(client, note):
 
 
 def test_intake_edit_practice_area(client, intake):
-    response = client.post(f"/intakes/edit-practice-area/{intake.id}/Title")
+    # Create a new practice area to change to
+    title_pa = PracticeArea.objects.create(name="Title", is_active=True)
+    response = client.post(f"/intakes/edit-practice-area/{intake.id}/{title_pa.id}")
     assert response.status_code == 200
     assertTemplateUsed(response, "intakes/intake-practice-area.html")
     intake.refresh_from_db()
-    assert intake.practice_area == "Title"
+    assert intake.practice_area.name == "Title"

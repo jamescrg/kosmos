@@ -12,7 +12,13 @@ class Intake(models.Model):
     value = models.IntegerField(blank=True, null=True)
     phone = models.CharField(max_length=50, blank=True, null=True)
     email = models.EmailField(max_length=100, blank=True, null=True)
-    practice_area = models.CharField(max_length=50, null=True)
+    practice_area = models.ForeignKey(
+        "matters.PracticeArea",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="intakes",
+    )
     source = models.CharField(max_length=50, null=True)
     status = models.CharField(max_length=50, default="Open")
 
