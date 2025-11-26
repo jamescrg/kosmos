@@ -1,6 +1,7 @@
 from apps.intakes.filter_intakes import IntakeFilter
 from apps.intakes.models import Note, UserIntakeView
 from apps.management.pagination import CustomPaginator
+from apps.matters.models import PracticeArea
 
 
 def get_table_data(request):
@@ -53,6 +54,8 @@ def get_table_data(request):
     current_order = filter_data.get("order_by", "date") if filter_data else "date"
     current_order = current_order.lstrip("-")
 
+    practice_areas = PracticeArea.objects.filter(is_active=True).order_by("name")
+
     table_data = {
         "pagination": pagination,
         "intakes": intake_list,
@@ -61,6 +64,7 @@ def get_table_data(request):
         "number_intakes": number_intakes,
         "filter_label": filter_data.get("filter_label", None) if filter_data else None,
         "current_order": current_order,
+        "practice_areas": practice_areas,
     }
 
     return table_data

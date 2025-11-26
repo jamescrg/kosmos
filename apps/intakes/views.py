@@ -11,6 +11,7 @@ from apps.intakes.filter_intakes import IntakeFilter
 from apps.intakes.forms import IntakeForm, NoteForm
 from apps.intakes.intakes import get_table_data
 from apps.intakes.models import Intake, Note, UserIntakeView
+from apps.matters.models import PracticeArea
 
 
 @login_required
@@ -117,11 +118,14 @@ def detail_index(request, id):
     except ObjectDoesNotExist:
         contact = None
 
+    practice_areas = PracticeArea.objects.filter(is_active=True).order_by("name")
+
     context = {
         "app": "intakes",
         "intake": intake,
         "notes": notes,
         "contact": contact,
+        "practice_areas": practice_areas,
     }
 
     return render(request, "intakes/detail-index.html", context)
@@ -144,11 +148,14 @@ def detail(request, id):
     except ObjectDoesNotExist:
         contact = None
 
+    practice_areas = PracticeArea.objects.filter(is_active=True).order_by("name")
+
     context = {
         "app": "intakes",
         "intake": intake,
         "notes": notes,
         "contact": contact,
+        "practice_areas": practice_areas,
     }
     return render(request, "intakes/detail.html", context)
 
@@ -303,13 +310,15 @@ def intake_edit_status(request, pk, status):
 
 
 @login_required
-def intake_edit_practice_area(request, pk, practice_area):
+def intake_edit_practice_area(request, pk, practice_area_id):
     intake = get_object_or_404(Intake, pk=pk)
+    practice_area = get_object_or_404(PracticeArea, pk=practice_area_id)
 
     intake.practice_area = practice_area
     intake.save()
 
-    context = {"intake": intake}
+    practice_areas = PracticeArea.objects.filter(is_active=True).order_by("name")
+    context = {"intake": intake, "practice_areas": practice_areas}
 
     return render(request, "intakes/intake-practice-area.html", context)
 

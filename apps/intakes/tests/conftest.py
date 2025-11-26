@@ -4,6 +4,7 @@ from django.test import Client
 from apps.accounts.models import CustomUser
 from apps.contacts.models import Contact
 from apps.intakes.models import Intake, Note
+from apps.matters.models import PracticeArea
 
 
 @pytest.fixture
@@ -47,14 +48,23 @@ def contact(user, folder):
 
 
 @pytest.fixture
-def intake():
+def practice_area():
+    practice_area = PracticeArea.objects.create(
+        name="General",
+        is_active=True,
+    )
+    return practice_area
+
+
+@pytest.fixture
+def intake(practice_area):
     intake = Intake.objects.create(
         date="2020-01-01",
         name="Mohandas Gandhi",
         address="225 Paper Street, Porbandar, India",
         phone="123.456.7890",
         email="gandhi@gandhi.com",
-        practice_area="General",
+        practice_area=practice_area,
         source="Internet",
     )
     intake.save()
@@ -63,10 +73,15 @@ def intake():
 
 @pytest.fixture
 def intake_data(intake):
-    intake_data = intake.__dict__
-    keys = "_state id".split()
+    intake_data = intake.__dict__.copy()
+    keys = "_state id practice_area_id".split()
     for key in keys:
-        del intake_data[key]
+        if key in intake_data:
+            del intake_data[key]
+    # Form expects practice_area as the FK id
+    intake_data["practice_area"] = intake.practice_area.id
+    # Remove None values as they can't be encoded in POST data
+    intake_data = {k: v for k, v in intake_data.items() if v is not None}
     return intake_data
 
 

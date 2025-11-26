@@ -1,6 +1,7 @@
 import django_filters
 
 from apps.intakes.models import Intake
+from apps.matters.models import PracticeArea
 
 INTAKE_STATUS_CHOICES = (
     ("Open", "Open"),
@@ -9,18 +10,6 @@ INTAKE_STATUS_CHOICES = (
     ("Referred Out", "Referred Out"),
     ("Client Declined", "Client Declined"),
     ("Unresponsive", "Unresponsive"),
-)
-
-PRACTICE_AREA_CHOICES = (
-    ("General", "General"),
-    ("Boundary", "Boundary"),
-    ("Title", "Title"),
-    ("LLT - LL", "LLT - LL"),
-    ("LLT - T", "LLT - T"),
-    ("QT", "QT"),
-    ("HOA", "HOA"),
-    ("Fraud", "Fraud"),
-    ("Construction", "Construction"),
 )
 
 SOURCE_CHOICES = (
@@ -37,8 +26,9 @@ class IntakeFilter(django_filters.FilterSet):
     status = django_filters.ChoiceFilter(
         choices=INTAKE_STATUS_CHOICES, empty_label="All"
     )
-    practice_area = django_filters.ChoiceFilter(
-        choices=PRACTICE_AREA_CHOICES, empty_label="All"
+    practice_area = django_filters.ModelChoiceFilter(
+        queryset=PracticeArea.objects.filter(is_active=True),
+        empty_label="All",
     )
     date = django_filters.DateFromToRangeFilter(
         widget=django_filters.widgets.RangeWidget(attrs={"type": "date"})

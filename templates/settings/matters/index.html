@@ -1,0 +1,9 @@
+{% extends "settings/main.html" %}
+{% block subcontent %}
+  <div class="settings-matters-container">
+    <div id="practice-areas"
+         hx-trigger="practiceAreaListReload from:body"
+         hx-get="{% url 'settings:practice-area-list' %}"
+         hx-target="this">{% include "settings/matters/practice-area-table.html" %}</div>
+  </div>
+{% endblock subcontent %}

@@ -4,7 +4,7 @@ from django.test import Client
 from apps.accounts.models import CustomUser
 from apps.contacts.models import Contact
 from apps.folders.models import Folder
-from apps.matters.models import Group, Matter, Relationship, Role
+from apps.matters.models import Group, Matter, PracticeArea, Relationship, Role
 from apps.matters.proceedings.models import Proceeding
 from apps.matters.settlement.models import SettlementEntry
 from apps.matters.timeline.models import Fact
@@ -63,7 +63,16 @@ def contact(user, folder):
 
 
 @pytest.fixture
-def matter(user, contact):
+def practice_area():
+    practice_area = PracticeArea.objects.create(
+        name="General",
+        is_active=True,
+    )
+    return practice_area
+
+
+@pytest.fixture
+def matter(user, contact, practice_area):
     matter = Matter.objects.create(
         user=user,
         name="Sample Test Matter",
@@ -74,7 +83,7 @@ def matter(user, contact):
         firm="Test Firm",
         clio_matter_id="123",
         client_reference_id="125",
-        practice_area="General",
+        practice_area=practice_area,
         client=contact,
     )
     return matter
@@ -82,7 +91,7 @@ def matter(user, contact):
 
 @pytest.fixture
 def matter_data(matter, contact):
-    exclude_keys = {"_state", "id", "user_id"}
+    exclude_keys = {"_state", "id", "user_id", "practice_area_id"}
     matter_data = {
         key: value
         for key, value in matter.__dict__.items()
@@ -90,6 +99,8 @@ def matter_data(matter, contact):
     }
 
     matter_data["client"] = contact
+    # Form expects practice_area as the FK id
+    matter_data["practice_area"] = matter.practice_area.id
     # Ensure description has a value for form validation
     if "description" not in matter_data:
         matter_data["description"] = "Test description"

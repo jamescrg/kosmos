@@ -16,7 +16,13 @@ class Matter(models.Model):
     firm = models.CharField(max_length=50, null=True)
     clio_matter_id = models.CharField(max_length=500, null=True, blank=True)
     client_reference_id = models.CharField(max_length=50, blank=True, null=True)
-    practice_area = models.CharField(max_length=50, null=True)
+    practice_area = models.ForeignKey(
+        "PracticeArea",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="matters",
+    )
     contacts = models.ManyToManyField(Contact, through="Relationship")
     client = models.ForeignKey(
         Contact, related_name="client_matters", on_delete=models.SET_NULL, null=True
@@ -198,6 +204,18 @@ class Matter(models.Model):
             "billed": billed,
             "invoices": invoices,
         }
+
+
+class PracticeArea(models.Model):
+    name = models.CharField(max_length=50)
+    is_active = models.BooleanField(default=True)
+
+    def __str__(self):
+        return self.name
+
+    class Meta:
+        db_table = "app_practice_area"
+        ordering = ["name"]
 
 
 class Group(models.Model):

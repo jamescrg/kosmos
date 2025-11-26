@@ -7,19 +7,7 @@ from django.template.loader import render_to_string
 from weasyprint import HTML
 
 from apps.intakes.models import Intake
-
-# Define practice areas to match the choices in forms
-PRACTICE_AREAS = [
-    "General",
-    "Boundary",
-    "Title",
-    "LLT - LL",
-    "LLT - T",
-    "QT",
-    "HOA",
-    "Fraud",
-    "Construction",
-]
+from apps.matters.models import PracticeArea
 
 # Define intake statuses to match the choices in forms
 INTAKE_STATUSES = [
@@ -36,6 +24,13 @@ def generate_intakes_pdf(date_from_obj, date_to_obj, request):
     """
     Generate a PDF of the intakes report with practice area breakdown
     """
+    # Get practice areas from the database
+    practice_areas = list(
+        PracticeArea.objects.filter(is_active=True)
+        .order_by("name")
+        .values_list("name", flat=True)
+    )
+
     # Get intakes
     intakes = Intake.objects.all()
 
@@ -68,24 +63,24 @@ def generate_intakes_pdf(date_from_obj, date_to_obj, request):
             }
 
             # Get counts for each practice area for this month
-            for practice_area in PRACTICE_AREAS:
+            for practice_area_name in practice_areas:
                 count = intakes.filter(
                     date__year=month_data["month"].year,
                     date__month=month_data["month"].month,
-                    practice_area=practice_area,
+                    practice_area__name=practice_area_name,
                 ).count()
-                row["practice_areas"][practice_area] = count
+                row["practice_areas"][practice_area_name] = count
                 row["total"] += count
-                totals_by_practice_area[practice_area] += count
+                totals_by_practice_area[practice_area_name] += count
 
             # Calculate percentages for this month
             row["percentages"] = {}
             if row["total"] > 0:
-                for practice_area in PRACTICE_AREAS:
+                for practice_area_name in practice_areas:
                     percentage = (
-                        row["practice_areas"][practice_area] / row["total"]
+                        row["practice_areas"][practice_area_name] / row["total"]
                     ) * 100
-                    row["percentages"][practice_area] = round(percentage, 1)
+                    row["percentages"][practice_area_name] = round(percentage, 1)
 
             intake_data.append(row)
 
@@ -95,9 +90,11 @@ def generate_intakes_pdf(date_from_obj, date_to_obj, request):
     # Calculate overall percentages for each practice area
     percentages_by_practice_area = {}
     if total_intakes > 0:
-        for practice_area in PRACTICE_AREAS:
-            percentage = (totals_by_practice_area[practice_area] / total_intakes) * 100
-            percentages_by_practice_area[practice_area] = round(percentage, 1)
+        for practice_area_name in practice_areas:
+            percentage = (
+                totals_by_practice_area[practice_area_name] / total_intakes
+            ) * 100
+            percentages_by_practice_area[practice_area_name] = round(percentage, 1)
 
     # Build data structure with counts by status (for conversion table)
     status_data = []
@@ -152,7 +149,7 @@ def generate_intakes_pdf(date_from_obj, date_to_obj, request):
         "totals_by_status": dict(totals_by_status),
         "percentages_by_practice_area": percentages_by_practice_area,
         "percentages_by_status": percentages_by_status,
-        "practice_areas": PRACTICE_AREAS,
+        "practice_areas": practice_areas,
         "intake_statuses": INTAKE_STATUSES,
         "date_from": date_from_str,
         "date_to": date_to_str,
