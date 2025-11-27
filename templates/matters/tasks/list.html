@@ -94,10 +94,42 @@
             <i class="bi bi-chevron-expand"></i>
           </button>
         </th>
-        <th class="matter">Matter</th>
-        <th class="description">Description</th>
-        <th class="status">Status</th>
-        <th class="user">User</th>
+        <th class="matter">
+          Matter
+          <button class="btn-sort {% if current_order == 'matter__name' %}active{% endif %}"
+                  hx-target="#matterTasks"
+                  hx-swap="innerHTML"
+                  hx-post="{% url 'matters:tasks-filter-sort' matter.id 'matter__name' %}">
+            <i class="bi bi-chevron-expand"></i>
+          </button>
+        </th>
+        <th class="description">
+          Description
+          <button class="btn-sort {% if current_order == 'description' %}active{% endif %}"
+                  hx-target="#matterTasks"
+                  hx-swap="innerHTML"
+                  hx-post="{% url 'matters:tasks-filter-sort' matter.id 'description' %}">
+            <i class="bi bi-chevron-expand"></i>
+          </button>
+        </th>
+        <th class="status">
+          Status
+          <button class="btn-sort {% if current_order == 'status' %}active{% endif %}"
+                  hx-target="#matterTasks"
+                  hx-swap="innerHTML"
+                  hx-post="{% url 'matters:tasks-filter-sort' matter.id 'status' %}">
+            <i class="bi bi-chevron-expand"></i>
+          </button>
+        </th>
+        <th class="user">
+          User
+          <button class="btn-sort {% if current_order == 'user__username' %}active{% endif %}"
+                  hx-target="#matterTasks"
+                  hx-swap="innerHTML"
+                  hx-post="{% url 'matters:tasks-filter-sort' matter.id 'user__username' %}">
+            <i class="bi bi-chevron-expand"></i>
+          </button>
+        </th>
         <th class="date">
           Due
           <button class="btn-sort {% if current_order == 'date_due' %}active{% endif %}"
