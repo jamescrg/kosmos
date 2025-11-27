@@ -20,11 +20,26 @@
 }
 
 .tasks-table .priority {
-  width: 2rem;
+  width: 3rem;
+  text-align: center;
+}
+
+.priority-arrow .bi-arrow-up {
+  font-size: 0.9rem;
+  position: relative;
+  left: 0.25rem;
 }
 
 .tasks-table .priority i {
+  /* margin: 0; */
+}
+
+.priority .btn-sort {
   margin: 0;
+}
+
+.tasks-table .priority .dropdown-menu {
+  min-width: 2rem;
 }
 
 .tasks-table .matter {
@@ -106,60 +121,4 @@
 .tasks-form #id_user,
 .tasks-form #id_date {
   width: 100%
-}
-
-
-/* ==========================================================================
- Responsive table - block layout on small screens
-========================================================================== */
-
-@media (max-width: 768px) {
-  .tasks-table {
-    min-width: 0;
-  }
-
-  .tasks-table thead {
-    display: none;
-  }
-
-  .tasks-table tbody,
-  .tasks-table tr,
-  .tasks-table td {
-    display: block;
-    width: 100%;
-  }
-
-  .tasks-table tr {
-    border: 1px solid var(--stone-200);
-    margin-bottom: 1rem;
-    padding: 0.5rem;
-  }
-
-  .tasks-table td {
-    border: none;
-    padding: 0.25rem 0.5rem !important;
-    text-align: left;
-    white-space: normal;
-  }
-
-  .tasks-table td::before {
-    content: attr(data-label);
-    display: block;
-    font-weight: 500;
-    font-size: 0.75rem;
-    color: var(--stone-500);
-    margin-bottom: 0.25rem;
-  }
-
-  .tasks-table td.priority {
-    width: 100%;
-  }
-
-  .tasks-table td.matter {
-    width: 100%;
-  }
-
-  .tasks-table td.description {
-    min-width: 0;
-  }
 }

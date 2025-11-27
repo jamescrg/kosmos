@@ -61,6 +61,10 @@ class TasksFilter(django_filters.FilterSet):
         fields=(
             ("date_due", "date_due"),
             ("priority", "priority"),
+            ("matter__name", "matter__name"),
+            ("description", "description"),
+            ("status", "status"),
+            ("user__username", "user__username"),
         ),
     )
 
