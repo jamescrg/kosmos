@@ -76,9 +76,9 @@ th.matter .btn-drag-handle i {
 /* Fix dropdown overflow issues */
 #tasks .table-container {
   overflow-x: auto;
-  overflow-y: clip;
-  padding-bottom: 12.5rem;
-  margin-bottom: -12.5rem;
+  overflow-y: auto;
+  /* padding-bottom: 12.5rem; */
+  /* margin-bottom: -12.5rem; */
 }
 
 .tasks-table tbody {

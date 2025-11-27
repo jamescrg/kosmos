@@ -46,6 +46,10 @@ td.dropdown-cell {
   overflow: visible;
 }
 
+.dropdown-cell .dropdown {
+  position: static !important;
+}
+
 thead {
   border-bottom: none;
 }

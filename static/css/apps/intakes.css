@@ -20,28 +20,9 @@ List View
 }
 
 /* Fix dropdown overflow issues */
-#intakes .section {
-  overflow: visible;
-}
-
 #intakes .table-container {
   overflow-x: auto;
   overflow-y: auto;
-  padding-bottom: 20rem;
-  margin-bottom: -20rem;
-}
-
-.intake-list {
-  overflow: visible;
-}
-
-.intake-list tbody {
-  overflow: visible;
-}
-
-.intake-list td.dropdown-cell {
-  position: relative;
-  overflow: visible;
 }
 
 .intake-date {
