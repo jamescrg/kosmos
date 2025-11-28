@@ -89,8 +89,7 @@ class TaskNoteForm(forms.ModelForm):
                     "class": "span3",
                     "rows": "4",
                     "maxlength": "200",
-                    "placeholder": "Please use this for status updates only "
-                    "and add any contact information to Contacts.",
+                    "placeholder": "",
                 }
             ),
         }
