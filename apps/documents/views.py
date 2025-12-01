@@ -1,6 +1,7 @@
 import json
 
 from django.contrib.auth.decorators import login_required
+from django.core.files.base import ContentFile
 from django.core.files.storage import default_storage
 from django.http import HttpResponse, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
@@ -272,6 +273,7 @@ def documents_edit(request, document_id):
 
     # Use the document's matter for the form
     matter = document.matter
+    old_matter_id = document.matter_id
 
     if request.method == "POST":
         form = DocumentsForm(
@@ -301,6 +303,19 @@ def documents_edit(request, document_id):
                 document.ocr_processed_at = None
                 document.page_count = None
                 document.ocr_pages_done = 0
+            # If matter changed (and no new file), move file to new matter's folder
+            elif document.matter_id != old_matter_id and old_file_path:
+                file_extension = old_file_path.split(".")[-1].lower()
+                new_file_path = (
+                    f"documents/{document.matter_id}/{document.pk}.{file_extension}"
+                )
+
+                # Read old file, save to new path, delete old
+                with default_storage.open(old_file_path, "rb") as f:
+                    file_content = f.read()
+                default_storage.save(new_file_path, ContentFile(file_content))
+                default_storage.delete(old_file_path)
+                document.file.name = new_file_path
 
             document.save()
             form.save_m2m()
