@@ -1,6 +1,7 @@
 from django import forms
 
 from apps.documents.models import Document, Label
+from apps.matters.models import Matter
 from apps.matters.proceedings.models import Proceeding
 from config.settings import CustomFormRendererCompact
 
@@ -13,6 +14,11 @@ class ProceedingChoiceField(forms.ModelChoiceField):
 
 
 class DocumentsForm(forms.ModelForm):
+    matter = forms.ModelChoiceField(
+        queryset=Matter.objects.none(),
+        required=True,
+        empty_label=None,
+    )
     proceeding = ProceedingChoiceField(
         queryset=Proceeding.objects.none(),
         required=False,
@@ -22,6 +28,7 @@ class DocumentsForm(forms.ModelForm):
     class Meta:
         model = Document
         fields = [
+            "matter",
             "category",
             "proceeding",
             "date",
@@ -40,8 +47,14 @@ class DocumentsForm(forms.ModelForm):
         self.renderer = CustomFormRendererCompact()
         self.matter = matter
 
-        # If matter provided, populate proceedings for that matter
+        # Populate matter choices with all open matters
+        self.fields["matter"].queryset = Matter.objects.filter(status="Open").order_by(
+            "name"
+        )
+
+        # If matter provided (new document), set it as initial
         if matter:
+            self.fields["matter"].initial = matter
             self.fields["proceeding"].queryset = matter.proceeding_set.all().order_by(
                 "forum", "case_number"
             )
@@ -54,6 +67,17 @@ class DocumentsForm(forms.ModelForm):
             )
         else:
             self.fields["proceeding"].queryset = Proceeding.objects.none()
+
+    def clean(self):
+        cleaned_data = super().clean()
+        matter = cleaned_data.get("matter")
+        proceeding = cleaned_data.get("proceeding")
+
+        # Clear proceeding if matter changed and proceeding doesn't belong to new matter
+        if proceeding and matter and proceeding.matter_id != matter.id:
+            cleaned_data["proceeding"] = None
+
+        return cleaned_data
 
 
 class BulkDocumentsForm(forms.ModelForm):
