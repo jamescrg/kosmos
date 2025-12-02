@@ -91,25 +91,12 @@ table.matter-contacts {
   width: 100%;
 }
 
-.assign-results {
-  padding: 0;
-}
-
 .matter-contacts .assign-results li {
-  background: var(--stone-50);
-  border: solid 1px var(--stone-300);
-  border-top: none;
   max-width: 25rem;
-  width: 100%;
-}
-
-.matter-contacts .assign-results li:hover {
-  background: var(--stone-100);
 }
 
 .matter-contacts .assign-results li > a {
   display: block;
-  padding: 0.5rem;
   width: 100%;
 }
 
