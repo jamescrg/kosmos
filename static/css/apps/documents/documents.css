@@ -111,6 +111,13 @@
   color: var(--stone-600);
 }
 
+#documents-list .doc-actions button.action-btn {
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+}
+
 /* Inline date input */
 #documents-list .doc-date-input {
   background: none;
