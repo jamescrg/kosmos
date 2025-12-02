@@ -1,43 +1,5 @@
 /*------------------------------------------------
-Base badge styles (shared by all badge types)
-------------------------------------------------*/
-
-.doc-badge {
-  display: inline-block;
-  padding: 0.125rem 0.5rem;
-  border: 1px solid var(--stone-300);
-  border-radius: 0.25rem;
-  background-color: var(--stone-125);
-  color: var(--stone-600);
-  font-size: 0.8125rem;
-  font-weight: normal;
-  text-decoration: none;
-  white-space: nowrap;
-  vertical-align: middle;
-}
-
-.doc-badge:hover {
-  opacity: 0.8;
-}
-
-.doc-badge i {
-  margin-right: 0.25rem;
-}
-
-/*------------------------------------------------
-Badge color classes
-------------------------------------------------*/
-
-.doc-badge.badge-blue { background-color: var(--blue-100); }
-.doc-badge.badge-gray { background-color: var(--stone-125); }
-.doc-badge.badge-green { background-color: var(--lime-100); }
-.doc-badge.badge-orange { background-color: var(--orange-100); }
-.doc-badge.badge-purple { background-color: var(--violet-100); }
-.doc-badge.badge-red { background-color: var(--red-100); }
-.doc-badge.badge-yellow { background-color: var(--yellow-100); }
-
-/*------------------------------------------------
-Label color classes (legacy, for label-specific colors)
+Label color classes
 ------------------------------------------------*/
 
 .label-blue,
@@ -69,13 +31,17 @@ Label badges (used in files, highlights, timeline)
   margin-right: 0.25rem;
 }
 
-.label-badge .badge-link {
+.label-badge .badge-link,
+.label-badge .badge-link:hover,
+.label-badge .badge-link:link,
+.label-badge .badge-link:visited {
   display: inline-block;
   padding: 0.125rem 0.5rem;
   border-radius: 0.25rem;
   font-size: 0.8125rem;
   text-decoration: none;
   white-space: nowrap;
+  color: var(--stone-600) !important;
 }
 
 .label-badge .badge-link:hover {
