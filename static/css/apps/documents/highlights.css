@@ -44,6 +44,7 @@
 
 /* Right Panel - Content */
 .highlight-card-content {
+  position: relative;
   flex: 1;
   min-width: 0;
 }
@@ -108,6 +109,35 @@
   font-style: normal;
   color: var(--color-primary);
   padding: 0 0.5rem;
+}
+
+/* Importance Badge */
+.highlight-importance-badge {
+  position: absolute;
+  top: 0.5rem;
+  right: 0.5rem;
+}
+
+.importance-badge-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.25rem 0.5rem;
+  background: var(--stone-100);
+  border: 1px solid var(--stone-300);
+  border-radius: 0.25rem;
+  color: var(--stone-600);
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s;
+}
+
+.importance-badge-btn:hover {
+  background: var(--stone-200);
+  border-color: var(--stone-400);
+}
+
+.importance-badge-btn .bi-flag-fill {
+  font-size: 0.625rem;
 }
 
 /* Edit Modal */
