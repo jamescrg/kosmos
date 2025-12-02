@@ -42,3 +42,12 @@ Badge color classes
 .app-badge.badge-purple { background-color: var(--violet-100); }
 .app-badge.badge-red { background-color: var(--red-100); }
 .app-badge.badge-yellow { background-color: var(--yellow-100); }
+
+/*------------------------------------------------
+Badge size variants
+------------------------------------------------*/
+
+.app-badge-lg {
+  padding: 0.25rem 0.5rem;
+  font-size: 0.95rem;
+}
