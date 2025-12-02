@@ -43,7 +43,7 @@
                href="#"
                hx-post="{% url 'matters:tasks-filter-priority' matter.id priority %}"
                hx-target="#matterTasks"
-               hx-swap="#outerHTML">{{ priority }}</a>
+               hx-swap="#outerHTML">Priority {{ priority }}</a>
           </li>
         {% endfor %}
       </ul>
@@ -91,7 +91,7 @@
                   hx-target="#matterTasks"
                   hx-swap="innerHTML"
                   hx-post="{% url 'matters:tasks-filter-sort' matter.id 'priority' %}">
-            <i class="bi bi-chevron-expand"></i>
+            <i class="bi bi-flag"></i>
           </button>
         </th>
         <th class="matter">

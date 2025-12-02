@@ -126,6 +126,10 @@
   font-size: 0.625rem;
 }
 
+.highlight-importance-badge .dropdown-menu {
+  min-width: auto;
+}
+
 /*------------------------------------------------
 Label badges
 ------------------------------------------------*/

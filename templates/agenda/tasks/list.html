@@ -50,7 +50,7 @@
                href="#"
                hx-post="{% url 'agenda:tasks-filter-priority' priority %}"
                hx-target="#tasks"
-               hx-swap="#outerHTML">{{ priority }}</a>
+               hx-swap="#outerHTML">Priority {{ priority }}</a>
           </li>
         {% endfor %}
       </ul>
@@ -97,7 +97,7 @@
                   hx-target="#tasks"
                   hx-swap="innerHTML"
                   hx-post="{% url 'agenda:tasks-filter-sort' 'priority' %}">
-            <i class="bi bi-chevron-expand"></i>
+            <i class="bi bi-flag"></i>
           </button>
         </th>
         <th class="matter">

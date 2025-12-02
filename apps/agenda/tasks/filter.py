@@ -10,6 +10,8 @@ STATUS_CHOICES = (
     ("Complete", "Complete"),
 )
 
+PRIORITY_CHOICES = tuple((i, f"Priority {i}") for i in range(1, 11))
+
 
 class DateCompletedFilter(django_filters.DateFromToRangeFilter):
     """Custom filter for date_completed that includes null values when no max date is set."""
@@ -79,10 +81,12 @@ class TasksFilter(django_filters.FilterSet):
         queryset=CustomUser.objects.filter(is_active=True).order_by("username"),
         empty_label="All",
     )
-    priority = django_filters.NumberFilter(
+    priority = django_filters.ChoiceFilter(
         field_name="priority",
+        choices=PRIORITY_CHOICES,
         lookup_expr="lte",
         label="Priority (≤)",
+        empty_label="All",
     )
 
     order_by = TasksOrderingFilter(

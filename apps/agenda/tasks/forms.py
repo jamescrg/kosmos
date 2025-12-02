@@ -30,8 +30,8 @@ class TaskForm(forms.ModelForm):
         }
 
         priorities = []
-        for i in range(1, 10):
-            priorities.append((i, i))
+        for i in range(1, 11):
+            priorities.append((i, f"Priority {i}"))
         PRIORITIES = tuple(priorities)
 
         widgets = {
