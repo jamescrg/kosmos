@@ -181,4 +181,5 @@
 .task-detail .btn-add-note {
   color: var(--link);
   font-size: 1rem;
+  margin-right: 0.5rem;
 }
