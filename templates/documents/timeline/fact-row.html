@@ -18,7 +18,7 @@
     {{ fact.description }}
     {% for document in fact.documents.all %}
       <span class="source-badge dropdown">
-        <a href="#" class="doc-badge" data-bs-toggle="dropdown">
+        <a href="#" class="app-badge" data-bs-toggle="dropdown">
           <i class="bi bi-file-earmark-text"></i>{{ document.name|truncatechars:20 }}
         </a>
         <ul class="dropdown-menu">
@@ -46,7 +46,7 @@
     {% endfor %}
     {% for highlight in fact.highlights.all %}
       <span class="source-badge dropdown">
-        <a href="#" class="doc-badge badge-purple" data-bs-toggle="dropdown">
+        <a href="#" class="app-badge badge-purple" data-bs-toggle="dropdown">
           <i class="bi bi-highlighter"></i>{{ highlight.slug|truncatechars:20 }}
         </a>
         <ul class="dropdown-menu">

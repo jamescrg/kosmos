@@ -56,7 +56,7 @@
 }
 
 .icon-violet {
-  color: var(--icon-purple) !important;
+  color: var(--icon-violet) !important;
 }
 
 .btn-icon {
@@ -127,5 +127,5 @@
 
 button .bi-filter {
   margin-right: 0.5rem;
-  color: var(--icon-purple);
+  color: var(--icon-violet);
 }
