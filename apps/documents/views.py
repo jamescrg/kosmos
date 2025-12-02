@@ -229,6 +229,19 @@ def document_importance(request, document_id, importance):
 
 
 @login_required
+def highlight_importance(request, highlight_id, importance):
+    """Set highlight importance and return updated badge partial."""
+    highlight = get_object_or_404(Highlight, id=highlight_id)
+    highlight.importance = importance
+    highlight.save()
+    return render(
+        request,
+        "documents/highlights/importance-badge.html",
+        {"highlight": highlight, "importance_choices": range(1, 11)},
+    )
+
+
+@login_required
 def documents_add(request, matter_id=None):
     # Get selected matter from session
     matter, matters = get_selected_matter(request)
@@ -969,6 +982,7 @@ def get_highlights_data(request, matter):
         "keyword": keyword,
         "order_by": order_by,
         "current_order": current_order,
+        "importance_choices": range(1, 11),
     }
 
 

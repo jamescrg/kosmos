@@ -1,6 +1,7 @@
 <article class="highlight-card" id="highlight-card-{{ highlight.id }}">
   <div class="highlight-card-date">{{ highlight.document.date|date:"F j, Y"|default:"No date" }}</div>
   <div class="highlight-card-content">
+    {% include "documents/highlights/importance-badge.html" %}
     <h3 class="highlight-card-slug">
       <span class="hl-{{ highlight.color }}">{{ highlight.slug|default:"Untitled" }}</span>
       <a href="#"

@@ -31,6 +31,7 @@ from apps.documents.views import (
     fact_sources_modal,
     fact_sources_search,
     get_proceedings_and_labels,
+    highlight_importance,
     highlight_link,
     highlights_filter,
     highlights_filter_default,
@@ -167,6 +168,11 @@ urlpatterns = [
         "documents/highlights/<int:highlight_id>/delete/",
         delete_highlight,
         name="delete-highlight",
+    ),
+    path(
+        "documents/highlights/<int:highlight_id>/importance/<int:importance>/",
+        highlight_importance,
+        name="highlight-importance",
     ),
     path(
         "documents/highlights/<int:highlight_id>/",

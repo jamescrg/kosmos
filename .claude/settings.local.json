@@ -36,7 +36,8 @@
       "Bash(npm search:*)",
       "Bash(wget:*)",
       "Bash(chmod:*)",
-      "WebFetch(domain:ocrmypdf.readthedocs.io)"
+      "WebFetch(domain:ocrmypdf.readthedocs.io)",
+      "Bash(source ~/.venvs/law/bin/activate)"
     ],
     "deny": []
   }
