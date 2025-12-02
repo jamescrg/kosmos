@@ -16,13 +16,20 @@
       <div class="task-detail">
         <div class="task-detail-row">
           <span class="task-detail-matter">{{ task.matter.name|default:"Admin" }}</span>
-          <a class="btn-icon"
-             href="#"
-             hx-get="{% url 'agenda:tasks-edit' id=task.id %}"
-             hx-target="#htmx-modal-container"
-             hx-trigger="click">
-            <i class="bi bi-pencil"></i>
-          </a>
+          <div>
+            <a class="btn-icon btn-add-note"
+               href="#"
+               hx-get="{% url 'agenda:tasks-add-note' id=task.id %}"
+               hx-target="#htmx-modal-container"
+               hx-trigger="click">+ Note</a>
+            <a class="btn-icon"
+               href="#"
+               hx-get="{% url 'agenda:tasks-edit' id=task.id %}"
+               hx-target="#htmx-modal-container"
+               hx-trigger="click">
+              <i class="bi bi-pencil"></i>
+            </a>
+          </div>
         </div>
         <div class="task-detail-row">
           <div class="task-detail-meta">
@@ -31,11 +38,6 @@
             <span class="task-detail-status">{{ task.status }}</span>
             <span class="task-detail-date">{{ task.date_due|date:"M j, Y"|default:"" }}</span>
           </div>
-          <a class="btn-icon btn-add-note"
-             href="#"
-             hx-get="{% url 'agenda:tasks-add-note' id=task.id %}"
-             hx-target="#htmx-modal-container"
-             hx-trigger="click">+ Note</a>
         </div>
       </div>
       <div class="task-notes">

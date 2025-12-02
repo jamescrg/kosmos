@@ -88,7 +88,7 @@ class TaskNoteForm(forms.ModelForm):
                 attrs={
                     "class": "span3",
                     "rows": "4",
-                    "maxlength": "200",
+                    "maxlength": "300",
                     "placeholder": "",
                 }
             ),
@@ -100,6 +100,6 @@ class TaskNoteForm(forms.ModelForm):
 
     def clean_details(self):
         details = self.cleaned_data.get("details", "")
-        if details and len(details) > 200:
-            raise ValidationError("Note is limited to 200 characters.")
+        if details and len(details) > 300:
+            raise ValidationError("Note is limited to 300 characters.")
         return details
