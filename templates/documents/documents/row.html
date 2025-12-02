@@ -33,6 +33,12 @@
            title="Download">
           <i class="bi bi-download"></i>
         </a>
+        <button type="button"
+                class="action-btn document-link-btn"
+                title="Copy link to document"
+                data-url="{% url 'documents:viewer' document.id %}">
+          <i class="bi bi-link-45deg"></i>
+        </button>
       </span>
     </div>
     {% if document.description %}<div class="doc-description">{{ document.description }}</div>{% endif %}

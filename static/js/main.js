@@ -64,18 +64,23 @@ htmx.on("hidden.bs.modal", () => {
   document.getElementById("htmx-modal-container").innerHTML = "";
 });
 
-// Highlight copy buttons (delegated for HTMX compatibility)
+// Copy link buttons (delegated for HTMX compatibility)
 document.addEventListener('click', function(e) {
-  const copyBtn = e.target.closest('.highlight-copy-btn');
-  const linkBtn = e.target.closest('.highlight-link-btn');
+  const highlightCopyBtn = e.target.closest('.highlight-copy-btn');
+  const highlightLinkBtn = e.target.closest('.highlight-link-btn');
+  const documentLinkBtn = e.target.closest('.document-link-btn');
 
-  if (copyBtn) {
-    const data = copyBtn.getAttribute('data-copy');
-    copyToClipboard(copyBtn, data);
-  } else if (linkBtn) {
-    const url = linkBtn.getAttribute('data-url');
+  if (highlightCopyBtn) {
+    const data = highlightCopyBtn.getAttribute('data-copy');
+    copyToClipboard(highlightCopyBtn, data);
+  } else if (highlightLinkBtn) {
+    const url = highlightLinkBtn.getAttribute('data-url');
     const fullUrl = window.location.origin + url;
-    copyToClipboard(linkBtn, fullUrl);
+    copyToClipboard(highlightLinkBtn, fullUrl);
+  } else if (documentLinkBtn) {
+    const url = documentLinkBtn.getAttribute('data-url');
+    const fullUrl = window.location.origin + url;
+    copyToClipboard(documentLinkBtn, fullUrl);
   }
 });
 
