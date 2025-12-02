@@ -79,7 +79,7 @@ def get_matter_tasks_data(request, matter_id):
         "users": CustomUser.objects.filter(is_active=True).order_by("username"),
         "user_id": user_id,
         "selected_user": selected_user.username.capitalize() if selected_user else None,
-        "priorities": list(range(1, 10)),
+        "priorities": list(range(1, 11)),
         "priority_value": priority_value,
         "selected_priority": f"Priority ≤ {priority_value}" if priority_value else "",
         "focus": focus,

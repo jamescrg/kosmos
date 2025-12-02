@@ -7,6 +7,8 @@ from apps.matters.models import Matter
 from apps.matters.proceedings.models import Proceeding
 from config.helpers import MultipleOrderingFilter
 
+IMPORTANCE_CHOICES = tuple((i, f"Importance {i}") for i in range(1, 11))
+
 
 class ProceedingChoiceFilter(django_filters.ModelChoiceFilter):
     """Custom filter to display proceedings as 'Forum - Case Number'."""
@@ -49,10 +51,12 @@ class FilesFilter(django_filters.FilterSet):
         empty_label="All Labels",
         label="Label",
     )
-    importance = django_filters.NumberFilter(
+    importance = django_filters.ChoiceFilter(
         field_name="importance",
+        choices=IMPORTANCE_CHOICES,
         lookup_expr="lte",
         label="Importance (≤)",
+        empty_label="All",
     )
     order_by = django_filters.OrderingFilter(
         fields=[
@@ -117,10 +121,12 @@ class HighlightsFilter(django_filters.FilterSet):
         empty_label="All Labels",
         label="Label",
     )
-    importance = django_filters.NumberFilter(
+    importance = django_filters.ChoiceFilter(
         field_name="importance",
+        choices=IMPORTANCE_CHOICES,
         lookup_expr="lte",
         label="Importance (≤)",
+        empty_label="All",
     )
     order_by = django_filters.OrderingFilter(
         fields=[
@@ -201,10 +207,12 @@ class TimelineFilter(django_filters.FilterSet):
         empty_label="All Labels",
         label="Label",
     )
-    importance = django_filters.NumberFilter(
+    importance = django_filters.ChoiceFilter(
         field_name="importance",
+        choices=IMPORTANCE_CHOICES,
         lookup_expr="lte",
         label="Importance (≤)",
+        empty_label="All",
     )
     order_by = MultipleOrderingFilter(
         fields=[

@@ -4,19 +4,13 @@
           data-bs-toggle="dropdown"
           aria-expanded="false">{{ document.importance }}</button>
   <ul class="dropdown-menu">
-    {% for i in '123456789'|make_list %}
+    {% for i in "1234567890"|make_list %}
       <li>
         <a class="dropdown-item"
            href="#"
            hx-get="{% url 'documents:file-importance' document.id forloop.counter %}"
-           hx-target="#files">{{ forloop.counter }}</a>
+           hx-target="#files">Importance {{ forloop.counter }}</a>
       </li>
     {% endfor %}
-    <li>
-      <a class="dropdown-item"
-         href="#"
-         hx-get="{% url 'documents:file-importance' document.id 10 %}"
-         hx-target="#files">10</a>
-    </li>
   </ul>
 </div>
