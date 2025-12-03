@@ -1014,10 +1014,9 @@ def edit_highlight(request, highlight_id):
         form = HighlightForm(request.POST, instance=highlight)
         if form.is_valid():
             form.save()
-            return render(
-                request,
-                "documents/highlights/row.html",
-                {"highlight": highlight, "importance_choices": range(1, 11)},
+            return HttpResponse(
+                status=204,
+                headers={"HX-Trigger": "highlightsChanged"},
             )
     else:
         form = HighlightForm(instance=highlight)
