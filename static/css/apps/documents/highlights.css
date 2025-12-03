@@ -122,8 +122,8 @@
   cursor: pointer;
 }
 
-.importance-badge-btn .bi-flag-fill {
-  font-size: 0.625rem;
+.importance-badge-btn .bi-flag {
+  font-size: 0.8rem;
 }
 
 .highlight-importance-badge .dropdown-menu {
