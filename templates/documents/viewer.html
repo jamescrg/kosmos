@@ -1,4 +1,5 @@
 {% load static %}
+{% load cache_buster %}
 <!DOCTYPE html>
 <html lang="en">
   <head>
@@ -12,20 +13,10 @@
           rel="stylesheet">
     <link rel="stylesheet"
           href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.13.1/font/bootstrap-icons.min.css">
+    <!-- Custom stylesheets -->
+    <link rel="stylesheet" href="{% static_v 'css/colors.css' %}">
+    <link rel="stylesheet" href="{% static_v 'css/buttons.css' %}">
     <style>
-      :root {
-        --stone-50: #fafaf9;
-        --stone-100: #f5f5f4;
-        --stone-200: #e7e5e4;
-        --stone-300: #d6d3d1;
-        --stone-400: #a8a29e;
-        --stone-500: #78716c;
-        --stone-600: #57534e;
-        --stone-700: #44403c;
-        --lime-800: #3f6212;
-        --lime-900: #365314;
-      }
-
       * {
         box-sizing: border-box;
       }
@@ -37,68 +28,10 @@
         font-family: "Open Sans", sans-serif;
       }
 
-      /* Header bar */
-      #header-bar {
-        position: fixed;
-        top: 0;
-        left: 0;
-        right: 0;
-        height: 48px;
-        background: #d6d3d1;
-        border-bottom: 1px solid var(--stone-400);
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        padding: 0 16px;
-        z-index: 100;
-      }
-
-      .header-left {
-        display: flex;
-        align-items: center;
-        gap: 12px;
-      }
-
-      .document-title {
-        font-weight: normal;
-        font-size: 1.1rem;
-        max-width: 400px;
-        overflow: hidden;
-        text-overflow: ellipsis;
-        white-space: nowrap;
-      }
-
-      .matter-name {
-        font-weight: normal;
-        font-size: 1.1rem;
-        padding-right: 16px;
-        margin-right: 4px;
-        border-right: 1px solid var(--stone-400);
-      }
-
-      .header-right {
-        display: flex;
-        align-items: center;
-        gap: 8px;
-      }
-
-      .header-right .btn {
-        background: #57534e;
-        border: none;
-        color: #fafaf9;
-        padding: 5px 10px;
-        border-radius: 3px;
-      }
-
-      .header-right .btn:hover {
-        background: #44403c;
-        color: #fafaf9;
-      }
-
       /* Main container */
       #main-container {
         position: fixed;
-        top: 48px;
+        top: 0;
         left: 0;
         right: 0;
         bottom: 0;
@@ -120,7 +53,7 @@
       /* Highlights Sidebar */
       #highlights-sidebar {
         width: 280px;
-        background: #d6d3d1;
+        background: var(--stone-200);
         border-left: 1px solid var(--stone-400);
         overflow-y: auto;
         padding: 16px;
@@ -136,7 +69,7 @@
       .highlight-item {
         padding: 12px;
         background: var(--stone-50);
-        border: 1px solid var(--stone-200);
+        border: 1px solid var(--stone-300);
         border-radius: 4px;
         margin-bottom: 8px;
         cursor: pointer;
@@ -150,7 +83,6 @@
 
       .highlight-item.active {
         background: var(--stone-100);
-        border-color: var(--stone-400);
       }
 
       .highlight-slug {
@@ -193,33 +125,29 @@
         font-size: 0.875rem;
       }
 
-      .highlight-item.active {
-        background: #fefce8;
+      /* Highlight colors - selected state (border uses -300 values) */
+      .highlight-item.hl-yellow.active {
+        border: 2px solid var(--yellow-400);
       }
 
-      /* Highlight colors */
-      .highlight-item.hl-yellow {
-        border-left: 4px solid #facc15;
+      .highlight-item.hl-green.active {
+        border: 2px solid var(--lime-400);
       }
 
-      .highlight-item.hl-green {
-        border-left: 4px solid #a3e635;
+      .highlight-item.hl-blue.active {
+        border: 2px solid var(--blue-400);
       }
 
-      .highlight-item.hl-blue {
-        border-left: 4px solid #60a5fa;
+      .highlight-item.hl-orange.active {
+        border: 2px solid var(--orange-400);
       }
 
-      .highlight-item.hl-orange {
-        border-left: 4px solid #fb923c;
+      .highlight-item.hl-red.active {
+        border: 2px solid var(--red-400);
       }
 
-      .highlight-item.hl-red {
-        border-left: 4px solid #f87171;
-      }
-
-      .highlight-item.hl-purple {
-        border-left: 4px solid #c084fc;
+      .highlight-item.hl-purple.active {
+        border: 2px solid var(--violet-400);
       }
 
       /* Modal */
@@ -259,19 +187,20 @@
         white-space: pre-wrap;
       }
 
-      .highlight-form-row {
-        display: flex;
-        gap: 1rem;
+      .highlight-color-row {
+        width: 33%;
       }
 
-      .highlight-form-row>div {
-        flex: 1;
+      .selected-text-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 0.5rem;
       }
 
       .highlight-trim-controls-modal {
         display: flex;
         gap: 1.5rem;
-        margin-bottom: 0.75rem;
       }
 
       .highlight-trim-controls-modal .trim-control {
@@ -339,35 +268,9 @@
       .modal-footer .submit:hover {
         background: var(--lime-900);
       }
-
-      .modal-footer .btn-link {
-        background: none;
-        border: none;
-        color: var(--stone-500);
-        cursor: pointer;
-        padding: 0.375rem 0.5rem;
-      }
-
-      .modal-footer .btn-link:hover {
-        color: var(--stone-700);
-      }
     </style>
   </head>
   <body>
-    <!-- Header bar -->
-    <div id="header-bar">
-      <div class="header-left">
-        <span class="matter-name">{{ document.matter.name }}</span>
-        <span class="document-title">{{ document.name }}</span>
-      </div>
-      <div class="header-right">
-        <a href="{% url 'documents:files-download' document.id %}"
-           class="btn btn-sm btn-outline-secondary"
-           title="Download">
-          <i class="bi bi-download"></i> Download
-        </a>
-      </div>
-    </div>
     <!-- Main container -->
     <div id="main-container">
       <!-- PDF iframe -->
@@ -414,55 +317,55 @@
               <input type="hidden" id="highlight-page" name="page_number">
               <input type="hidden" id="highlight-coords" name="coordinates">
               <input type="hidden" id="highlight-text" name="text">
-              <div class="highlight-form-row">
-                <div class="mb-3">
-                  <label for="highlight-color" class="form-label">Color</label>
-                  <select class="form-select" id="highlight-color" name="color">
-                    <option value="yellow">Yellow</option>
-                    <option value="green">Green</option>
-                    <option value="blue">Blue</option>
-                    <option value="orange">Orange</option>
-                    <option value="red">Red</option>
-                    <option value="purple">Purple</option>
-                  </select>
-                </div>
-                <div class="mb-3">
-                  <label for="highlight-slug" class="form-label">Slug</label>
-                  <input type="text"
-                         class="form-control"
-                         id="highlight-slug"
-                         name="slug"
-                         required>
-                </div>
+              <div class="mb-3 highlight-color-row">
+                <label for="highlight-color" class="form-label">Color</label>
+                <select class="form-select" id="highlight-color" name="color">
+                  <option value="yellow">Yellow</option>
+                  <option value="green">Green</option>
+                  <option value="blue">Blue</option>
+                  <option value="orange">Orange</option>
+                  <option value="red">Red</option>
+                  <option value="purple">Purple</option>
+                </select>
               </div>
               <div class="mb-3">
-                <label class="form-label">Selected Text</label>
-                <div class="highlight-trim-controls-modal">
-                  <div class="trim-control">
-                    <span class="trim-label">Trim start</span>
-                    <button type="button"
-                            class="trim-btn trim-decrement"
-                            id="modal-trim-front-dec"
-                            onclick="adjustModalTrim('front', -1)"
-                            disabled>−</button>
-                    <span class="trim-value" id="modal-trim-front">0</span>
-                    <button type="button"
-                            class="trim-btn trim-increment"
-                            id="modal-trim-front-inc"
-                            onclick="adjustModalTrim('front', 1)">+</button>
-                  </div>
-                  <div class="trim-control">
-                    <span class="trim-label">Trim end</span>
-                    <button type="button"
-                            class="trim-btn trim-decrement"
-                            id="modal-trim-back-dec"
-                            onclick="adjustModalTrim('back', -1)"
-                            disabled>−</button>
-                    <span class="trim-value" id="modal-trim-back">0</span>
-                    <button type="button"
-                            class="trim-btn trim-increment"
-                            id="modal-trim-back-inc"
-                            onclick="adjustModalTrim('back', 1)">+</button>
+                <label for="highlight-slug" class="form-label">Slug</label>
+                <input type="text"
+                       class="form-control"
+                       id="highlight-slug"
+                       name="slug"
+                       required>
+              </div>
+              <div class="mb-3">
+                <div class="selected-text-header">
+                  <label class="form-label mb-0">Selected Text</label>
+                  <div class="highlight-trim-controls-modal">
+                    <div class="trim-control">
+                      <span class="trim-label">Trim start</span>
+                      <button type="button"
+                              class="trim-btn trim-decrement"
+                              id="modal-trim-front-dec"
+                              onclick="adjustModalTrim('front', -1)"
+                              disabled>−</button>
+                      <span class="trim-value" id="modal-trim-front">0</span>
+                      <button type="button"
+                              class="trim-btn trim-increment"
+                              id="modal-trim-front-inc"
+                              onclick="adjustModalTrim('front', 1)">+</button>
+                    </div>
+                    <div class="trim-control">
+                      <span class="trim-label">Trim end</span>
+                      <button type="button"
+                              class="trim-btn trim-decrement"
+                              id="modal-trim-back-dec"
+                              onclick="adjustModalTrim('back', -1)"
+                              disabled>−</button>
+                      <span class="trim-value" id="modal-trim-back">0</span>
+                      <button type="button"
+                              class="trim-btn trim-increment"
+                              id="modal-trim-back-inc"
+                              onclick="adjustModalTrim('back', 1)">+</button>
+                    </div>
                   </div>
                 </div>
                 <div id="selected-text-preview" class="selected-text-preview"></div>
@@ -470,7 +373,7 @@
             </form>
           </div>
           <div class="modal-footer">
-            <button type="button" class="btn-link" data-bs-dismiss="modal">Cancel</button>
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
             <button type="button" id="save-highlight" class="submit">Save</button>
           </div>
         </div>
@@ -555,6 +458,10 @@
           if (selectedHighlightId !== null) {
             selectHighlight(null);
           }
+          break;
+
+        case 'download':
+          window.location.href = '{% url "documents:files-download" document.id %}';
           break;
       }
     });
