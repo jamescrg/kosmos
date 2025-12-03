@@ -64,11 +64,13 @@
       </div>
     </div>
     {% if document.description %}<div class="file-description">{{ document.description }}</div>{% endif %}
-    <div class="file-labels">
-      {% for label in document.labels.all %}
-        {% include "documents/labels/badge.html" with object_type="document" object=document %}
-      {% endfor %}
-    </div>
+    {% if document.labels.exists %}
+      <div class="file-labels">
+        {% for label in document.labels.all %}
+          {% include "documents/labels/badge.html" with object_type="document" object=document %}
+        {% endfor %}
+      </div>
+    {% endif %}
   </td>
   <td class="col-proceeding dropdown-cell">{% include "documents/files/proceeding-display.html" %}</td>
   <td class="col-importance dropdown-cell">{% include "documents/files/importance-display.html" %}</td>
