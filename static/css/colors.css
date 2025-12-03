@@ -338,7 +338,7 @@
   --hl-gray: var(--stone-125);
   --hl-green: var(--lime-50);
   --hl-orange: var(--orange-50);
-  --hl-violet: var(--violet-75);
+  --hl-violet: var(--violet-50);
   --hl-red: var(--red-50);
   --hl-yellow: var(--yellow-50);
 
@@ -352,6 +352,7 @@
 .hl-green { background: var(--hl-green) !important; }
 .hl-orange { background: var(--hl-orange) !important; }
 .hl-violet { background: var(--hl-violet) !important; }
+.hl-purple { background: var(--hl-violet) !important; }
 .hl-red { background: var(--hl-red) !important; }
 .hl-yellow { background: var(--hl-yellow) !important; }
 
