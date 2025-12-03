@@ -332,6 +332,17 @@
       });
     }
 
+    // Enable copy to clipboard (capture phase to intercept before PDF.js)
+    document.addEventListener('copy', (event) => {
+      const selection = window.getSelection();
+      const text = selection.toString();
+      if (text) {
+        event.clipboardData.setData('text/plain', text.replace(/\s+/g, ' ').trim());
+        event.preventDefault();
+        event.stopImmediatePropagation();
+      }
+    }, true);
+
     // Text selection handling
     document.addEventListener('mouseup', () => {
       const selection = window.getSelection();
