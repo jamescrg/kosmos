@@ -11,13 +11,15 @@
     <div class="modal-body">
       <form class="form-compact"
             hx-post="{% url 'documents:edit-highlight' highlight.id %}"
-            hx-target="#highlight-card-{{ highlight.id }}"
-            hx-swap="outerHTML">
+            hx-target="#htmx-modal-container">
         {% csrf_token %}
-        <div class="highlight-edit-grid">{{ form }}</div>
+        <div class="highlight-edit-grid">
+          {{ form }}
+          <br>
+        </div>
         <div class="flex-center-space">
           <div>
-            <button type="submit" class="submit" data-bs-dismiss="modal">Save</button>
+            <button type="submit" class="submit">Save</button>
           </div>
           <div>
             <a class="delete-link"
