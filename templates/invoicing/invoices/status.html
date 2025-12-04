@@ -36,5 +36,11 @@
          hx-target="#status-dropdown-{{ invoice.id }}"
          hx-post="{% url 'invoicing:invoices-edit-status' pk=invoice.id status='WAIVED' view=view %}">Waived</a>
     </li>
+    <li>
+      <a class="dropdown-item {% if invoice.status == "UNCOLLECTIBLE" %}toggle-active{% endif %}"
+         href="#"
+         hx-target="#status-dropdown-{{ invoice.id }}"
+         hx-post="{% url 'invoicing:invoices-edit-status' pk=invoice.id status='UNCOLLECTIBLE' view=view %}">Uncollectible</a>
+    </li>
   </ul>
 </div>
