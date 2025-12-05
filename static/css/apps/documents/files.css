@@ -74,6 +74,9 @@
   background-color: var(--background-lighter);
   border: 1px solid var(--border-dark);
   border-radius: var(--radius-sm);
+  transform: scale(0.85);
+  transform-origin: center;
+  margin-left: -2px;
 }
 
 #files-list .col-select input[type="checkbox"]:checked {

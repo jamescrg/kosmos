@@ -8,7 +8,7 @@
       <a class="dropdown-item urgent"
          href="#"
          hx-post="{% url 'documents:remove-label-from' object_type object.id %}"
-         hx-vals='{"label_id": "{{ label.id }}"}'
+         hx-vals='{"label_id": "{{ label.id }}"{% if view %}, "view": "{{ view }}"{% endif %}}'
          hx-target="#{{ object_type }}-{{ object.id }}"
          hx-swap="outerHTML"><i class="bi bi-x-lg"></i> Remove</a>
     </li>

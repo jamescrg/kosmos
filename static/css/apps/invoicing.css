@@ -48,8 +48,39 @@ Detail View
 ========================================================================== */
 
 .invoices-detail-table {
+  border-collapse: separate;
+  border-spacing: 0;
+  border: solid 1px var(--border-medium);
+  border-radius: var(--radius-md);
   height: fit-content;
   width: 30%;
+}
+
+/* Corner rounding for tables without thead/tbody structure */
+.invoices-detail-table tr:first-child th:first-child {
+  border-top-left-radius: calc(var(--radius-md) - 1px);
+}
+
+.invoices-detail-table tr:first-child td:last-child {
+  border-top-right-radius: calc(var(--radius-md) - 1px);
+}
+
+.invoices-detail-table tr:last-child th:first-child {
+  border-bottom-left-radius: calc(var(--radius-md) - 1px);
+}
+
+.invoices-detail-table tr:last-child td:last-child {
+  border-bottom-right-radius: calc(var(--radius-md) - 1px);
+}
+
+.invoices-detail-table tr:last-child th,
+.invoices-detail-table tr:last-child td {
+  border-bottom: none;
+}
+
+.invoices-detail-table td:last-child,
+.invoices-detail-table th:last-child {
+  border-right: none;
 }
 
 @media (max-width: 768px) {

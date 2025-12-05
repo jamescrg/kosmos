@@ -703,7 +703,7 @@ def delete_label(request, label_id):
     return HttpResponse(status=204, headers={"HX-Trigger": "labelsChanged"})
 
 
-def _get_object_for_labels(object_type, object_id):
+def _get_object_for_labels(object_type, object_id, view=None):
     """Helper to get object and matter by type for label operations."""
     if object_type == "document":
         obj = get_object_or_404(Document, id=object_id)
@@ -713,7 +713,11 @@ def _get_object_for_labels(object_type, object_id):
     elif object_type == "highlight":
         obj = get_object_or_404(Highlight, id=object_id)
         matter = obj.document.matter if obj.document else None
-        row_template = "documents/highlights/row.html"
+        # Use table row template if view=table, otherwise card template
+        if view == "table":
+            row_template = "documents/highlights/highlight-row.html"
+        else:
+            row_template = "documents/highlights/row.html"
         context_key = "highlight"
     elif object_type == "fact":
         obj = get_object_or_404(Fact, id=object_id)
@@ -732,10 +736,11 @@ def labels_apply_modal(request, object_type, object_id):
     if obj is None:
         return HttpResponse("Invalid object type", status=400)
 
+    view = request.GET.get("view", "")
     return render(
         request,
         "documents/labels/apply-modal.html",
-        {"object": obj, "object_type": object_type, "matter": matter},
+        {"object": obj, "object_type": object_type, "matter": matter, "view": view},
     )
 
 
@@ -747,6 +752,7 @@ def labels_search(request, object_type, object_id):
         return HttpResponse("Invalid object type", status=400)
 
     query = request.GET.get("q", "").strip()
+    view = request.GET.get("view", "")
 
     # Get available labels (global + matter-specific)
     if matter:
@@ -768,15 +774,16 @@ def labels_search(request, object_type, object_id):
     return render(
         request,
         "documents/labels/apply-results.html",
-        {"labels": labels, "object": obj, "object_type": object_type},
+        {"labels": labels, "object": obj, "object_type": object_type, "view": view},
     )
 
 
 @login_required
 def add_label_to(request, object_type, object_id):
     """Add a label to an object."""
+    view = request.POST.get("view")
     obj, matter, row_template, context_key = _get_object_for_labels(
-        object_type, object_id
+        object_type, object_id, view
     )
     if obj is None:
         return HttpResponse("Invalid object type", status=400)
@@ -796,8 +803,9 @@ def add_label_to(request, object_type, object_id):
 @login_required
 def remove_label_from(request, object_type, object_id):
     """Remove a label from an object."""
+    view = request.POST.get("view")
     obj, matter, row_template, context_key = _get_object_for_labels(
-        object_type, object_id
+        object_type, object_id, view
     )
     if obj is None:
         return HttpResponse("Invalid object type", status=400)
@@ -809,6 +817,27 @@ def remove_label_from(request, object_type, object_id):
             obj.labels.remove(label)
         except Label.DoesNotExist:
             pass
+
+    context = {context_key: obj, "importance_choices": range(1, 11)}
+    return render(request, row_template, context)
+
+
+@login_required
+def labels_create_and_apply(request, object_type, object_id):
+    """Create a new label and apply it to an object."""
+    view = request.POST.get("view")
+    obj, matter, row_template, context_key = _get_object_for_labels(
+        object_type, object_id, view
+    )
+    if obj is None:
+        return HttpResponse("Invalid object type", status=400)
+
+    name = request.POST.get("name", "").strip()
+    color = request.POST.get("color", "gray")
+
+    if name:
+        label = Label.objects.create(matter=matter, name=name, color=color)
+        obj.labels.add(label)
 
     context = {context_key: obj, "importance_choices": range(1, 11)}
     return render(request, row_template, context)

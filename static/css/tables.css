@@ -7,7 +7,7 @@
 .table {
   border-collapse: separate;
   border-spacing: 0;
-  border: solid 1px var(--border-light);
+  border: solid 1px var(--border-medium);
   border-radius: var(--radius-md);
   color: inherit;
   margin-bottom: 0;
@@ -29,8 +29,8 @@
 }
 
 th {
-  border-bottom: solid 1px var(--border-light);
-  border-right: solid 1px var(--border-light);
+  border-bottom: solid 1px var(--border-medium);
+  border-right: solid 1px var(--border-medium);
   font-weight: 500;
   padding: 0.625rem 1rem !important;
   vertical-align: top;
@@ -42,8 +42,8 @@ th:last-child {
 }
 
 td {
-  border-bottom: solid 1px var(--border-light);
-  border-right: solid 1px var(--border-light);
+  border-bottom: solid 1px var(--border-medium);
+  border-right: solid 1px var(--border-medium);
   overflow: hidden;
   padding: 0.625rem 1rem !important;
   text-overflow: ellipsis;
@@ -116,7 +116,7 @@ tbody {
 .totals-table table {
   border-collapse: separate;
   border-spacing: 0;
-  border: solid 1px var(--border-light);
+  border: solid 1px var(--border-medium);
   border-radius: var(--radius-md);
   margin: 1.5rem 0 0 1.5rem;
   min-width: 25rem;
@@ -224,7 +224,7 @@ td.empty-message {
 }
 
 .empty-card {
-  border: 1px solid var(--border-light);
+  border: 1px solid var(--border-medium);
 }
 
 

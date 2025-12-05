@@ -23,7 +23,7 @@
 .toolbar a:not(.dropdown-menu *),
 .toolbar button:not(.dropdown-menu *) {
   background: var(--background-control);
-  border: solid 1px var(--border-light);
+  border: solid 1px var(--border-medium);
   border-radius: var(--radius-md);
   color: var(--button-toolbar);
   outline: none;
@@ -58,7 +58,7 @@
 
 .select-property {
   background-color: var(--background-control);
-  border: solid 1px var(--border-light);
+  border: solid 1px var(--border-medium);
   color: var(--button-toolbar);
   padding: 0.25rem;
 }

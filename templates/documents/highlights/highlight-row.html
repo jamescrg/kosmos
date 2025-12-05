@@ -35,7 +35,7 @@
         <li>
           <a class="dropdown-item"
              href="#"
-             hx-get="{% url 'documents:labels-apply-modal' 'highlight' highlight.id %}"
+             hx-get="{% url 'documents:labels-apply-modal' 'highlight' highlight.id %}?view=table"
              hx-target="#htmx-modal-container"
              data-bs-toggle="modal"
              data-bs-target="#htmx-modal-container"><i class="bi bi-tag"></i> Add Label</a>
@@ -51,7 +51,7 @@
     <cite class="highlight-citation">{{ highlight.citation }}</cite>
     <div class="highlight-labels">
       {% for label in highlight.labels.all %}
-        {% include "documents/labels/badge.html" with object_type="highlight" object=highlight %}
+        {% include "documents/labels/badge.html" with object_type="highlight" object=highlight view="table" %}
       {% endfor %}
     </div>
   </td>
