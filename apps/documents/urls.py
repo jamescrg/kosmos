@@ -47,6 +47,7 @@ from apps.documents.views import (
     highlights_list,
     index,
     labels_apply_modal,
+    labels_create_and_apply,
     labels_filter,
     labels_index,
     labels_list,
@@ -184,6 +185,11 @@ urlpatterns = [
         "documents/labels/remove-from/<str:object_type>/<int:object_id>/",
         remove_label_from,
         name="remove-label-from",
+    ),
+    path(
+        "documents/labels/create-and-apply/<str:object_type>/<int:object_id>/",
+        labels_create_and_apply,
+        name="labels-create-and-apply",
     ),
     # PDF Viewer
     path("files/view/<int:document_id>/", document_viewer, name="viewer"),

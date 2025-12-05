@@ -14,7 +14,7 @@
           <input type="search"
                  id="labels-search-input"
                  name="q"
-                 hx-get="{% url 'documents:labels-search' object_type object.id %}"
+                 hx-get="{% url 'documents:labels-search' object_type object.id %}{% if view %}?view={{ view }}{% endif %}"
                  hx-target="#labels-results"
                  hx-trigger="keyup changed delay:300ms, search, load"
                  autocomplete="off"

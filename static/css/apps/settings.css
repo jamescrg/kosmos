@@ -79,7 +79,34 @@ Settings Contacts - Two Column Layout
 
 /* Settings Table */
 .settings-table .status-col {
-  width: 4.5rem;
+  width: 8rem;
+}
+
+/* Matters Settings */
+.settings-matters-container .table {
+  width: 30rem;
+}
+
+/* Integrations */
+.integrations-list {
+  border: 1px solid var(--border-medium);
+  border-radius: var(--radius-md);
+  width: 30rem;
+}
+
+.integrations-item {
+  align-items: center;
+  display: flex;
+  justify-content: space-between;
+  padding: 1rem 1.25rem;
+}
+
+.integrations-item:not(:last-child) {
+  border-bottom: 1px solid var(--border-medium);
+}
+
+.integrations-item .btn {
+  padding: 0.5rem 1.25rem;
 }
 
 /* Users Table */

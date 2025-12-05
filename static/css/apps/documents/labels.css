@@ -111,3 +111,41 @@ Color swatch dropdown widget
   margin: 0.25rem;
   border-radius: var(--radius-sm);
 }
+
+/*------------------------------------------------
+Create label inline form (in apply modal)
+------------------------------------------------*/
+
+.create-label-section {
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--border-light);
+}
+
+.create-label-header {
+  font-size: 0.875rem;
+  color: var(--color-muted);
+  margin-bottom: 0.75rem;
+}
+
+.create-label-header i {
+  margin-right: 0.5rem;
+}
+
+.create-label-form {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.create-label-form input {
+  flex: 1;
+}
+
+.create-label-form select {
+  width: auto;
+}
+
+.create-label-form button {
+  white-space: nowrap;
+}
