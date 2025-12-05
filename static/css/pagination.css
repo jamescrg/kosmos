@@ -12,20 +12,20 @@
 }
 
 .pagination-row a {
-  background: var(--stone-150);
+  background: var(--background-hover);
   border: none;
-  border-radius: 4px;
+  border-radius: var(--radius-sm);
   color: var(--link);
   padding: 0 0.5rem;
 
 }
 
 .pagination a:hover {
-  background: var(--stone-150);
+  background: var(--background-hover);
   color: var(--link);
 }
 
 .pagination-disabled {
-  color: var(--stone-400) !important;
+  color: var(--icon-muted) !important;
   pointer-events: none;
 }

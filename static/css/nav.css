@@ -12,7 +12,7 @@
 
 .navbar li {
   display: inline-block;
-  padding: 0.5rem 1.5rem 0.5rem 1.5rem;
+  padding: 0.625rem 1.5rem 0.625rem 1.5rem;
 }
 
 .navbar a {
@@ -25,7 +25,7 @@
 
 .navbar .active {
   background: var(--background-nav-tab-active);
-  border-radius: 5px 5px 0 0;
+  border-radius: var(--radius-md) var(--radius-md) 0 0;
 }
 
 .navbar .settings-link {
@@ -40,15 +40,15 @@
 
 .navbar-sub {
   background: var(--background-subnav);
-  border-radius: 5px 5px 0 0;
+  border-radius: var(--radius-md) var(--radius-md) 0 0;
 }
 
 .navbar-sub ul {
-  border-radius: 3px 3px 0 0;
+  border-radius: var(--radius-md) var(--radius-md) 0 0;
 }
 
 .navbar-sub li {
-  padding: 0.5rem 1rem 0.5rem 1rem;
+  padding: 0.625rem 1rem 0.625rem 1rem;
 }
 
 .navbar-sub a {

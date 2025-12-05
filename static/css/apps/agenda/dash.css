@@ -16,7 +16,40 @@
 }
 
 .dashboard-table {
+  border-collapse: separate;
+  border-spacing: 0;
+  border: solid 1px var(--border-light);
+  border-radius: var(--radius-md);
   width: 100%;
+}
+
+/* Dashboard table corner rounding */
+.dashboard-table thead tr:first-child th:first-child {
+  border-top-left-radius: calc(var(--radius-md) - 1px);
+}
+
+.dashboard-table thead tr:first-child th:last-child {
+  border-top-right-radius: calc(var(--radius-md) - 1px);
+}
+
+.dashboard-table tbody tr:last-child td:first-child,
+.dashboard-table tfoot tr:last-child td:first-child {
+  border-bottom-left-radius: calc(var(--radius-md) - 1px);
+}
+
+.dashboard-table tbody tr:last-child td:last-child,
+.dashboard-table tfoot tr:last-child td:last-child {
+  border-bottom-right-radius: calc(var(--radius-md) - 1px);
+}
+
+.dashboard-table td:last-child,
+.dashboard-table th:last-child {
+  border-right: none;
+}
+
+.dashboard-table tbody tr:last-child td,
+.dashboard-table tfoot tr:last-child td {
+  border-bottom: none;
 }
 
 .dashboard-table .due-today {
@@ -32,13 +65,13 @@
 }
 
 .dashboard-table .empty-message {
-  color: var(--stone-500);
+  color: var(--color-muted);
   font-style: italic;
   text-align: center;
 }
 
 .dashboard-table th {
-  background: var(--stone-150);
+  background: var(--background-hover);
 }
 
 /* Dashboard Events Table - match events-table column widths */
@@ -107,7 +140,7 @@
 }
 
 .dashboard-table .summary-row {
-  color: var(--stone-500);
+  color: var(--color-muted);
   font-size: 0.875rem;
   text-align: center;
   padding: 0.5rem;

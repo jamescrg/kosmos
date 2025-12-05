@@ -4,11 +4,11 @@ Base badge styles (shared by all badge types)
 
 .app-badge {
   display: inline-block;
-  padding: 0.125rem 0.5rem;
-  border: 1px solid var(--stone-300);
-  border-radius: 0.25rem;
-  background-color: var(--stone-125);
-  color: var(--stone-600);
+  padding: 0.25rem 0.625rem;
+  border: 1px solid var(--border-medium);
+  border-radius: var(--radius-md);
+  background-color: var(--label-gray);
+  color: var(--color-primary);
   font-size: 0.8125rem;
   font-weight: normal;
   text-decoration: none;
@@ -20,7 +20,7 @@ a.app-badge,
 a.app-badge:hover,
 a.app-badge:link,
 a.app-badge:visited {
-  color: var(--stone-600) !important;
+  color: var(--color-primary) !important;
 }
 
 .app-badge:hover {
@@ -36,18 +36,18 @@ Badge color classes
 ------------------------------------------------*/
 
 .app-badge.badge-blue { background-color: var(--blue-100); }
-.app-badge.badge-gray { background-color: var(--stone-125); }
-.app-badge.badge-green { background-color: var(--lime-100); }
-.app-badge.badge-orange { background-color: var(--orange-100); }
-.app-badge.badge-purple { background-color: var(--violet-100); }
-.app-badge.badge-red { background-color: var(--red-100); }
-.app-badge.badge-yellow { background-color: var(--yellow-100); }
+.app-badge.badge-gray { background-color: var(--label-gray); }
+.app-badge.badge-green { background-color: var(--label-green); }
+.app-badge.badge-orange { background-color: var(--label-orange); }
+.app-badge.badge-purple { background-color: var(--label-purple); }
+.app-badge.badge-red { background-color: var(--label-red); }
+.app-badge.badge-yellow { background-color: var(--label-yellow); }
 
 /*------------------------------------------------
 Badge size variants
 ------------------------------------------------*/
 
 .app-badge-lg {
-  padding: 0.25rem 0.5rem;
+  padding: 0.375rem 0.625rem;
   font-size: 0.95rem;
 }

@@ -20,7 +20,7 @@ Combobox container and input wrapper
 }
 
 .combobox-input-wrapper input[type="search"].selected {
-  background-color: var(--stone-100);
+  background-color: var(--background-panel);
 }
 
 .combobox-clear {
@@ -30,14 +30,14 @@ Combobox container and input wrapper
   border: none;
   cursor: pointer;
   padding: 0.25rem;
-  color: var(--stone-500);
+  color: var(--color-muted);
   display: flex;
   align-items: center;
   justify-content: center;
 }
 
 .combobox-clear:hover {
-  color: var(--stone-700);
+  color: var(--color-darker);
 }
 
 .combobox-clear.hidden {
@@ -55,8 +55,8 @@ Assign results list
 }
 
 .assign-results li {
-  background: var(--stone-50);
-  border: solid 1px var(--stone-300);
+  background: var(--background-lighter);
+  border: solid 1px var(--border-medium);
   border-top: none;
   padding: 0.75rem;
 }
@@ -67,7 +67,7 @@ Assign results list
 }
 
 .assign-results li:hover {
-  background: var(--stone-100);
+  background: var(--background-panel);
 }
 
 .assign-results a {
@@ -76,11 +76,11 @@ Assign results list
 }
 
 .assign-results .empty-message {
-  color: var(--stone-500);
+  color: var(--color-muted);
   font-style: italic;
   text-align: center;
 }
 
 .assign-results .empty-message:hover {
-  background: var(--stone-50);
+  background: var(--background-lighter);
 }

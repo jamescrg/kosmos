@@ -20,8 +20,8 @@
 .highlights-cards {
   display: flex;
   flex-direction: column;
-  border-left: solid 1px var(--stone-200);
-  border-right: solid 1px var(--stone-200);
+  border-left: solid 1px var(--border-light);
+  border-right: solid 1px var(--border-light);
 }
 
 /* Individual Card */
@@ -29,11 +29,11 @@
   display: flex;
   gap: 1.5rem;
   padding: 1.25rem 0;
-  border-bottom: 1px solid var(--stone-200);
+  border-bottom: 1px solid var(--border-light);
 }
 
 .highlight-card:first-child {
-  border-top: 1px solid var(--stone-200);
+  border-top: 1px solid var(--border-light);
 }
 
 /* Left Panel - Date */
@@ -42,7 +42,7 @@
   width: 15rem;
   padding: 0 1rem;
   color: var(--color-primary);
-  border-right: solid 1px var(--stone-200);
+  border-right: solid 1px var(--border-light);
 }
 
 /* Right Panel - Content */
@@ -117,7 +117,7 @@ Label badges
 .highlight-card .label-badge .badge-link {
   display: inline-block;
   padding: 0.125rem 0.5rem;
-  border-radius: 0.25rem;
+  border-radius: var(--radius-sm);
   text-decoration: none;
   white-space: nowrap;
 }

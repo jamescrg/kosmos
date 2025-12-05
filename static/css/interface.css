@@ -7,13 +7,13 @@
 }
 
 .dropdown-menu li {
-  background: var(--stone-50);
-  border-radius: 3px;
-  border-top: solid 1px var(--stone-200);
+  background: var(--background-lighter);
+  border-radius: var(--radius-sm);
+  border-top: solid 1px var(--border-light);
 }
 
 .dropdown-menu li:hover {
-  background: var(--stone-100);
+  background: var(--background-panel);
   color: var(--link-hover);
 }
 
@@ -27,7 +27,7 @@
 }
 
 .dropdown-item:hover {
-  background: var(--stone-100);
+  background: var(--background-panel);
 }
 
 .dropdown-menu li:first-child {
@@ -41,14 +41,14 @@
 
 .table-select {
   background: inherit;
-  border: solid 1px var(--stone-200);
+  border: solid 1px var(--border-light);
   color: inherit;
   padding: 0 0.25rem;
   width: 100%;
 }
 
 .table-option {
-  background: var(--stone-50);
+  background: var(--background-lighter);
 }
 
 .toggle-active {
@@ -82,4 +82,8 @@
 
 .large-btn {
   width: 12.5rem;
+}
+
+.card {
+  border-radius: var(--radius-lg);
 }

@@ -8,8 +8,8 @@
 }
 
 .search-text {
-  background: var(--stone-50);
-  border: 1px solid var(--stone-350);
+  background: var(--background-lighter);
+  border: 1px solid var(--border-dark);
   border-bottom-left-radius: 5px !important;
   border-top-left-radius: 5px !important;
   margin: 0;
@@ -29,17 +29,12 @@
 }
 
 .search .input-group-text {
-  background: var(--stone-200);
-  border: 1px solid var(--stone-350);
+  background: var(--background-muted);
+  border: 1px solid var(--border-dark);
 }
 
 .search-icon {
   margin: -0.25rem 0.75rem 0 0.75rem;
-}
-
-.search .input-group-text {
-  background: var(--stone-200);
-  border: 1px solid var(--stone-350);
 }
 
 /* ------------------------------------------------------------------------- */

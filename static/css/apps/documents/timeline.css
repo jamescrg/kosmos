@@ -110,16 +110,16 @@ Filter form
 }
 
 .filter-form .filter-input {
-  border: solid 1px var(--stone-300);
+  border: solid 1px var(--border-medium);
 }
 
 .filter-form input[type="date"].filter-input-date {
-  background: var(--stone-25);
+  background: var(--background-subtle);
   width: 9.5rem;
 }
 
 .filter-form input[type="text"].filter-input-date {
-  background: var(--stone-25);
+  background: var(--background-subtle);
   width: 9.5rem;
 }
 

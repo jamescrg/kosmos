@@ -2,7 +2,7 @@
 .btn {
   border: none;
   box-shadow: none;
-  border-radius: 5px;
+  border-radius: var(--radius-md);
   font-size: 1rem;
   padding: 0.25rem 0.75rem;
 }
@@ -38,9 +38,9 @@
 .btn-outline-primary:hover,
 .btn-outline-primary:focus {
   background: transparent;
-  border: solid 1px var(--stone-350);
+  border: solid 1px var(--background-nav);
   box-shadow: none;
-  color: var(--stone-600);
+  color: var(--color-primary);
 }
 
 .icon-green {
@@ -77,7 +77,7 @@
 }
 
 .menu-icon {
-  color: var(--stone-350);
+  color: var(--background-nav);
   padding: 0;
 }
 
@@ -95,13 +95,13 @@
 }
 
 .dropdown-item:active {
-  background-color: var(--stone-350);
+  background-color: var(--background-nav);
 }
 
 .copy-btn {
   padding: 0.25rem 0.5rem;
-  background: var(--stone-150);
-  border: solid 1px var(--stone-300);
+  background: var(--background-hover);
+  border: solid 1px var(--border-medium);
 
   &:focus {
     outline: none;
@@ -109,8 +109,8 @@
   }
 
   &:hover {
-    color: var(--stone-900);
-    background: var(--stone-200);
+    color: var(--color-darker);
+    background: var(--background-muted);
   }
 }
 
@@ -132,7 +132,7 @@ button .bi-filter {
 
 .btn-ghost {
   margin-left: 1rem;
-  color: var(--stone-400);
+  color: var(--icon-muted);
   opacity: 0;
   transition: opacity 0.15s, color 0.15s;
 }
@@ -145,7 +145,7 @@ button.btn-ghost {
 }
 
 .btn-ghost:hover {
-  color: var(--stone-600);
+  color: var(--color-primary);
 }
 
 tr:hover .btn-ghost,

@@ -18,31 +18,31 @@
 form .errorlist {
   padding: 0;
   margin: 0;
-  color: var(--orange-800);
+  color: var(--urgent);
 }
 
 input,
 select,
 textarea {
-  border: solid 1px var(--stone-300);
-  border-radius: 3px;
+  border: solid 1px var(--border-medium);
+  border-radius: var(--radius-md);
   outline: none;
   padding: 0.5rem;
 }
 
 .toolbar input {
-  padding: 0.25rem 0.5rem;
+  padding: 0.5rem 0.5rem;
 }
 
 /* Dropzone styling to match form field styles */
 .dropzone {
-  border: solid 1px var(--stone-300) !important;
-  border-radius: 3px !important;
+  border: solid 1px var(--border-medium) !important;
+  border-radius: var(--radius-md) !important;
   background: white !important;
   padding: 1rem !important;
   cursor: pointer;
   text-align: center;
-  color: var(--stone-600);
+  color: var(--color-primary);
   font-size: 0.9rem;
   min-height: 2.5rem;
   display: flex;
@@ -51,13 +51,13 @@ textarea {
 }
 
 .dropzone:hover {
-  border-color: var(--stone-400) !important;
-  background: var(--stone-50) !important;
+  border-color: var(--border-dark) !important;
+  background: var(--background-lighter) !important;
 }
 
 .dropzone.dz-drag-hover {
   border-color: var(--button-form) !important;
-  background: var(--stone-100) !important;
+  background: var(--background-panel) !important;
 }
 
 .dropzone .dz-message {
@@ -70,9 +70,9 @@ textarea {
   display: flex !important;
   align-items: center;
   justify-content: space-between;
-  background: var(--stone-100);
-  border: solid 1px var(--stone-300);
-  border-radius: 3px;
+  background: var(--background-panel);
+  border: solid 1px var(--border-medium);
+  border-radius: var(--radius-md);
   padding: 0.5rem;
   margin: 0.5rem 0 0 0 !important;
   width: 100% !important;
@@ -90,7 +90,7 @@ textarea {
 
 .dropzone .dz-preview .dz-filename {
   font-size: 0.9rem;
-  color: var(--stone-700);
+  color: var(--color-darker);
   font-weight: 500;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -99,25 +99,25 @@ textarea {
 
 .dropzone .dz-preview .dz-size {
   font-size: 0.8rem;
-  color: var(--stone-500);
+  color: var(--color-muted);
   flex-shrink: 0;
 }
 
 .dropzone .dz-preview .dz-remove {
-  color: var(--orange-800);
+  color: var(--urgent);
   text-decoration: none;
   font-size: 0.9rem;
   cursor: pointer;
   padding: 0.25rem;
-  border-radius: 3px;
+  border-radius: var(--radius-sm);
   transition: background-color 0.2s;
   flex-shrink: 0;
   cursor: pointer;
 }
 
 .dropzone .dz-preview .dz-remove:hover {
-  background: var(--stone-200);
-  color: var(--orange-900);
+  background: var(--background-muted);
+  color: var(--warning);
 }
 
 .dropzone .dz-preview .dz-remove i {
@@ -137,7 +137,7 @@ textarea {
 .dropzone .dz-preview.dz-success.clickable-preview {
   transition: all 0.2s ease;
   border: 1px solid #ddd;
-  border-radius: 4px;
+  border-radius: var(--radius-sm);
   padding: 0.5rem;
   margin: 0.25rem 0;
   cursor: pointer !important;
@@ -159,7 +159,7 @@ select {
 }
 
 .form-control:focus {
-  border: solid 1px var(--stone-300);
+  border: solid 1px var(--border-medium);
   box-shadow: none;
   outline: none;
 }
@@ -167,19 +167,19 @@ select {
 .submit {
   background: var(--button-primary-background);
   border: solid 1px var(--button-primary-background);
-  border-radius: 5px;
-  color: var(--stone-200);
+  border-radius: var(--radius-md);
+  color: var(--background-muted);
   padding: 0.25rem 0.75rem;
 }
 
 .disabled-btn {
-  background: var(--stone-300);
-  border: solid 1px var(--stone-300);
-  color: var(--stone-400);
+  background: var(--border-medium);
+  border: solid 1px var(--border-medium);
+  color: var(--icon-muted);
 }
 
 .add-event {
-  border-top: solid 1px var(--stone-200);
+  border-top: solid 1px var(--border-light);
   margin-top: 1rem;
   padding-top: 1rem;
 }
@@ -280,7 +280,7 @@ select {
 .form-compact input[type="color"] {
   height: 2.25rem;
   background-color: white;
-  border: solid 1px var(--stone-300);
+  border: solid 1px var(--border-medium);
 }
 
 /* Mobile: single column for all form-compact layouts */

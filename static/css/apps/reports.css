@@ -1,5 +1,5 @@
 .table-total {
-  border-top: 2px solid var(--stone-400);
+  border-top: 2px solid var(--border-dark);
   font-weight: bold;
 }
 
@@ -8,17 +8,17 @@
 }
 
 .text-muted {
-  color: var(--stone-400);
+  color: var(--icon-muted);
   font-size: 0.9em;
 }
 
 .activity-row {
-  border-top: 2px solid var(--stone-300);
+  border-top: 2px solid var(--border-medium);
   font-weight: 600;
 }
 
 .empty-entries {
-  color: var(--stone-500);
+  color: var(--color-muted);
   font-style: italic;
   text-align: center;
 }
