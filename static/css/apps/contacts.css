@@ -86,9 +86,9 @@
 /* Contact Cards (Address and Email) */
 .contact-card {
   position: relative;
-  background-color: var(--stone-50);
-  border: 1px solid var(--stone-200);
-  border-radius: 3px;
+  background-color: var(--background-lighter);
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-md);
   padding: 1.25rem;
   margin-bottom: 1rem;
   line-height: 1.6;
@@ -210,7 +210,7 @@
 
 /* Notes Section */
 .contact-notes-section {
-  border-top: 1px solid var(--stone-200);
+  border-top: 1px solid var(--border-light);
   padding-top: 1rem;
 }
 
@@ -220,9 +220,9 @@
 }
 
 .contact-notes {
-  background-color: var(--stone-50);
-  border: 1px solid var(--stone-200);
-  border-radius: 6px;
+  background-color: var(--background-lighter);
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-md);
   padding: 1rem;
   line-height: 1.6;
 }
@@ -270,20 +270,20 @@
 }
 
 .action-buttons .btn-outline-primary:hover {
-  color: var(--stone-700);
+  color: var(--color-darker);
   background-color: transparent;
-  border-color: var(--stone-300);
+  border-color: var(--border-medium);
 }
 
 .action-buttons .btn-outline-secondary {
-  color: var(--stone-600);
+  color: var(--color-primary);
   background-color: transparent;
-  border-color: var(--stone-300);
+  border-color: var(--border-medium);
 }
 
 .action-buttons .btn-outline-secondary:hover {
-  color: var(--stone-600);
-  border-color: var(--stone-300);
+  color: var(--color-primary);
+  border-color: var(--border-medium);
 }
 
 /* Trust Tab */
@@ -292,28 +292,28 @@
 
 
 .contact-trust-section .btn-outline-primary {
-  color: var(--stone-700);
-  border-color: var(--stone-300);
+  color: var(--color-darker);
+  border-color: var(--border-medium);
 }
 
 .contact-trust-section .btn-outline-primary:hover {
-  background-color: var(--stone-700);
-  border-color: var(--stone-700);
+  background-color: var(--color-darker);
+  border-color: var(--color-darker);
   color: white;
 }
 
 .intake-description {
-  color: var(--stone-600);
+  color: var(--color-primary);
 }
 
 /* Empty State */
 .contact-empty-state {
   padding: 2.5rem 1.25rem;
   text-align: center;
-  color: var(--stone-500);
-  background-color: var(--stone-50);
-  border: 1px dashed var(--stone-300);
-  border-radius: 8px;
+  color: var(--color-muted);
+  background-color: var(--background-lighter);
+  border: 1px dashed var(--border-medium);
+  border-radius: var(--radius-lg);
 }
 
 .btn-delete-contacts {

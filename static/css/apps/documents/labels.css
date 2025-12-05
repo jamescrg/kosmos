@@ -9,18 +9,18 @@ Label color classes
 .label-purple,
 .label-red,
 .label-yellow {
-  border: 1px solid var(--stone-300);
-  color: var(--stone-600);
+  border: 1px solid var(--border-medium);
+  color: var(--color-primary);
   font-weight: normal;
 }
 
 .label-blue { background-color: var(--blue-100); }
-.label-gray { background-color: var(--stone-125); }
-.label-green { background-color: var(--lime-100); }
-.label-orange { background-color: var(--orange-100); }
-.label-purple { background-color: var(--violet-100); }
-.label-red { background-color: var(--red-100); }
-.label-yellow { background-color: var(--yellow-100); }
+.label-gray { background-color: var(--label-gray); }
+.label-green { background-color: var(--label-green); }
+.label-orange { background-color: var(--label-orange); }
+.label-purple { background-color: var(--label-purple); }
+.label-red { background-color: var(--label-red); }
+.label-yellow { background-color: var(--label-yellow); }
 
 /*------------------------------------------------
 Label badges (used in files, highlights, timeline)
@@ -64,7 +64,7 @@ Labels cards layout (Labels tab)
 .labels-cards .card {
   flex: 1;
   min-width: 20rem;
-  background: var(--stone-50);
+  background: var(--background-lighter);
 }
 
 .labels-cards .card-header {
@@ -75,10 +75,10 @@ Labels cards layout (Labels tab)
 }
 
 .labels-cards .card-header button {
-  background: var(--stone-150);
-  border: solid 1px var(--stone-200);
-  border-radius: 4px;
-  padding: 0.25rem 0.5rem;
+  background: var(--background-hover);
+  border: solid 1px var(--border-light);
+  border-radius: var(--radius-md);
+  padding: 0.375rem 0.625rem;
 }
 
 .labels-flow {
@@ -98,8 +98,8 @@ Color swatch dropdown widget
 
 .color-swatch-btn {
   padding: 0.25rem 0.75rem;
-  border: 1px solid var(--stone-300);
-  border-radius: 0.25rem;
+  border: 1px solid var(--border-medium);
+  border-radius: var(--radius-sm);
   cursor: pointer;
 }
 
@@ -109,5 +109,5 @@ Color swatch dropdown widget
 
 .color-swatch-item {
   margin: 0.25rem;
-  border-radius: 0.25rem;
+  border-radius: var(--radius-sm);
 }

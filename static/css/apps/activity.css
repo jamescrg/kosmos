@@ -87,7 +87,7 @@ Codes Table Action Icons
 }
 
 .codes-table .edit-icon {
-  color: var(--stone-600);
+  color: var(--color-primary);
 }
 
 /* .codes-table .code-column { */
@@ -112,7 +112,7 @@ Codes Table Action Icons
 }
 
 .codes-reference-table th {
-  background-color: var(--stone-100);
-  color: var(--stone-700);
+  background-color: var(--background-panel);
+  color: var(--color-darker);
   font-weight: 500;
 }

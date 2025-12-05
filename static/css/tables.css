@@ -5,7 +5,10 @@
 }
 
 .table {
-  border-collapse: collapse;
+  border-collapse: separate;
+  border-spacing: 0;
+  border: solid 1px var(--border-light);
+  border-radius: var(--radius-md);
   color: inherit;
   margin-bottom: 0;
   table-layout: fixed !important;
@@ -26,20 +29,51 @@
 }
 
 th {
-  border: solid 1px var(--stone-200);
+  border-bottom: solid 1px var(--border-light);
+  border-right: solid 1px var(--border-light);
   font-weight: 500;
-  padding: 0.5rem 1rem !important;
+  padding: 0.625rem 1rem !important;
   vertical-align: top;
   white-space: nowrap;
 }
 
+th:last-child {
+  border-right: none;
+}
+
 td {
-  border: solid 1px var(--stone-200);
+  border-bottom: solid 1px var(--border-light);
+  border-right: solid 1px var(--border-light);
   overflow: hidden;
-  padding: 0.5rem 1rem !important;
+  padding: 0.625rem 1rem !important;
   text-overflow: ellipsis;
   vertical-align: top;
   white-space: nowrap;
+}
+
+td:last-child {
+  border-right: none;
+}
+
+tbody tr:last-child td {
+  border-bottom: none;
+}
+
+/* Round corner cells */
+thead tr:first-child th:first-child {
+  border-top-left-radius: calc(var(--radius-md) - 1px);
+}
+
+thead tr:first-child th:last-child {
+  border-top-right-radius: calc(var(--radius-md) - 1px);
+}
+
+tbody tr:last-child td:first-child {
+  border-bottom-left-radius: calc(var(--radius-md) - 1px);
+}
+
+tbody tr:last-child td:last-child {
+  border-bottom-right-radius: calc(var(--radius-md) - 1px);
 }
 
 td.dropdown-cell {
@@ -80,8 +114,43 @@ tbody {
 }
 
 .totals-table table {
+  border-collapse: separate;
+  border-spacing: 0;
+  border: solid 1px var(--border-light);
+  border-radius: var(--radius-md);
   margin: 1.5rem 0 0 1.5rem;
   min-width: 25rem;
+}
+
+/* Totals table corner rounding (no thead/tbody structure) */
+.totals-table tr:first-child td:first-child,
+.totals-table tr:first-child th:first-child {
+  border-top-left-radius: calc(var(--radius-md) - 1px);
+}
+
+.totals-table tr:first-child td:last-child,
+.totals-table tr:first-child th:last-child {
+  border-top-right-radius: calc(var(--radius-md) - 1px);
+}
+
+.totals-table tr:last-child td:first-child,
+.totals-table tr:last-child th:first-child {
+  border-bottom-left-radius: calc(var(--radius-md) - 1px);
+}
+
+.totals-table tr:last-child td:last-child,
+.totals-table tr:last-child th:last-child {
+  border-bottom-right-radius: calc(var(--radius-md) - 1px);
+}
+
+.totals-table tr:last-child td,
+.totals-table tr:last-child th {
+  border-bottom: none;
+}
+
+.totals-table td:last-child,
+.totals-table th:last-child {
+  border-right: none;
 }
 
 .totals-table .numeric {
@@ -118,7 +187,7 @@ tbody {
 .btn-sort {
   background: none;
   border: none;
-  color: var(--stone-400);
+  color: var(--icon-muted);
   font-weight: 600;
   margin-left: 0.5rem;
   padding: 0;
@@ -130,7 +199,7 @@ tbody {
 }
 
 .btn-sort:hover {
-  color: var(--stone-500);
+  color: var(--color-muted);
 }
 
 .btn-sort.active {
@@ -145,7 +214,7 @@ tbody {
 td.empty-message,
 .empty-card {
   padding: 1.5rem;
-  color: var(--stone-600);
+  color: var(--color-primary);
   font-style: italic;
   text-align: center;
 }
@@ -155,7 +224,7 @@ td.empty-message {
 }
 
 .empty-card {
-  border: 1px solid var(--stone-200);
+  border: 1px solid var(--border-light);
 }
 
 
@@ -168,7 +237,7 @@ td.empty-message {
 }
 
 .edit-icon {
-  color: var(--stone-600);
+  color: var(--color-primary);
 }
 
 .delete-icon {

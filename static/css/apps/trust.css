@@ -3,13 +3,42 @@ Summary
 ========================================================================== */
 
 .trust-summary {
+  border-collapse: separate;
+  border-spacing: 0;
+  border: solid 1px var(--border-light);
+  border-radius: var(--radius-md);
   clear: both;
   width: 100%;
 }
 
 .trust-summary td {
-  border: solid 1px var(--stone-200);
+  border-bottom: solid 1px var(--border-light);
+  border-right: solid 1px var(--border-light);
   vertical-align: top;
+}
+
+.trust-summary td:last-child {
+  border-right: none;
+}
+
+.trust-summary tr:last-child td {
+  border-bottom: none;
+}
+
+.trust-summary tr:first-child td:first-child {
+  border-top-left-radius: calc(var(--radius-md) - 1px);
+}
+
+.trust-summary tr:first-child td:last-child {
+  border-top-right-radius: calc(var(--radius-md) - 1px);
+}
+
+.trust-summary tr:last-child td:first-child {
+  border-bottom-left-radius: calc(var(--radius-md) - 1px);
+}
+
+.trust-summary tr:last-child td:last-child {
+  border-bottom-right-radius: calc(var(--radius-md) - 1px);
 }
 
 .trust-summary .numeric {
@@ -21,7 +50,7 @@ Summary and History
 ========================================================================== */
 
 .trust-contact {
-  background: var(--stone-100);
+  background: var(--background-panel);
   margin-bottom: 1.25rem;
   padding: 1.25rem 1rem;
 }
@@ -45,14 +74,45 @@ Summary and History
 }
 
 .trust-transactions {
+  border-collapse: separate;
+  border-spacing: 0;
+  border: solid 1px var(--border-light);
+  border-radius: var(--radius-md);
   min-width: 79rem;
   width: 100%;
 }
 
+.trust-transactions th,
 .trust-transactions td {
-  border: solid 1px var(--stone-200);
-  padding: 0.5rem;
+  border-bottom: solid 1px var(--border-light);
+  border-right: solid 1px var(--border-light);
+  padding: 0.625rem 1rem;
   vertical-align: top;
+}
+
+.trust-transactions th:last-child,
+.trust-transactions td:last-child {
+  border-right: none;
+}
+
+.trust-transactions tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.trust-transactions thead tr:first-child th:first-child {
+  border-top-left-radius: calc(var(--radius-md) - 1px);
+}
+
+.trust-transactions thead tr:first-child th:last-child {
+  border-top-right-radius: calc(var(--radius-md) - 1px);
+}
+
+.trust-transactions tbody tr:last-child td:first-child {
+  border-bottom-left-radius: calc(var(--radius-md) - 1px);
+}
+
+.trust-transactions tbody tr:last-child td:last-child {
+  border-bottom-right-radius: calc(var(--radius-md) - 1px);
 }
 
 .trust-transactions .client-id,

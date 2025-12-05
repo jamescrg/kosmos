@@ -30,7 +30,7 @@
 }
 
 .col-select i {
-  color: var(--stone-400);
+  color: var(--icon-muted);
 }
 
 #files-list .col-date {
@@ -71,9 +71,9 @@
   cursor: pointer;
   margin: 0;
   vertical-align: middle;
-  background-color: var(--stone-50);
-  border: 1px solid var(--stone-400);
-  border-radius: 0.125rem;
+  background-color: var(--background-lighter);
+  border: 1px solid var(--border-dark);
+  border-radius: var(--radius-sm);
 }
 
 #files-list .col-select input[type="checkbox"]:checked {
@@ -162,7 +162,7 @@
 /* Ghost buttons for empty date/proceeding */
 #files-list .col-date .empty-value-icon,
 #files-list .col-proceeding .empty-value-icon {
-  color: var(--stone-400);
+  color: var(--icon-muted);
   display: block;
   opacity: 0;
   text-align: center;
@@ -194,7 +194,7 @@
 }
 
 .ocr-badge.ocr-failed {
-  background-color: var(--red-100);
+  background-color: var(--error-background);
 }
 
 /*------------------------------------------------

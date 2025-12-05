@@ -1,6 +1,7 @@
 
 .modal-content {
-  background: var(--stone-100);
+  background: var(--background-panel);
+  border-radius: var(--radius-lg);
 }
 
 .modal-header {

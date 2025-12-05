@@ -43,12 +43,12 @@ Miscellaneous
 
 .success-msg {
   margin-top: 1rem;
-  color: var(--lime-600);
+  color: var(--success);
 }
 
 .error-msg {
   margin-top: 1rem;
-  color: var(--orange-800);
+  color: var(--urgent);
 }
 
 /* ==========================================================================
@@ -128,7 +128,7 @@ Settings Contacts - Two Column Layout
 
 .groups-table .drag-handle {
   cursor: grab;
-  color: var(--stone-400);
+  color: var(--icon-muted);
 }
 
 .groups-table .drag-handle:active {

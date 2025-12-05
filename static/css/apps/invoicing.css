@@ -34,7 +34,7 @@ List View
 
 .invoices-delete,
 .invoices-delete:hover {
-  color: var(--orange-800);
+  color: var(--urgent);
 }
 
 .status-buttons {
@@ -159,7 +159,7 @@ Credits
 ========================================================================== */
 
 .clearance-negative {
-  color: var(--orange-800);
+  color: var(--urgent);
 }
 
 .unbilled-list {
@@ -179,12 +179,12 @@ Credits
 }
 
 .unbilled-totals td {
-  background: var(--stone-150);
+  background: var(--background-hover);
 }
 
 .create-invoice-icon {
   float: right;
-  color: var(--stone-400);
+  color: var(--icon-muted);
   font-size: 1rem;
   margin-left: 0.5rem;
   opacity: 0;
@@ -197,7 +197,7 @@ Credits
 
 .create-invoice-icon:hover {
   opacity: 1 !important;
-  color: var(--stone-500);
+  color: var(--color-muted);
 }
 
 /* ==========================================================================

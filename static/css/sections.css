@@ -1,14 +1,14 @@
 
 .section {
-  background: var(--stone-100);
-  border-radius: 3px;
+  background: var(--background-panel);
+  border-radius: var(--radius-md);
   margin-bottom: 1.5rem;
-  padding: 1rem 1rem 1.5rem;
+  padding: 1.25rem 1rem 1.5rem;
 }
 
 .subnav-section {
-  background: var(--stone-100);
-  border-radius: 3px 3px 0 0;
+  background: var(--background-panel);
+  border-radius: var(--radius-md) var(--radius-md) 0 0;
   padding: 1rem 1rem 1.5rem;
 }
 
@@ -17,17 +17,17 @@
   display: flex;
   flex-direction: row;
   justify-content: space-between;
-  padding: 0 0 1rem 0;
+  padding: 0rem 0 1.25rem 0;
 }
 
 .toolbar a:not(.dropdown-menu *),
 .toolbar button:not(.dropdown-menu *) {
-  background: var(--stone-150);
-  border: solid 1px var(--stone-200);
-  border-radius: 4px;
+  background: var(--background-hover);
+  border: solid 1px var(--border-light);
+  border-radius: var(--radius-md);
   color: var(--button-toolbar);
   outline: none;
-  padding: 0.25rem 0.5rem;
+  padding: 0.35rem 0.625rem;
 }
 
 /* .toolbar .btn-green { */
@@ -57,8 +57,8 @@
 }
 
 .select-property {
-  background-color: var(--stone-150);
-  border: solid 1px var(--stone-200);
+  background-color: var(--background-hover);
+  border: solid 1px var(--border-light);
   color: var(--button-toolbar);
   padding: 0.25rem;
 }
@@ -86,7 +86,7 @@
 }
 
 .subsection {
-  border-radius: 0 0 3px 3px;
+  border-radius: 0 0 var(--radius-md) var(--radius-md);
 }
 
 
@@ -95,7 +95,7 @@ Detail Views
 ========================================================================== */
 
 .detail-title {
-  background: var(--stone-200);
+  background: var(--background-muted);
   border-bottom-left-radius: 0;
   border-bottom-right-radius: 0;
   margin-bottom: 0;
@@ -108,7 +108,7 @@ Detail Views
 
 .detail-title .toolbar a,
 .detail-title .toolbar button {
-  border: solid 1px var(--stone-300);
+  border: solid 1px var(--border-medium);
 }
 
 .detail-title .dropdown-menu a {

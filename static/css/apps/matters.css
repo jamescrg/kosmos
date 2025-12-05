@@ -79,7 +79,7 @@ Matter Details
 ========================================================================== */
 
 .matter-title {
-  background: var(--stone-200);
+  background: var(--background-muted);
   border-bottom-left-radius: 0;
   border-bottom-right-radius: 0;
   margin-bottom: 0;
@@ -92,7 +92,7 @@ Matter Details
 
 .matter-title .toolbar a,
 .matter-title .toolbar button {
-  border: solid 1px var(--stone-300);
+  border: solid 1px var(--border-medium);
 }
 
 .matter-data {

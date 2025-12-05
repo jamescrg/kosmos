@@ -1,13 +1,13 @@
 
 .icon,
 .icon:hover {
-  color: var(--stone-500);
+  color: var(--icon-default);
   font-size: 1rem;
   font-weight: 600;
 }
 
 .dot-icon {
-  color: var(--stone-350);
+  color: var(--background-nav);
 }
 
 .btn-icon {
@@ -30,19 +30,19 @@
 }
 
 .bi-folder {
-  color: var(--stone-400);
+  color: var(--icon-muted);
   margin-right: 0.75rem;
 }
 
 .bi-trash {
-  color: var(--orange-800);
+  color: var(--urgent);
 }
 
 .bi-square,
 .bi-caret-up,
 .bi-check-square,
 .bi-exclamation-square {
-  color: var(--stone-400);
+  color: var(--icon-muted);
 }
 
 .bi-calendar-week,
@@ -62,12 +62,12 @@ i.spin {
 }
 
 .note-badge-icon {
-  color: var(--stone-400);
+  color: var(--icon-muted);
   font-size: 1rem;
   margin-left: 0.5rem;
   vertical-align: middle;
 }
 
 .note-badge-icon.note-badge-new {
-  color: var(--violet-800);
+  color: var(--icon-violet);
 }

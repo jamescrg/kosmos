@@ -10,7 +10,7 @@
 }
 
 .folder-item .bi-folder {
-  color: var(--stone-400);
+  color: var(--icon-muted);
 }
 
 .add-folder {
@@ -24,7 +24,7 @@
 }
 
 .delete-folder {
-  color: var(--orange-800);
+  color: var(--urgent);
   margin: 0;
 }
 
@@ -37,6 +37,6 @@
 
 .list-group-item .bi-person,
 .list-group-item .bi-folder {
-  color: var(--stone-400);
+  color: var(--icon-muted);
   margin-right: 0.75rem;
 }

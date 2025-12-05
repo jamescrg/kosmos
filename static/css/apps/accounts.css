@@ -1,6 +1,6 @@
 
 body {
-  color: var(--stone-700);
+  color: var(--color-darker);
   font-family: 'Open Sans', sans-serif;
 }
 
@@ -25,8 +25,8 @@ body {
 }
 
 .auth-card {
-  background: var(--stone-100);
-  border-radius: 3px;
+  background: var(--background-panel);
+  border-radius: var(--radius-md);
   padding: 1.25rem;
   width: 31.25rem;
 }
@@ -46,17 +46,17 @@ body {
 }
 
 .auth-info {
-  color: var(--stone-600);
+  color: var(--color-primary);
   font-size: 0.9em;
   margin-bottom: 0.75rem;
   text-align: center;
 }
 
 .auth-error {
-  background: var(--red-100);
-  border: 1px solid var(--red-300);
-  border-radius: 5px;
-  color: var(--red-700);
+  background: var(--error-background);
+  border: 1px solid var(--error-border);
+  border-radius: var(--radius-md);
+  color: var(--error);
   font-size: 0.9em;
   margin-bottom: 0.75rem;
   padding: 0.75rem;
@@ -82,8 +82,8 @@ body {
 }
 
 .account-form input {
-  border: solid 1px var(--stone-350);
-  border-radius: 5px;
+  border: solid 1px var(--background-nav);
+  border-radius: var(--radius-md);
   display: block;
   margin-top: 0.25rem;
   padding: 0.5rem;
@@ -95,7 +95,7 @@ body {
 }
 
 .account-form ul li {
-  color: var(--orange-800);
+  color: var(--urgent);
   font-size: 0.75rem;
   margin-top: 0.25rem;
 }
@@ -103,8 +103,8 @@ body {
 .account-form button {
   background: var(--link);
   border: solid 1px var(--link);
-  border-radius: 5px;
-  color: var(--stone-200);
+  border-radius: var(--radius-md);
+  color: var(--background-muted);
   font-size: 1em;
   margin-top: 2.5rem;
   padding: 0.5rem 0.75rem;
@@ -141,7 +141,7 @@ input:focus {
 }
 
 .spam-folder {
-  color: var(--orange-800);
+  color: var(--urgent);
   font-weight: 600;
 }
 
