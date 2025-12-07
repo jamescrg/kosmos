@@ -8,10 +8,23 @@ urlpatterns = [
     # Outline list
     path("", views.index, name="index"),
     path("list/", views.outlines_list, name="list"),
+    path("filter/", views.outlines_filter, name="filter"),
+    path("sort/<str:order>/", views.outlines_sort, name="sort"),
+    path(
+        "filter/importance/<int:importance_value>/",
+        views.outlines_filter_importance,
+        name="filter-importance",
+    ),
+    path("filter/keyword/", views.outlines_filter_keyword, name="filter-keyword"),
     # Outline CRUD
     path("add/", views.outline_add, name="add"),
     path("<int:outline_id>/edit/", views.outline_edit, name="edit"),
     path("<int:outline_id>/delete/", views.outline_delete, name="delete"),
+    path(
+        "<int:outline_id>/importance/<int:value>/",
+        views.outline_importance,
+        name="importance",
+    ),
     # Outline view
     path("<int:outline_id>/", views.outline_view, name="view"),
     path("<int:outline_id>/standalone/", views.outline_standalone, name="standalone"),

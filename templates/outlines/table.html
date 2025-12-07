@@ -1,0 +1,102 @@
+<div class="table-container">
+  <table id="outlines-list" class="table outlines-list">
+    <tr>
+      <th class="title">
+        Title
+        <button class="btn-sort {% if 'title' in current_order %}active{% endif %}"
+                hx-get="{% url 'outlines:sort' 'title' %}"
+                hx-target="#outlines">
+          <i class="bi bi-chevron-expand"></i>
+        </button>
+      </th>
+      <th class="user">User</th>
+      <th class="created">
+        Created
+        <button class="btn-sort {% if 'created_at' in current_order %}active{% endif %}"
+                hx-get="{% url 'outlines:sort' 'created_at' %}"
+                hx-target="#outlines">
+          <i class="bi bi-chevron-expand"></i>
+        </button>
+      </th>
+      <th class="modified">
+        Modified
+        <button class="btn-sort {% if 'updated_at' in current_order %}active{% endif %}"
+                hx-get="{% url 'outlines:sort' 'updated_at' %}"
+                hx-target="#outlines">
+          <i class="bi bi-chevron-expand"></i>
+        </button>
+      </th>
+      <th class="importance">
+        <button class="btn-sort {% if 'importance' in current_order %}active{% endif %}"
+                hx-get="{% url 'outlines:sort' 'importance' %}"
+                hx-target="#outlines"
+                title="Sort by importance">
+          <i class="bi bi-flag"></i>
+        </button>
+      </th>
+    </tr>
+    {% for outline in outlines %}
+      <tr id="outline-{{ outline.id }}">
+        <td class="title dropdown-cell">
+          <div class="dropdown">
+            <a href="{% url 'outlines:standalone' outline.id %}"
+               target="_blank"
+               class="outline-title-link">{{ outline.title }}</a>
+            <button class="btn-icon menu-icon"
+                    type="button"
+                    data-bs-toggle="dropdown"
+                    aria-expanded="false">
+              <i class="bi bi-three-dots-vertical"></i>
+            </button>
+            <ul class="dropdown-menu">
+              <li>
+                <a class="dropdown-item"
+                   href="{% url 'outlines:standalone' outline.id %}"
+                   target="_blank"><i class="bi bi-box-arrow-up-right"></i> Open</a>
+              </li>
+              <li>
+                <a class="dropdown-item"
+                   href="#"
+                   hx-get="{% url 'outlines:edit' outline.id %}"
+                   hx-target="#htmx-modal-container"
+                   data-bs-toggle="modal"
+                   data-bs-target="#htmx-modal-container"><i class="bi bi-pencil"></i> Edit</a>
+              </li>
+              <li>
+                <a class="dropdown-item text-danger"
+                   href="#"
+                   hx-post="{% url 'outlines:delete' outline.id %}"
+                   hx-confirm="Delete this outline and all its items?"><i class="bi bi-trash"></i> Delete</a>
+              </li>
+            </ul>
+          </div>
+        </td>
+        <td class="user">{{ outline.user.get_short_name|default:outline.user.username }}</td>
+        <td class="created">{{ outline.created_at|date:"Y-m-d" }}</td>
+        <td class="modified">{{ outline.updated_at|date:"Y-m-d" }}</td>
+        <td class="importance dropdown-cell">
+          <div class="dropdown">
+            <button class="button-link"
+                    type="button"
+                    data-bs-toggle="dropdown"
+                    aria-expanded="false">{{ outline.importance }}</button>
+            <ul class="dropdown-menu dropdown-menu-end">
+              {% for i in "1234567890"|make_list %}
+                <li>
+                  <a class="dropdown-item"
+                     href="#"
+                     hx-post="{% url 'outlines:importance' outline.id forloop.counter %}"
+                     hx-target="#outlines"><i class="bi bi-flag"></i> {{ forloop.counter }}</a>
+                </li>
+              {% endfor %}
+            </ul>
+          </div>
+        </td>
+      </tr>
+    {% empty %}
+      <tr>
+        <td colspan="5" class="empty-message">No outlines found for this matter.</td>
+      </tr>
+    {% endfor %}
+  </table>
+</div>

@@ -3,13 +3,60 @@ import json
 from django.contrib.auth.decorators import login_required
 from django.db.models import F, Max
 from django.http import HttpResponse, JsonResponse
-from django.shortcuts import get_object_or_404, render
+from django.shortcuts import get_object_or_404, redirect, render
 from django.views.decorators.http import require_POST
 
 from apps.case.documents.get_document_data import get_selected_matter
 
+from .filters import OutlinesFilter
 from .forms import OutlineForm
 from .models import Outline, OutlineItem
+
+
+def get_outlines_data(request, matter):
+    """Get outlines data with filters applied from session."""
+    filter_data = request.session.get("outlines_filter", {})
+
+    outlines = []
+    if matter:
+        queryset = Outline.objects.filter(matter=matter)
+
+        # Apply filters if present
+        if filter_data:
+            outlines_filter = OutlinesFilter(
+                filter_data, queryset=queryset, matter=matter
+            )
+            outlines = outlines_filter.qs
+        else:
+            outlines = queryset
+
+        # Apply sorting
+        current_order = filter_data.get("order_by", "-updated_at")
+        if current_order:
+            outlines = outlines.order_by(current_order)
+        else:
+            outlines = outlines.order_by("-updated_at")
+
+    # Get current sort order for template
+    current_order = filter_data.get("order_by", "-updated_at")
+
+    # Get keyword value
+    keyword = filter_data.get("keyword", "")
+
+    # Get importance filter value
+    importance_value = filter_data.get("importance")
+    importance_value = (
+        int(importance_value) if importance_value not in (None, "", 0) else None
+    )
+
+    return {
+        "outlines": outlines,
+        "current_order": current_order,
+        "keyword": keyword,
+        "importances": list(range(1, 11)),
+        "importance_value": importance_value,
+    }
+
 
 # =============================================================================
 # Outline List Views
@@ -20,24 +67,103 @@ from .models import Outline, OutlineItem
 def index(request):
     """Main outlines page."""
     matter, matters = get_selected_matter(request)
-    outlines = Outline.objects.filter(user=request.user)
 
     context = {
         "app": "documents",
         "subapp": "outlines",
         "matter": matter,
         "matters": matters,
-        "outlines": outlines,
-    }
+    } | get_outlines_data(request, matter)
+
     return render(request, "outlines/main.html", context)
 
 
 @login_required
 def outlines_list(request):
     """HTMX partial for outline list."""
-    outlines = Outline.objects.filter(user=request.user)
+    matter, _ = get_selected_matter(request)
 
-    return render(request, "outlines/list.html", {"outlines": outlines})
+    return render(request, "outlines/list.html", get_outlines_data(request, matter))
+
+
+@login_required
+def outlines_filter(request):
+    """Filter modal for outlines - GET shows modal, POST saves to session."""
+    matter, _ = get_selected_matter(request)
+
+    if request.method == "POST":
+        filter_data = {
+            key: value
+            for key, value in request.POST.items()
+            if key != "csrfmiddlewaretoken"
+        }
+        request.session["outlines_filter"] = filter_data
+        request.session.modified = True
+        return HttpResponse(status=204, headers={"HX-Trigger": "outlinesChanged"})
+
+    # GET - show filter modal
+    filter_data = request.session.get("outlines_filter", {})
+
+    queryset = (
+        Outline.objects.filter(matter=matter) if matter else Outline.objects.none()
+    )
+
+    filter_obj = OutlinesFilter(filter_data, queryset=queryset, matter=matter)
+
+    return render(request, "outlines/filter.html", {"filter": filter_obj})
+
+
+@login_required
+def outlines_sort(request, order):
+    """Sort outlines by field, toggling asc/desc."""
+    filter_data = request.session.get("outlines_filter", {})
+
+    current_order = filter_data.get("order_by", "")
+
+    # Toggle between asc and desc
+    if current_order == order:
+        new_order = f"-{order}" if not current_order.startswith("-") else order
+    elif current_order == f"-{order}":
+        new_order = order
+    else:
+        new_order = order
+
+    filter_data["order_by"] = new_order
+    request.session["outlines_filter"] = filter_data
+    request.session.modified = True
+
+    return redirect("outlines:list")
+
+
+@login_required
+def outlines_filter_importance(request, importance_value):
+    """Filter outlines by importance level."""
+    filter_data = request.session.get("outlines_filter", {})
+    # Set to empty string when 0 (All) is selected, otherwise use the value
+    filter_data["importance"] = "" if importance_value == 0 else importance_value
+
+    request.session["outlines_filter"] = filter_data
+
+    return redirect("outlines:list")
+
+
+@login_required
+def outlines_filter_keyword(request):
+    """Filter outlines by keyword (inline search)."""
+    matter, _ = get_selected_matter(request)
+    filter_data = request.session.get("outlines_filter", {})
+    keyword = request.GET.get("keyword", "").strip()
+
+    if keyword:
+        filter_data["keyword"] = keyword
+    else:
+        filter_data.pop("keyword", None)
+
+    request.session["outlines_filter"] = filter_data
+
+    # Render just the table partial (for search input updates)
+    context = get_outlines_data(request, matter)
+    return render(request, "outlines/table.html", context)
 
 
 # =============================================================================
@@ -87,6 +213,15 @@ def outline_delete(request, outline_id):
     """Delete an outline."""
     outline = get_object_or_404(Outline, id=outline_id, user=request.user)
     outline.delete()
+    return HttpResponse(status=204, headers={"HX-Trigger": "outlinesChanged"})
+
+
+@login_required
+def outline_importance(request, outline_id, value):
+    """Update outline importance."""
+    outline = get_object_or_404(Outline, id=outline_id, user=request.user)
+    outline.importance = value
+    outline.save()
     return HttpResponse(status=204, headers={"HX-Trigger": "outlinesChanged"})
 
 
