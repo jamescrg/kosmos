@@ -3,64 +3,98 @@
    ============================================================================= */
 
 /* =============================================================================
-   Outline List Grid
+   Outlines List Table
    ============================================================================= */
 
-.outlines-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(16rem, 1fr));
-  gap: 1rem;
-  margin-top: 1rem;
+.outlines-list {
+  min-width: 30rem;
 }
 
-.outline-card {
-  background: var(--background-panel);
-  border: 1px solid var(--border-medium);
-  border-radius: var(--radius-md);
-  padding: 1rem;
-  display: flex;
-  flex-direction: column;
-  gap: 0.75rem;
-  transition: box-shadow 0.15s ease, border-color 0.15s ease;
+.outlines-list .title {
+  min-width: 12rem;
+  white-space: normal;
+  word-wrap: break-word;
 }
 
-.outline-card-header {
+.outlines-list .user {
+  width: 7rem;
+}
+
+.outlines-list .created {
+  width: 8rem;
+}
+
+.outlines-list .modified {
+  width: 8rem;
+}
+
+.outlines-list .importance {
+  width: 3rem;
+  text-align: center;
+}
+
+.outlines-list th.importance {
+  padding-right: 0.75rem;
+}
+
+.outlines-list th.importance .btn-sort {
+  margin: 0;
+}
+
+.outlines-list .importance .dropdown-menu {
+  min-width: 2rem;
+}
+
+.outlines-list td {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  vertical-align: middle;
+}
+
+.outlines-list .title {
+  white-space: normal;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+}
+
+.outlines-list .dropdown-cell .dropdown {
   display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
+  align-items: center;
   gap: 0.5rem;
 }
 
-.outline-card-link {
+.outlines-list .outline-title-link {
+  color: var(--link);
   text-decoration: none;
-  color: inherit;
-  flex: 1;
-  min-width: 0;
 }
 
-.outline-card h3 {
-  font-size: 1rem;
-  font-weight: 500;
-  margin: 0;
-  color: var(--color-primary);
+.outlines-list .outline-title-link:hover {
+  color: var(--link-hover);
 }
 
-.outline-card *:focus,
-.outline-card *:hover,
-.outline-card *:active {
-  outline: none;
-  box-shadow: none;
+.outlines-list .menu-icon {
+  opacity: 0;
+  transition: opacity 0.15s ease;
 }
 
-.outline-card .btn-icon {
-  border: none;
+.outlines-list tr:hover .menu-icon {
+  opacity: 1;
 }
 
-.outline-date {
-  font-size: 0.8125rem;
-  color: var(--color-muted);
+/* Fix dropdown overflow issues while allowing horizontal scroll */
+.table-container:has(.outlines-list) {
+  overflow-x: auto;
+  overflow-y: visible;
 }
 
+.outlines-list {
+  overflow: visible;
+}
+
+.outlines-list tbody {
+  overflow: visible;
+}
 
 /* =============================================================================
    Outline View (Single Outline)

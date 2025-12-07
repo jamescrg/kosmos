@@ -1,3 +1,4 @@
+from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 
 from apps.accounts.models import CustomUser
@@ -16,6 +17,9 @@ class Outline(models.Model):
     title = models.CharField(max_length=200)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+    importance = models.PositiveIntegerField(
+        default=5, validators=[MinValueValidator(1), MaxValueValidator(10)]
+    )
 
     class Meta:
         ordering = ["-updated_at"]
