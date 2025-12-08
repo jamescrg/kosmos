@@ -1,0 +1,8 @@
+<h2 id="conversationTitle">{{ conversation.title|truncatechars:60 }}</h2>
+<button class="btn-icon btn-sm"
+        hx-get="{% url 'case:ai-rename-conversation' conversation.id %}"
+        hx-target="#conversationTitle"
+        hx-swap="outerHTML"
+        title="Rename conversation">
+  <i class="bi bi-pencil"></i>
+</button>

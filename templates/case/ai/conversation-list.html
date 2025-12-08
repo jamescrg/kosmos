@@ -1,0 +1,28 @@
+{% for conv in conversations %}
+  <div class="ai-conversation-item {% if conv.id == conversation.id %}active{% endif %}"
+       hx-get="{% url 'case:ai-select-conversation' conv.id %}"
+       hx-target="#chatArea"
+       hx-swap="innerHTML">
+    <span class="ai-conversation-title">{{ conv.title|truncatechars:30 }}</span>
+    <span class="ai-conversation-date">{{ conv.updated_at|date:"M j" }}</span>
+    <button class="ai-conversation-rename"
+            hx-get="{% url 'case:ai-rename-conversation' conv.id %}"
+            hx-target="closest .ai-conversation-item"
+            hx-swap="outerHTML"
+            onclick="event.stopPropagation();"
+            title="Rename conversation">
+      <i class="bi bi-pencil"></i>
+    </button>
+    <button class="ai-conversation-delete"
+            hx-post="{% url 'case:ai-delete-conversation' conv.id %}"
+            hx-swap="none"
+            onclick="event.stopPropagation();"
+            title="Delete conversation">
+      <i class="bi bi-trash"></i>
+    </button>
+  </div>
+{% empty %}
+  <div class="ai-no-conversations">
+    <p>No conversations yet.</p>
+  </div>
+{% endfor %}

@@ -53,6 +53,9 @@
         <li {% if subapp == "search" %}class="active"{% endif %}>
           <a href="{% url 'case:search-index' %}">Search</a>
         </li>
+        <li {% if subapp == "ai" %}class="active"{% endif %}>
+          <a href="{% url 'case:ai-index' %}">AI</a>
+        </li>
       </ul>
     </nav>
     <div class="section subsection">

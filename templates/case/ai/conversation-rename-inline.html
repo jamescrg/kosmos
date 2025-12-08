@@ -1,0 +1,13 @@
+<form class="ai-rename-inline-form"
+      hx-post="{% url 'case:ai-rename-conversation' conversation.id %}"
+      hx-target="closest .ai-conversation-title-wrapper"
+      hx-swap="innerHTML">
+  <input type="text"
+         name="title"
+         value="{{ conversation.title }}"
+         autofocus
+         onkeydown="if(event.key === 'Escape') { location.reload(); }">
+  <button type="submit" class="btn-icon btn-sm" title="Save">
+    <i class="bi bi-check"></i>
+  </button>
+</form>
