@@ -12,6 +12,8 @@ from django.http import HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
 
 from apps.case.documents.get_document_data import get_selected_matter
+from apps.case.models import Fact, Highlight
+from apps.outlines.models import Outline
 
 from .anthropic_client import send_to_claude
 from .context import assemble_matter_context
@@ -163,7 +165,7 @@ def send_message(request):
     Message.objects.create(conversation=conversation, role="user", content=user_message)
 
     # Assemble context and get AI response
-    context_text = assemble_matter_context(matter)
+    context_text = assemble_matter_context(matter, user=request.user)
     chat_history = list(conversation.messages.values("role", "content"))
 
     try:
@@ -388,6 +390,87 @@ def create_prompt(request):
             f"{user.get_full_name()} is a paralegal supporting an attorney"
         )
 
+    # Build case timeline from facts
+    facts = Fact.objects.filter(matter=matter).order_by("date", "id")
+    timeline_lines = []
+    for fact in facts:
+        if fact.date:
+            line = f"- {fact.date}: {fact.description}"
+        else:
+            line = f"- (No date): {fact.description}"
+
+        # Add source citations if available
+        sources = []
+        for doc in fact.documents.all()[:2]:
+            if doc.citation:
+                sources.append(doc.citation)
+        for hl in fact.highlights.all()[:2]:
+            if hl.citation:
+                sources.append(hl.citation)
+        if sources:
+            line += f" {', '.join(sources)}"
+
+        timeline_lines.append(line)
+
+    timeline_section = ""
+    if timeline_lines:
+        timeline_section = "\n\n## Case Timeline\n\n" + "\n".join(timeline_lines)
+
+    # Build highlights section
+    highlights = (
+        Highlight.objects.filter(document__matter=matter)
+        .select_related("document")
+        .order_by("-importance", "document__name", "page_number")
+    )
+    highlight_lines = []
+    for hl in highlights:
+        # Format: slug/title, then the text, then citation
+        line = f"### {hl.slug}\n\n> {hl.text}\n\n{hl.citation}"
+        highlight_lines.append(line)
+
+    highlights_section = ""
+    if highlight_lines:
+        highlights_section = (
+            "\n\n## Key Highlights\n\n"
+            "The following are key highlights from the case documents "
+            "as identified by an attorney:\n\n" + "\n\n".join(highlight_lines)
+        )
+
+    # Build outlines section
+    def format_outline_items(items, depth=0):
+        """Recursively format outline items with indentation."""
+        lines = []
+        for item in items:
+            indent = "  " * depth
+            content = item.content.strip() if item.content else "(empty)"
+            if item.heading:
+                lines.append(f"{indent}**{content}**")
+            else:
+                lines.append(f"{indent}- {content}")
+            # Recursively add children
+            children = item.get_children()
+            if children:
+                lines.extend(format_outline_items(children, depth + 1))
+        return lines
+
+    outlines = Outline.objects.filter(matter=matter).order_by("-importance", "-date")
+    outline_blocks = []
+    for outline in outlines:
+        block_lines = [f"### {outline.title} ({outline.date})"]
+        root_items = outline.get_root_items()
+        if root_items:
+            block_lines.append("")  # blank line after header
+            block_lines.extend(format_outline_items(root_items))
+        outline_blocks.append("\n".join(block_lines))
+
+    outlines_section = ""
+    if outline_blocks:
+        outlines_section = (
+            "\n\n## Attorney Notes\n\n"
+            "The following are attorney notes and research outlines "
+            "for this matter:\n\n" + "\n\n".join(outline_blocks)
+        )
+
     # Build the prompt text with proper markdown formatting
     prompt_text = f"""## Request Date
 
@@ -402,7 +485,7 @@ def create_prompt(request):
 
 ## General Guidelines for Responding
 
-{legal_guidelines}"""
+{legal_guidelines}{timeline_section}{highlights_section}{outlines_section}"""
 
     context = {
         "matter": matter,

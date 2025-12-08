@@ -1,6 +1,7 @@
 {% load humanize markdown_extras %}
 {% for message in messages %}
-  <div class="ai-message ai-message-{{ message.role }}">
+  <div class="ai-message ai-message-{{ message.role }}"
+       id="message-{{ message.id }}">
     <div class="ai-message-header">
       {% if message.role == "user" %}
         <i class="bi bi-person-circle"></i>

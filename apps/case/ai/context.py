@@ -12,6 +12,7 @@ Time entries are excluded per user request.
 """
 
 import logging
+from datetime import date
 from pathlib import Path
 
 from django.conf import settings
@@ -31,6 +32,18 @@ MAX_CONTEXT_CHARS = 80000  # ~20k tokens for context, leaving room for conversat
 
 # Path to the legal AI instructions file
 LEGAL_PROMPT_FILE = Path(settings.BASE_DIR) / "docs" / "ai-prompt.md"
+
+REQUEST_INFO_TEMPLATE = """## Request Date
+
+{request_date}
+
+## Requesting Party
+
+- Name: {user_name}
+- Email: {user_email}
+- Role: {role_description}
+- Law Firm: Craig Legal, LLC
+"""
 
 MATTER_CONTEXT_TEMPLATE = """
 ## Current Matter: {matter_name}
@@ -84,9 +97,13 @@ def load_legal_prompt() -> str:
         return "You are a legal assistant. Be accurate and cite sources."
 
 
-def assemble_matter_context(matter) -> str:
+def assemble_matter_context(matter, user=None) -> str:
     """
     Assemble context from all matter data, respecting token limits.
+
+    Args:
+        matter: The Matter object to assemble context for
+        user: The requesting user (for request info section)
 
     Priority for context inclusion:
     1. Matter overview (always included)
@@ -159,12 +176,28 @@ def assemble_matter_context(matter) -> str:
     sections["settlement"] = settlement
 
     # Build the full system prompt:
-    # 1. Load legal instructions from docs/ai-prompt.md (read fresh each time)
-    # 2. Append matter-specific context
+    # 1. Request info (date and requesting party)
+    # 2. Load legal instructions from docs/ai-prompt.md (read fresh each time)
+    # 3. Append matter-specific context
+    request_info = ""
+    if user:
+        if user.is_attorney:
+            role_description = f"{user.get_full_name()} is an attorney"
+        else:
+            role_description = (
+                f"{user.get_full_name()} is a paralegal supporting an attorney"
+            )
+        request_info = REQUEST_INFO_TEMPLATE.format(
+            request_date=date.today().strftime("%B %d, %Y"),
+            user_name=user.get_full_name(),
+            user_email=user.email,
+            role_description=role_description,
+        )
+
     legal_prompt = load_legal_prompt()
     matter_context = MATTER_CONTEXT_TEMPLATE.format(matter_name=matter.name, **sections)
 
-    return f"{legal_prompt}\n\n---\n{matter_context}"
+    return f"{request_info}{legal_prompt}\n\n---\n{matter_context}"
 
 
 def format_matter_overview(matter) -> str:
