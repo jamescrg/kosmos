@@ -24,51 +24,33 @@
   <link rel="stylesheet" href="{% static_v 'css/icons.css' %}" />
   <link rel="stylesheet" href="{% static_v 'css/forms.css' %}" />
   <link rel="stylesheet" href="{% static_v 'css/apps/case/ai.css' %}" />
-  <style>
-    body {
-      margin: 0;
-      padding: 0;
-      background: var(--stone-300);
-    }
-
-    .ai-standalone-container {
-      display: flex;
-      flex-direction: column;
-      height: 100vh;
-      max-width: 60rem;
-      margin: 0 auto;
-      padding: 0 1rem 1rem 1rem;
-    }
-
-    .ai-standalone-header {
-      display: flex;
-      align-items: center;
-      gap: 1rem;
-      padding: 0.5rem 0;
-    }
-
-    .ai-standalone-header h1 {
-      margin: 0;
-      font-size: 1.1rem;
-      font-weight: 400;
-      color: var(--stone-600);
-      flex: 1;
-    }
-
-    .ai-chat-wrapper {
-      flex: 1;
-      margin-top: 0;
-      min-height: 0;
-    }
-  </style>
 </head>
-<body hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}'>
-  <div class="ai-standalone-container">
-    <div class="ai-standalone-header">
-      <h1 id="conversationTitle">{{ conversation.title }}</h1>
-      <span class="app-badge badge-purple">{{ matter.name }}</span>
-    </div>
-    <div class="ai-chat-wrapper">
+<body class="ai-chat-body" hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}'>
+  <header class="ai-chat-header">
+    <h1 id="conversationTitle">{{ conversation.title }}</h1>
+    <span class="app-badge badge-purple">{{ matter.name }}</span>
+  </header>
+  <div class="ai-chat-layout">
+    <aside class="ai-chat-sidebar">
+      <div class="ai-sidebar-header">
+        <h2>History</h2>
+      </div>
+      <div class="ai-sidebar-list" id="promptList">
+        {% for message in messages %}
+          {% if message.role == "user" %}
+            <a href="#message-{{ message.id }}"
+               class="ai-sidebar-item"
+               title="{{ message.content|truncatechars:300 }}"
+               onclick="scrollToMessage('message-{{ message.id }}'); return false;">
+              {{ message.content|truncatechars:80 }}
+            </a>
+          {% endif %}
+        {% empty %}
+          <div class="ai-sidebar-empty">No prompts yet</div>
+        {% endfor %}
+      </div>
+    </aside>
+    <main class="ai-chat-main">
       <div id="messageContainer" class="ai-messages">{% include "case/ai/messages.html" %}</div>
       <div class="ai-input-container">
         <form hx-post="{% url 'case:ai-send' %}"
@@ -76,24 +58,55 @@
               hx-swap="innerHTML scroll:#messageContainer:bottom"
               hx-indicator="#ai-loading"
               hx-disabled-elt="button[type='submit']"
-              hx-on::after-request="this.reset()">
+              hx-on::after-request="this.reset(); updatePromptList();">
           <input type="hidden" name="conversation_id" value="{{ conversation.id }}">
-          <div class="ai-input-wrapper">
-            <textarea name="message"
-                      id="aiMessageInput"
-                      placeholder="Ask about this matter..."
-                      rows="2"
-                      required
-                      autofocus
-                      onkeydown="if(event.key === 'Enter' && !event.shiftKey) { event.preventDefault(); this.form.requestSubmit(); }"></textarea>
-          </div>
+          <textarea name="message"
+                    id="aiMessageInput"
+                    placeholder="Ask about this matter..."
+                    rows="2"
+                    required
+                    autofocus
+                    onkeydown="if(event.key === 'Enter' && !event.shiftKey) { event.preventDefault(); this.form.requestSubmit(); }"></textarea>
         </form>
         <div id="ai-loading" class="htmx-indicator ai-loading">
           <i class="bi bi-hourglass-split spin"></i>
           <span>Thinking...</span>
         </div>
       </div>
-    </div>
+    </main>
   </div>
   <script src="https://unpkg.com/htmx.org@1.7.0"></script>
+  <script>
+    function scrollToMessage(messageId) {
+      const element = document.getElementById(messageId);
+      if (element) {
+        element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        element.classList.add('ai-message-highlight');
+        setTimeout(() => element.classList.remove('ai-message-highlight'), 2000);
+      }
+    }
+
+    function updatePromptList() {
+      const messages = document.querySelectorAll('.ai-message-user');
+      const promptList = document.getElementById('promptList');
+      promptList.innerHTML = '';
+      messages.forEach((msg) => {
+        const id = msg.id;
+        const text = msg.querySelector('.ai-message-text').innerText;
+        const link = document.createElement('a');
+        link.href = '#' + id;
+        link.className = 'ai-sidebar-item';
+        link.textContent = text.substring(0, 80) + (text.length > 80 ? '...' : '');
+        link.title = text.substring(0, 300) + (text.length > 300 ? '...' : '');
+        link.onclick = function(e) {
+          e.preventDefault();
+          scrollToMessage(id);
+        };
+        promptList.appendChild(link);
+      });
+      if (promptList.children.length === 0) {
+        promptList.innerHTML = '<div class="ai-sidebar-empty">No prompts yet</div>';
+      }
+    }
+  </script>
 </body>
