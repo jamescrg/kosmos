@@ -289,3 +289,6 @@ class CustomFormRendererCompact(TemplatesSetting):
 
 FORM_RENDERER = "config.settings.CustomFormRendererSpacious"
 FORM_SETTINGS = {"label_suffix": ""}
+
+# Anthropic API Configuration
+ANTHROPIC_API_KEY = env("ANTHROPIC_API_KEY", default="")

@@ -1,0 +1,49 @@
+{% extends "case/index.html" %}
+{% block subcontent %}
+  <div class="ai-conversation-view">
+    <div class="ai-conversation-header">
+      <a href="{% url 'case:ai-index' %}" class="ai-back-link">
+        <i class="bi bi-arrow-left"></i>
+        Back to conversations
+      </a>
+      <div class="ai-conversation-title-wrapper">
+        <h2 id="conversationTitle">{{ conversation.title|truncatechars:60 }}</h2>
+        <button class="btn-icon btn-sm"
+                hx-get="{% url 'case:ai-rename-conversation' conversation.id %}"
+                hx-target="#conversationTitle"
+                hx-swap="outerHTML"
+                title="Rename conversation">
+          <i class="bi bi-pencil"></i>
+        </button>
+      </div>
+    </div>
+    <div class="ai-chat-wrapper">
+      <div id="messageContainer" class="ai-messages">{% include "case/ai/messages.html" %}</div>
+      <div class="ai-input-container">
+        <form hx-post="{% url 'case:ai-send' %}"
+              hx-target="#messageContainer"
+              hx-swap="innerHTML scroll:#messageContainer:bottom"
+              hx-indicator="#ai-loading"
+              hx-disabled-elt="button[type='submit']"
+              hx-on::after-request="this.reset()">
+          <input type="hidden" name="conversation_id" value="{{ conversation.id }}">
+          <div class="ai-input-wrapper">
+            <textarea name="message"
+                      id="aiMessageInput"
+                      placeholder="Ask about this matter..."
+                      rows="2"
+                      required
+                      onkeydown="if(event.key === 'Enter' && !event.shiftKey) { event.preventDefault(); this.form.requestSubmit(); }"></textarea>
+            <button type="submit" class="ai-send-btn">
+              <i class="bi bi-send"></i>
+            </button>
+          </div>
+        </form>
+        <div id="ai-loading" class="htmx-indicator ai-loading">
+          <i class="bi bi-hourglass-split spin"></i>
+          <span>Thinking...</span>
+        </div>
+      </div>
+    </div>
+  </div>
+{% endblock subcontent %}

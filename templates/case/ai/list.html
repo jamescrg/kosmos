@@ -1,0 +1,65 @@
+{% load humanize %}
+<div class="toolbar ai-toolbar">
+  <div class="toolbar-left">
+    <div class="filter-tools">
+      <h1>Conversations</h1>
+      <button type="button"
+              class="btn-icon"
+              hx-post="{% url 'case:ai-new-conversation' %}"
+              hx-on::after-request="if(event.detail.successful) window.open(event.detail.xhr.responseText, '_blank')"
+              title="New conversation">
+        <i class="bi bi-plus-lg"></i>
+      </button>
+    </div>
+  </div>
+</div>
+<div class="table-container">
+  <table class="table ai-conversations-table">
+    <tr>
+      <th class="title">Title</th>
+      <th class="messages">Messages</th>
+      <th class="created">Created</th>
+      <th class="updated">Last Updated</th>
+    </tr>
+    {% for conv in conversations %}
+      <tr class="ai-conversation-row">
+        <td class="title">
+          <div class="dropdown">
+            <button class="ai-title-btn"
+                    type="button"
+                    data-bs-toggle="dropdown"
+                    aria-expanded="false">{{ conv.title|truncatechars:60 }}</button>
+            <ul class="dropdown-menu">
+              <li>
+                <a class="dropdown-item"
+                   href="{% url 'case:ai-conversation-view' conv.id %}"
+                   target="_blank"><i class="bi bi-box-arrow-up-right"></i> Resume</a>
+              </li>
+              <li>
+                <a class="dropdown-item"
+                   href="#"
+                   hx-get="{% url 'case:ai-rename-form' conv.id %}"
+                   hx-target="#ai-conversations"
+                   hx-swap="innerHTML"><i class="bi bi-pencil"></i> Edit Title</a>
+              </li>
+              <li>
+                <a class="dropdown-item text-danger"
+                   href="#"
+                   hx-post="{% url 'case:ai-delete-conversation' conv.id %}"
+                   hx-confirm="Delete this conversation?"
+                   hx-swap="none"><i class="bi bi-trash"></i> Delete</a>
+              </li>
+            </ul>
+          </div>
+        </td>
+        <td class="messages">{{ conv.messages.count }}</td>
+        <td class="created">{{ conv.created_at|date:"M j, Y" }}</td>
+        <td class="updated">{{ conv.updated_at|naturaltime }}</td>
+      </tr>
+    {% empty %}
+      <tr>
+        <td colspan="4" class="empty-message">No conversations yet. Click + to start a new conversation.</td>
+      </tr>
+    {% endfor %}
+  </table>
+</div>

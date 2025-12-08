@@ -1,6 +1,7 @@
 from django.urls import path
 
 from apps.case import views
+from apps.case.ai import views as ai
 from apps.case.documents import views as documents
 from apps.case.facts import views as facts
 from apps.case.highlights import views as highlights
@@ -313,4 +314,36 @@ urlpatterns = [
         name="search-filter-type",
     ),
     path("case/search/clear/", search.search_clear, name="search-clear"),
+    # AI Chat
+    path("case/ai/", ai.ai_index, name="ai-index"),
+    path("case/ai/list/", ai.ai_list, name="ai-list"),
+    path("case/ai/messages/", ai.message_list, name="ai-messages"),
+    path("case/ai/send/", ai.send_message, name="ai-send"),
+    path("case/ai/conversations/", ai.conversation_list, name="ai-conversations"),
+    path("case/ai/conversations/new/", ai.new_conversation, name="ai-new-conversation"),
+    path(
+        "case/ai/conversations/<int:conv_id>/",
+        ai.select_conversation,
+        name="ai-select-conversation",
+    ),
+    path(
+        "case/ai/conversations/<int:conv_id>/view/",
+        ai.conversation_view,
+        name="ai-conversation-view",
+    ),
+    path(
+        "case/ai/conversations/<int:conv_id>/delete/",
+        ai.delete_conversation,
+        name="ai-delete-conversation",
+    ),
+    path(
+        "case/ai/conversations/<int:conv_id>/rename/",
+        ai.rename_conversation,
+        name="ai-rename-conversation",
+    ),
+    path(
+        "case/ai/conversations/<int:conv_id>/rename-form/",
+        ai.rename_form,
+        name="ai-rename-form",
+    ),
 ]
