@@ -11,6 +11,11 @@ Gathers matter data for the system prompt with priority:
 Time entries are excluded per user request.
 """
 
+import logging
+from pathlib import Path
+
+from django.conf import settings
+
 from apps.agenda.events.models import Event
 from apps.agenda.tasks.models import Task
 from apps.case.models import Document, Fact, Highlight
@@ -19,14 +24,16 @@ from apps.matters.proceedings.models import Proceeding
 from apps.matters.settlement.models import SettlementEntry
 from apps.outlines.models import Outline
 
+logger = logging.getLogger(__name__)
+
 # Token budget allocation (approximate, assuming ~4 chars per token)
 MAX_CONTEXT_CHARS = 80000  # ~20k tokens for context, leaving room for conversation
 
-SYSTEM_PROMPT_TEMPLATE = """You are a legal assistant helping with matter: {matter_name}.
+# Path to the legal AI instructions file
+LEGAL_PROMPT_FILE = Path(settings.BASE_DIR) / "CLAUDE-LEGAL.md"
 
-You have access to the following case information. Use this context to provide accurate,
-helpful responses about the case. If you're not sure about something, say so rather than
-guessing. Always maintain attorney-client privilege and confidentiality.
+MATTER_CONTEXT_TEMPLATE = """
+## Current Matter: {matter_name}
 
 ## Matter Overview
 {matter_overview}
@@ -57,16 +64,24 @@ guessing. Always maintain attorney-client privilege and confidentiality.
 
 ## Settlement Information
 {settlement}
-
----
-
-When answering questions:
-1. Reference specific documents, dates, or facts when relevant
-2. Be concise but thorough
-3. If asked about document contents, reference the document name and relevant excerpts
-4. Flag any potential issues or concerns you notice
-5. Suggest follow-up actions when appropriate
 """
+
+
+def load_legal_prompt() -> str:
+    """
+    Load the legal AI instructions from CLAUDE-LEGAL.md.
+
+    This file is read fresh on each call so edits take effect immediately.
+    """
+    try:
+        if LEGAL_PROMPT_FILE.exists():
+            return LEGAL_PROMPT_FILE.read_text(encoding="utf-8")
+        else:
+            logger.warning(f"Legal prompt file not found: {LEGAL_PROMPT_FILE}")
+            return "You are a legal assistant. Be accurate and cite sources."
+    except Exception as e:
+        logger.error(f"Error reading legal prompt file: {e}")
+        return "You are a legal assistant. Be accurate and cite sources."
 
 
 def assemble_matter_context(matter) -> str:
@@ -143,7 +158,13 @@ def assemble_matter_context(matter) -> str:
     settlement = format_settlement(matter)
     sections["settlement"] = settlement
 
-    return SYSTEM_PROMPT_TEMPLATE.format(matter_name=matter.name, **sections)
+    # Build the full system prompt:
+    # 1. Load legal instructions from CLAUDE-LEGAL.md (read fresh each time)
+    # 2. Append matter-specific context
+    legal_prompt = load_legal_prompt()
+    matter_context = MATTER_CONTEXT_TEMPLATE.format(matter_name=matter.name, **sections)
+
+    return f"{legal_prompt}\n\n---\n{matter_context}"
 
 
 def format_matter_overview(matter) -> str:
