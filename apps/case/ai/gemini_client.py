@@ -4,8 +4,12 @@ Google Gemini API client for AI chat.
 Uses OpenAI-compatible endpoint for simplified integration.
 """
 
+import httpx
 from django.conf import settings
 from openai import OpenAI
+
+# Longer timeout for Gemini Pro which can take longer on complex requests
+GEMINI_TIMEOUT = httpx.Timeout(300.0, connect=10.0)  # 5 min read, 10s connect
 
 
 def send_to_gemini(
@@ -28,6 +32,7 @@ def send_to_gemini(
     client = OpenAI(
         api_key=settings.GEMINI_API_KEY,
         base_url="https://generativelanguage.googleapis.com/v1beta/openai/",
+        timeout=GEMINI_TIMEOUT,
     )
 
     # Format messages with system context first
