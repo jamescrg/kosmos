@@ -454,12 +454,8 @@
   display: none;
 }
 
-/* Selected state - only show highlight when multiple items selected */
+/* Selected state */
 .outline-item.selected > .item-row {
-  background: none;
-}
-
-.has-multi-select .outline-item.selected > .item-row {
   background: var(--hl-gray);
 }
 
