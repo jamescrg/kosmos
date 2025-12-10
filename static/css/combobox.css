@@ -15,6 +15,10 @@ Combobox container and input wrapper
 .combobox-input-wrapper input[type="search"] {
   width: 100%;
   padding-right: 2rem;
+}
+
+/* Flatten bottom corners only when results are showing */
+.combobox-container:has(.assign-results) .combobox-input-wrapper input[type="search"] {
   border-bottom-left-radius: 0;
   border-bottom-right-radius: 0;
 }

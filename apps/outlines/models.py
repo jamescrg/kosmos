@@ -11,11 +11,11 @@ class Outline(models.Model):
     """A single outline/document containing a tree of items."""
 
     CATEGORY_CHOICES = [
-        ("note", "Note"),
-        ("issue", "Issue"),
-        ("interview", "Interview"),
         ("analysis", "Analysis"),
         ("drafting", "Drafting"),
+        ("interview", "Interview"),
+        ("issue", "Issue"),
+        ("note", "Note"),
     ]
 
     user = models.ForeignKey(CustomUser, on_delete=models.CASCADE)

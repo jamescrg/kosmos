@@ -253,12 +253,10 @@
 }
 
 .collapse-controls {
-  position: absolute;
-  top: 0.5rem;
-  right: 0;
+  float: right;
   display: flex;
   gap: 1rem;
-  z-index: 10;
+  margin-left: 1rem;
 }
 
 .collapse-controls a {
@@ -587,6 +585,10 @@
 .item-sources {
   margin-left: 0.5rem;
   font-size: 0.875rem;
+}
+
+.item-sources .source-citation {
+  background: var(--lime-100);
 }
 
 /* =============================================================================

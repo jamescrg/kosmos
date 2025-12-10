@@ -36,9 +36,17 @@ def get_outlines_data(request, matter):
         # Apply sorting
         current_order = filter_data.get("order_by", "-date")
         if current_order:
-            outlines = outlines.order_by(current_order)
+            # For date sorting, add secondary sort by id
+            # -date (newest first) -> -date, -id
+            # date (oldest first) -> date, -id
+            if current_order == "-date":
+                outlines = outlines.order_by("-date", "-id")
+            elif current_order == "date":
+                outlines = outlines.order_by("date", "-id")
+            else:
+                outlines = outlines.order_by(current_order)
         else:
-            outlines = outlines.order_by("-date")
+            outlines = outlines.order_by("-date", "-id")
 
     # Get current sort order for template
     current_order = filter_data.get("order_by", "-date")
@@ -67,6 +75,7 @@ def get_outlines_data(request, matter):
         "importance_value": importance_value,
         "selected_category": selected_category,
         "selected_category_key": category_key,
+        "category_choices": Outline.CATEGORY_CHOICES,
     }
 
 
@@ -336,19 +345,21 @@ def item_edit(request, item_id):
     if request.method == "POST":
         content = request.POST.get("content", "").strip()
 
-        # Delete empty items
+        # Delete empty items (but keep if it's the only item in the outline)
         if not content:
-            prev_sibling = item.get_previous_sibling()
-            prev_id = prev_sibling.id if prev_sibling else None
-            item_id = item.id
-            item.delete()
-            response = HttpResponse(status=200)
-            # Trigger JS to remove the item from DOM
-            trigger_data = {"itemId": item_id}
-            if prev_id:
-                trigger_data["focusId"] = prev_id
-            response["HX-Trigger"] = json.dumps({"itemDeleted": trigger_data})
-            return response
+            is_only_item = item.outline.items.count() == 1
+            if not is_only_item:
+                prev_sibling = item.get_previous_sibling()
+                prev_id = prev_sibling.id if prev_sibling else None
+                item_id = item.id
+                item.delete()
+                response = HttpResponse(status=200)
+                # Trigger JS to remove the item from DOM
+                trigger_data = {"itemId": item_id}
+                if prev_id:
+                    trigger_data["focusId"] = prev_id
+                response["HX-Trigger"] = json.dumps({"itemDeleted": trigger_data})
+                return response
 
         item.content = content
         item.save()
