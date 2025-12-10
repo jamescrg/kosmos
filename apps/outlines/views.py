@@ -486,9 +486,16 @@ def collapse_all(request, outline_id):
 
 @login_required
 def item_toggle_heading(request, item_id):
-    """Toggle heading state."""
+    """Cycle heading level: None -> 2 -> 3 -> 4 -> 5 -> None."""
     item = get_object_or_404(OutlineItem, id=item_id, outline__user=request.user)
-    item.heading = not item.heading
+
+    if item.heading is None:
+        item.heading = 2
+    elif item.heading >= 5:
+        item.heading = None
+    else:
+        item.heading = item.heading + 1
+
     item.save()
 
     return render(request, "outlines/item.html", {"item": item})
