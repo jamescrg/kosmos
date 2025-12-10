@@ -59,7 +59,11 @@ class OutlineItem(models.Model):
     content = models.TextField(blank=True, default="")
     order = models.PositiveIntegerField(default=0)
     collapsed = models.BooleanField(default=False)
-    heading = models.BooleanField(default=False)
+    heading = models.PositiveIntegerField(
+        null=True,
+        blank=True,
+        validators=[MinValueValidator(2), MaxValueValidator(5)],
+    )
     highlight = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
 
@@ -77,7 +81,7 @@ class OutlineItem(models.Model):
     def save(self, *args, **kwargs):
         # Headings are only valid at top level (no parent)
         if self.parent is not None:
-            self.heading = False
+            self.heading = None
         super().save(*args, **kwargs)
 
     def __str__(self):

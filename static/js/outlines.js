@@ -45,7 +45,7 @@
       order: parseInt(itemEl.dataset.order) || 0,
       content: content,
       collapsed: itemEl.classList.contains('collapsed'),
-      heading: itemEl.classList.contains('heading'),
+      heading: itemEl.dataset.heading || null,
       highlight: itemEl.querySelector(':scope > .item-row')?.classList.contains('hl-yellow') || false,
       children: children
     };
@@ -586,7 +586,7 @@
     if (!itemEl) return;
 
     // Can't indent headings - they must stay at top level
-    if (itemEl.classList.contains('heading')) {
+    if (itemEl.dataset.heading) {
       return;
     }
 
@@ -844,7 +844,7 @@
       if (!aboveParent?.classList.contains('outline-item')) return;
 
       // Block if heading (can't gain a different parent)
-      if (itemEl.classList.contains('heading')) return;
+      if (itemEl.dataset.heading) return;
 
       // Capture state for undo
       pushUndo({
@@ -1003,7 +1003,7 @@
       if (!belowParent?.classList.contains('outline-item')) return;
 
       // Block if heading (can't gain a different parent)
-      if (itemEl.classList.contains('heading')) return;
+      if (itemEl.dataset.heading) return;
 
       // Capture state for undo
       pushUndo({

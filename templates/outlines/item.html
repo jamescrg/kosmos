@@ -1,8 +1,9 @@
-<div class="outline-item{% if item.collapsed %} collapsed{% endif %}{% if item.heading %} heading{% endif %}"
+<div class="outline-item{% if item.collapsed %} collapsed{% endif %}"
      id="outline-item-{{ item.id }}"
      data-item-id="{{ item.id }}"
      data-parent-id="{{ item.parent_id|default:'' }}"
-     data-order="{{ item.order }}">
+     data-order="{{ item.order }}"
+     {% if item.heading %}data-heading="{{ item.heading }}"{% endif %}>
   <div class="item-row{% if item.highlight %} hl-yellow{% endif %}">
     <!-- Item menu -->
     <div class="item-menu dropdown">
@@ -21,9 +22,14 @@
              hx-swap="outerHTML">
             <i class="bi bi-type-bold"></i>
             {% if item.heading %}
-              Remove Heading
+              H{{ item.heading }} →
+              {% if item.heading >= 5 %}
+                Normal
+              {% else %}
+                H{{ item.heading|add:1 }}
+              {% endif %}
             {% else %}
-              Set as Heading
+              Set as H2
             {% endif %}
           </a>
         </li>
