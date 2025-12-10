@@ -466,9 +466,6 @@
 /* Heading state */
 .outline-item.heading > .item-row .item-content,
 .outline-item.heading > .item-row .item-input {
-  font-weight: 600;
-  font-size: 1.1rem;
-  line-height: 1.2;
 }
 
 /* Item sources (citations) */
