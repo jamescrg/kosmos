@@ -406,28 +406,6 @@ def item_create(request, outline_id):
         max_order = siblings.aggregate(Max("order"))["order__max"] or -1
         order = max_order + 1
 
-    # Enforce rule: bullets after a heading must be children of that heading
-    if parent is None:
-        # Check for preceding heading at root level
-        preceding_heading = (
-            OutlineItem.objects.filter(
-                outline=outline,
-                parent__isnull=True,
-                heading__isnull=False,
-                order__lt=order,
-            )
-            .order_by("-order")
-            .first()
-        )
-
-        if preceding_heading:
-            # Make this item a child of the heading instead
-            parent = preceding_heading
-            # Recalculate order within heading's children
-            siblings = OutlineItem.objects.filter(outline=outline, parent=parent)
-            max_order = siblings.aggregate(Max("order"))["order__max"] or -1
-            order = max_order + 1
-
     item = OutlineItem.objects.create(
         outline=outline, parent=parent, content=content, order=order
     )
