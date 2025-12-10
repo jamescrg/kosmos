@@ -169,7 +169,28 @@
 
 .outline-toolbar .toolbar-right {
   min-width: 8rem;
+  display: flex;
+  gap: 1rem;
   justify-content: flex-end;
+}
+
+.outline-toolbar .toolbar-right a {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.75rem;
+  height: 1.75rem;
+  font-size: 0.875rem;
+  color: var(--color-muted);
+  text-decoration: none;
+  border-radius: var(--radius-sm);
+  transition: all 0.15s ease;
+  margin: 0;
+}
+
+.outline-toolbar .toolbar-right a:hover {
+  background: var(--background-muted);
+  color: var(--color-primary);
 }
 
 .outline-toolbar .toolbar-subtitle {
@@ -225,6 +246,39 @@
 /* =============================================================================
    Outline Tree
    ============================================================================= */
+
+.outline-tree-container {
+  position: relative;
+}
+
+.collapse-controls {
+  position: absolute;
+  top: 0.5rem;
+  right: 0;
+  display: flex;
+  gap: 1rem;
+  z-index: 10;
+}
+
+.collapse-controls a {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.75rem;
+  height: 1.75rem;
+  color: var(--color-muted);
+  text-decoration: none;
+  background: var(--background-control);
+  border: 1px solid var(--border-medium);
+  border-radius: var(--radius-sm);
+  transition: all 0.15s ease;
+}
+
+.collapse-controls a:hover {
+  background: var(--background-muted);
+  border-color: var(--border-dark);
+  color: var(--color-primary);
+}
 
 .outline-tree {
   margin-top: 0.5rem;
@@ -462,6 +516,8 @@
 /* Heading state */
 .outline-item.heading > .item-row .item-content,
 .outline-item.heading > .item-row .item-input {
+  font-weight: 500;
+  font-size: 1.1rem;
 }
 
 /* Item sources (citations) */

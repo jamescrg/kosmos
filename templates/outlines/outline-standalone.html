@@ -15,7 +15,6 @@
       <div class="toolbar outline-toolbar">
         <div class="toolbar-left">
           {% if outline.matter %}<span class="app-badge badge-purple">{{ outline.matter.name }}</span>{% endif %}
-          <span class="toolbar-subtitle">{{ outline.date|date:"Y-m-d" }}</span>
         </div>
         <div class="toolbar-center">
           <span id="outline-title"
@@ -26,6 +25,10 @@
                 hx-swap="innerHTML">{{ outline.title }}</span>
         </div>
         <div class="toolbar-right">
+          <a href="{% url 'outlines:export' outline.id %}"
+             title="Export to markdown">
+            <i class="bi bi-box-arrow-up"></i>
+          </a>
           <a href="#"
              hx-get="{% url 'outlines:import-modal' outline.id %}"
              hx-target="#htmx-modal-container"
@@ -47,12 +50,26 @@
           </a>
         </div>
       </div>
-      <div id="outline-tree"
-           class="outline-tree"
-           data-outline-id="{{ outline.id }}"
-           hx-trigger="outlineChanged from:body"
-           hx-get="{% url 'outlines:tree' outline.id %}"
-           hx-target="this">{% include "outlines/tree.html" %}</div>
+      <div class="outline-tree-container">
+        <div class="collapse-controls">
+          <a href="#"
+             hx-post="{% url 'outlines:expand-all' outline.id %}"
+             title="Expand all">
+            <i class="bi bi-arrows-expand"></i>
+          </a>
+          <a href="#"
+             hx-post="{% url 'outlines:collapse-all' outline.id %}"
+             title="Collapse all">
+            <i class="bi bi-arrows-collapse"></i>
+          </a>
+        </div>
+        <div id="outline-tree"
+             class="outline-tree"
+             data-outline-id="{{ outline.id }}"
+             hx-trigger="outlineChanged from:body"
+             hx-get="{% url 'outlines:tree' outline.id %}"
+             hx-target="this">{% include "outlines/tree.html" %}</div>
+      </div>
     </div>
   </div>
   <script src="{% static 'js/outlines.js' %}"></script>

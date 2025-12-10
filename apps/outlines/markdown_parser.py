@@ -141,3 +141,41 @@ def import_markdown_to_outline(outline, markdown_text):
         return total
 
     return count_items(parsed)
+
+
+def export_outline_to_markdown(outline):
+    """
+    Export outline items to markdown format.
+
+    Args:
+        outline: The Outline instance to export
+
+    Returns:
+        Markdown string representation of the outline
+    """
+
+    def export_item(item, depth=0):
+        """Recursively export an item and its children."""
+        lines = []
+        indent = "  " * depth
+
+        if item.heading:
+            # Export as markdown heading (use ## for visibility, could adjust)
+            lines.append(f"## {item.content}")
+        else:
+            lines.append(f"{indent}- {item.content}")
+
+        # Export children
+        for child in item.children.all().order_by("order"):
+            lines.extend(export_item(child, depth + 1))
+
+        return lines
+
+    # Get root items
+    root_items = outline.items.filter(parent=None).order_by("order")
+
+    lines = []
+    for item in root_items:
+        lines.extend(export_item(item))
+
+    return "\n".join(lines)
