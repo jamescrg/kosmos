@@ -9,6 +9,7 @@
 
 let documentDropzone = null;
 let preservedDropzoneFiles = [];
+let markdownDropzone = null;
 
 const initializeDocumentDropzone = () => {
   const dropzoneElement = document.querySelector("#document-dropzone");
@@ -205,9 +206,104 @@ const initializeDocumentDropzone = () => {
   }
 };
 
+const initializeMarkdownDropzone = () => {
+  const dropzoneElement = document.querySelector("#markdown-dropzone");
+  const form = document.querySelector("#markdown-import-form");
+
+  if (dropzoneElement && form) {
+    // Clean up any existing dropzone instance
+    if (markdownDropzone) {
+      markdownDropzone.destroy();
+      markdownDropzone = null;
+    }
+
+    Dropzone.autoDiscover = false;
+
+    markdownDropzone = new Dropzone("#markdown-dropzone", {
+      url: form.action,
+      autoProcessQueue: false,
+      uploadMultiple: false,
+      maxFiles: 1,
+      addRemoveLinks: false,
+      dictDefaultMessage: "Drop markdown file here or click to select",
+      acceptedFiles: ".md,.txt,.markdown",
+      previewTemplate: `
+        <div class="dz-preview dz-file-preview">
+          <div class="dz-filename-wrapper">
+            <span class="dz-filename" data-dz-name></span>
+            <span class="dz-size" data-dz-size></span>
+          </div>
+          <a class="dz-remove" href="javascript:undefined;" data-dz-remove>
+            <i class="bi bi-trash"></i>
+          </a>
+        </div>
+      `,
+      init: function () {
+        this.on("addedfile", (file) => {
+          if (this.files.length > 1) {
+            this.removeFile(this.files[0]);
+          }
+        });
+
+        form.addEventListener("submit", (e) => {
+          e.preventDefault();
+
+          if (this.files.length === 0) {
+            return;
+          }
+
+          const formData = new FormData();
+          formData.append(
+            "markdown_file",
+            this.files[0]
+          );
+          formData.append(
+            "csrfmiddlewaretoken",
+            form.querySelector("[name=csrfmiddlewaretoken]").value
+          );
+
+          const submitButton = form.querySelector('button[type="submit"]');
+          submitButton.disabled = true;
+          submitButton.innerHTML =
+            '<i class="bi bi-arrow-repeat spin"></i> Importing...';
+
+          fetch(form.action, {
+            method: "POST",
+            body: formData,
+          })
+            .then((response) => {
+              if (response.status === 204) {
+                const modalElement = document.querySelector(
+                  "#htmx-modal-container"
+                );
+                if (modalElement) {
+                  const modal =
+                    bootstrap.Modal.getInstance(modalElement) ||
+                    new bootstrap.Modal(modalElement);
+                  modal.hide();
+                }
+                document.body.dispatchEvent(
+                  new CustomEvent("outlineChanged")
+                );
+              }
+            })
+            .catch((error) => {
+              console.error("Error:", error);
+              submitButton.disabled = false;
+              submitButton.innerHTML = "Import";
+            });
+        });
+      },
+    });
+  }
+};
+
 const initializeFileUploadForms = () => {
   // Initialize dropzone for documents
   initializeDocumentDropzone();
+
+  // Initialize dropzone for markdown import
+  initializeMarkdownDropzone();
 
   const formsWithFileInputs = document.querySelectorAll(
     'form input[type="file"]',
@@ -269,5 +365,6 @@ document.body.addEventListener("htmx:afterSwap", () => {
 // Clear preserved files when modal is closed/hidden
 document.body.addEventListener("hidden.bs.modal", () => {
   documentDropzone = null;
+  markdownDropzone = null;
   preservedDropzoneFiles = [];
 });

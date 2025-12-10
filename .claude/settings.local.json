@@ -50,7 +50,8 @@
       "WebFetch(domain:medium.com)",
       "WebFetch(domain:dev.to)",
       "WebFetch(domain:www.lambdatest.com)",
-      "WebFetch(domain:workflowy.com)"
+      "WebFetch(domain:workflowy.com)",
+      "Bash(DJANGO_SETTINGS_MODULE=config.settings python3:*)"
     ],
     "deny": []
   }
