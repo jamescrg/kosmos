@@ -12,7 +12,7 @@ from apps.case.models import Document, Highlight
 
 from .filters import OutlinesFilter
 from .forms import OutlineForm
-from .markdown_parser import import_markdown_to_outline
+from .markdown_parser import export_outline_to_markdown, import_markdown_to_outline
 from .models import Outline, OutlineItem
 
 
@@ -463,6 +463,26 @@ def item_toggle_collapse(request, item_id):
 
 
 @login_required
+@require_POST
+def expand_all(request, outline_id):
+    """Expand all items in the outline."""
+    outline = get_object_or_404(Outline, id=outline_id, user=request.user)
+    outline.items.filter(collapsed=True).update(collapsed=False)
+    return HttpResponse(status=204, headers={"HX-Trigger": "outlineChanged"})
+
+
+@login_required
+@require_POST
+def collapse_all(request, outline_id):
+    """Collapse all items that have children."""
+    outline = get_object_or_404(Outline, id=outline_id, user=request.user)
+    # Only collapse items that have children
+    items_with_children = outline.items.filter(children__isnull=False).distinct()
+    items_with_children.update(collapsed=True)
+    return HttpResponse(status=204, headers={"HX-Trigger": "outlineChanged"})
+
+
+@login_required
 def item_toggle_heading(request, item_id):
     """Toggle heading state."""
     item = get_object_or_404(OutlineItem, id=item_id, outline__user=request.user)
@@ -700,6 +720,26 @@ def import_markdown(request, outline_id):
 
     # Return 204 to close modal, trigger tree refresh
     return HttpResponse(status=204, headers={"HX-Trigger": "outlineChanged"})
+
+
+@login_required
+def export_markdown(request, outline_id):
+    """Export outline as markdown file download."""
+    outline = get_object_or_404(Outline, id=outline_id, user=request.user)
+
+    markdown_content = export_outline_to_markdown(outline)
+
+    # Create response with markdown content as file download
+    response = HttpResponse(markdown_content, content_type="text/markdown")
+    # Sanitize filename
+    safe_title = "".join(
+        c for c in outline.title if c.isalnum() or c in (" ", "-", "_")
+    ).strip()
+    if not safe_title:
+        safe_title = f"outline-{outline_id}"
+    response["Content-Disposition"] = f'attachment; filename="{safe_title}.md"'
+
+    return response
 
 
 # =============================================================================

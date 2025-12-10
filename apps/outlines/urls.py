@@ -64,6 +64,8 @@ urlpatterns = [
         views.item_toggle_collapse,
         name="item-toggle-collapse",
     ),
+    path("<int:outline_id>/expand-all/", views.expand_all, name="expand-all"),
+    path("<int:outline_id>/collapse-all/", views.collapse_all, name="collapse-all"),
     path(
         "item/<int:item_id>/toggle-heading/",
         views.item_toggle_heading,
@@ -108,7 +110,8 @@ urlpatterns = [
     # Batch operations
     path("<int:outline_id>/batch-indent/", views.batch_indent, name="batch-indent"),
     path("<int:outline_id>/batch-outdent/", views.batch_outdent, name="batch-outdent"),
-    # Import
+    # Import/Export
     path("<int:outline_id>/import/", views.import_markdown, name="import"),
     path("<int:outline_id>/import-modal/", views.import_modal, name="import-modal"),
+    path("<int:outline_id>/export/", views.export_markdown, name="export"),
 ]
