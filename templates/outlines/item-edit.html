@@ -1,6 +1,5 @@
 <textarea class="item-input"
           name="content"
-          placeholder="Enter text..."
           autofocus
           hx-post="{% url 'outlines:item-edit' item.id %}"
           hx-target="closest .item-content-wrapper"

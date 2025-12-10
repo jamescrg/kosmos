@@ -14,11 +14,13 @@
     <div class="outline-toolbar">
       <div class="toolbar-left">
         <a href="#"
+           id="expand-all-btn"
            hx-post="{% url 'outlines:expand-all' outline.id %}"
            title="Expand all">
           <i class="bi bi-arrows-expand"></i>
         </a>
         <a href="#"
+           id="collapse-all-btn"
            hx-post="{% url 'outlines:collapse-all' outline.id %}"
            title="Collapse all">
           <i class="bi bi-arrows-collapse"></i>
@@ -49,7 +51,10 @@
            title="Keyboard shortcuts">
           <i class="bi bi-keyboard"></i>
         </a>
-        <a href="#" onclick="window.close(); return false;" title="Close">
+        <a href="#"
+           id="close-btn"
+           onclick="window.close(); return false;"
+           title="Close">
           <i class="bi bi-x-lg"></i>
         </a>
       </div>

@@ -344,23 +344,6 @@ def item_edit(request, item_id):
 
     if request.method == "POST":
         content = request.POST.get("content", "").strip()
-
-        # Delete empty items (but keep if it's the only item in the outline)
-        if not content:
-            is_only_item = item.outline.items.count() == 1
-            if not is_only_item:
-                prev_sibling = item.get_previous_sibling()
-                prev_id = prev_sibling.id if prev_sibling else None
-                item_id = item.id
-                item.delete()
-                response = HttpResponse(status=200)
-                # Trigger JS to remove the item from DOM
-                trigger_data = {"itemId": item_id}
-                if prev_id:
-                    trigger_data["focusId"] = prev_id
-                response["HX-Trigger"] = json.dumps({"itemDeleted": trigger_data})
-                return response
-
         item.content = content
         item.save()
         return render(request, "outlines/item-content.html", {"item": item})
@@ -463,19 +446,6 @@ def item_outdent(request, item_id):
         grandparent = item.parent.parent
         parent_order = item.parent.order
 
-        # Block outdent if it would create a top-level bullet after a heading
-        if grandparent is None:
-            preceding_heading = OutlineItem.objects.filter(
-                outline=item.outline,
-                parent__isnull=True,
-                heading__isnull=False,
-                order__lte=parent_order,
-            ).exists()
-
-            if preceding_heading:
-                # Can't outdent - would violate the rule
-                return HttpResponse(status=204)
-
         # Place after parent
         OutlineItem.objects.filter(
             outline=item.outline, parent=grandparent, order__gt=parent_order
@@ -521,123 +491,15 @@ def collapse_all(request, outline_id):
 
 @login_required
 def item_toggle_heading(request, item_id):
-    """Cycle heading level: None -> 2 -> 3 -> 4 -> 5 -> None."""
-    item = get_object_or_404(OutlineItem, id=item_id, outline__user=request.user)
-
-    if item.heading is None:
-        item.heading = 2
-    elif item.heading >= 5:
-        item.heading = None
-    else:
-        item.heading = item.heading + 1
-
-    item.save()
-
-    return render(request, "outlines/item.html", {"item": item})
-
-
-@login_required
-def item_set_heading(request, item_id, level):
-    """Set heading level (0 for normal, 2-5 for headings).
-
-    When promoting to heading: auto-adopt following root-level siblings.
-    When demoting from heading: re-parent under preceding heading if one exists.
-    """
+    """Toggle heading state (boolean)."""
     item = get_object_or_404(OutlineItem, id=item_id, outline__user=request.user)
 
     # If content is provided, save it (prevents auto-delete of empty items)
     if "content" in request.POST:
         item.content = request.POST.get("content", "").strip()
 
-    old_heading = item.heading
-
-    # If promoting nested item to heading, move to root first (before setting heading)
-    # This is needed because the model's save() clears heading if parent is set
-    moved_to_root = False
-    if 2 <= level <= 5 and item.parent_id is not None:
-        moved_to_root = True
-        # Find the root-level ancestor
-        root_ancestor = item.parent
-        while root_ancestor.parent:
-            root_ancestor = root_ancestor.parent
-
-        # Shift all root items after root_ancestor to make room
-        OutlineItem.objects.filter(
-            outline=item.outline,
-            parent__isnull=True,
-            order__gt=root_ancestor.order,
-        ).update(order=F("order") + 1)
-
-        # Move item to root level right after root_ancestor
-        item.parent_id = None
-        item.order = root_ancestor.order + 1
-
-    # Now set heading level
-    if level == 0:
-        item.heading = None
-    elif 2 <= level <= 5:
-        item.heading = level
-
+    item.heading = not item.heading
     item.save()
-
-    # CASE A: Promoted to heading - adopt following root-level siblings
-    if old_heading is None and item.heading is not None:
-        # Get root siblings that come after this item (until next heading)
-        following_siblings = OutlineItem.objects.filter(
-            outline=item.outline,
-            parent__isnull=True,
-            order__gt=item.order,
-        ).order_by("order")
-
-        # Find items until next heading
-        items_to_adopt = []
-        for sibling in following_siblings:
-            if sibling.heading:
-                break  # Stop at next heading
-            items_to_adopt.append(sibling)
-
-        if items_to_adopt:
-            # Get starting order for children
-            existing_children = item.get_children()
-            next_order = (
-                existing_children.last().order + 1 if existing_children.exists() else 0
-            )
-
-            # Adopt the siblings
-            for sibling in items_to_adopt:
-                sibling.parent = item
-                sibling.order = next_order
-                sibling.save()
-                next_order += 1
-
-    # CASE B: Demoted from heading - re-parent under preceding heading if exists
-    elif old_heading is not None and item.heading is None and item.parent is None:
-        # Find preceding heading
-        preceding_heading = (
-            OutlineItem.objects.filter(
-                outline=item.outline,
-                parent__isnull=True,
-                heading__isnull=False,
-                order__lt=item.order,
-            )
-            .order_by("-order")
-            .first()
-        )
-
-        if preceding_heading:
-            # Move this item under preceding heading (children stay attached)
-            existing_children = preceding_heading.get_children()
-            next_order = (
-                existing_children.last().order + 1 if existing_children.exists() else 0
-            )
-
-            item.parent = preceding_heading
-            item.order = next_order
-            item.save()
-
-    # If item was moved to root, trigger full tree refresh
-    if moved_to_root:
-        return HttpResponse(status=204, headers={"HX-Trigger": "outlineChanged"})
 
     return render(request, "outlines/item.html", {"item": item})
 
@@ -898,19 +760,6 @@ def batch_outdent(request, outline_id):
 
     grandparent = first_item.parent.parent
     parent_order = first_item.parent.order
-
-    # Block outdent if it would create top-level bullets after a heading
-    if grandparent is None:
-        preceding_heading = OutlineItem.objects.filter(
-            outline=outline,
-            parent__isnull=True,
-            heading__isnull=False,
-            order__lte=parent_order,
-        ).exists()
-
-        if preceding_heading:
-            # Can't outdent - would violate the rule
-            return HttpResponse(status=204)
 
     # Make room after the parent
     OutlineItem.objects.filter(

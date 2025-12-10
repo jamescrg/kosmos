@@ -3,7 +3,7 @@
      data-item-id="{{ item.id }}"
      data-parent-id="{{ item.parent_id|default:'' }}"
      data-order="{{ item.order }}"
-     {% if item.heading %}data-heading="{{ item.heading }}"{% endif %}
+     {% if item.heading %}data-heading{% endif %}
      {% if item.quote %}data-quote{% endif %}>
   <div class="item-row{% if item.highlight %} hl-yellow{% endif %}">
     <!-- Item menu -->
@@ -27,39 +27,18 @@
           </a>
         </li>
         <li>
-          <a class="dropdown-item{% if item.heading == 2 %} active{% endif %}"
+          <a class="dropdown-item"
              href="#"
-             hx-post="{% url 'outlines:item-set-heading' item.id 2 %}"
+             hx-post="{% url 'outlines:item-toggle-heading' item.id %}"
              hx-target="closest .outline-item"
-             hx-swap="outerHTML">Heading 2</a>
-        </li>
-        <li>
-          <a class="dropdown-item{% if item.heading == 3 %} active{% endif %}"
-             href="#"
-             hx-post="{% url 'outlines:item-set-heading' item.id 3 %}"
-             hx-target="closest .outline-item"
-             hx-swap="outerHTML">Heading 3</a>
-        </li>
-        <li>
-          <a class="dropdown-item{% if item.heading == 4 %} active{% endif %}"
-             href="#"
-             hx-post="{% url 'outlines:item-set-heading' item.id 4 %}"
-             hx-target="closest .outline-item"
-             hx-swap="outerHTML">Heading 4</a>
-        </li>
-        <li>
-          <a class="dropdown-item{% if item.heading == 5 %} active{% endif %}"
-             href="#"
-             hx-post="{% url 'outlines:item-set-heading' item.id 5 %}"
-             hx-target="closest .outline-item"
-             hx-swap="outerHTML">Heading 5</a>
-        </li>
-        <li>
-          <a class="dropdown-item{% if not item.heading %} active{% endif %}"
-             href="#"
-             hx-post="{% url 'outlines:item-set-heading' item.id 0 %}"
-             hx-target="closest .outline-item"
-             hx-swap="outerHTML">Normal</a>
+             hx-swap="outerHTML">
+            <i class="bi bi-type-h2"></i>
+            {% if item.heading %}
+              Remove Heading
+            {% else %}
+              Make Heading
+            {% endif %}
+          </a>
         </li>
         <li>
           <a class="dropdown-item"

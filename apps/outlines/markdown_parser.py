@@ -1,5 +1,5 @@
 """
-Markdown list parser for outline import.
+Markdown list parser for outline import/export.
 """
 
 import re
@@ -15,11 +15,11 @@ def parse_markdown_list(text):
 
     Supports:
     - Bullet markers: - and *
-    - Markdown headings: ## ### #### ##### (converted to heading levels 2-5)
+    - Markdown headings: # ## ### etc. (converted to heading=True)
     - Indentation: spaces or tabs (2 spaces = 1 level)
 
     Returns list of dicts with 'content', 'children', and 'heading' keys.
-    Headings are always at root level with no indentation.
+    Headings can appear at any nesting level.
     """
     if not text or not text.strip():
         return []
@@ -30,7 +30,6 @@ def parse_markdown_list(text):
 
     result = []
     # Stack tracks (list_to_append_to, depth) for building hierarchy
-    # For headings, we reset to root level
     stack = [(result, -1)]
 
     for line in lines:
@@ -43,26 +42,24 @@ def parse_markdown_list(text):
         indent = len(line) - len(stripped)
         depth = indent // 2  # 2 spaces per level
 
-        # Check for markdown heading (# ## ### #### ##### etc.)
+        # Check for markdown heading (# ## ### etc.)
         heading_match = re.match(r"^(#{1,})\s+(.*)$", stripped)
         if heading_match:
-            heading_level = len(heading_match.group(1))
-            # Clamp heading level to 2-5 range
-            if heading_level < 2:
-                heading_level = 2
-            elif heading_level > 5:
-                heading_level = 5
             content = heading_match.group(2).strip()
             if not content:
                 continue
-            item = {"content": content, "children": [], "heading": heading_level}
+            item = {"content": content, "children": [], "heading": True}
 
-            # Headings are always at root level
-            stack = [(result, -1)]
-            result.append(item)
-            # Items after a heading go under it - use depth -1 so 0-indent bullets
-            # don't pop this off the stack (they become children of the heading)
-            stack.append((item["children"], -1))
+            # Pop stack until we find appropriate parent depth
+            while stack and stack[-1][1] >= depth:
+                stack.pop()
+
+            # Add item to current parent's list
+            parent_list = stack[-1][0]
+            parent_list.append(item)
+
+            # Push this item's children list onto stack
+            stack.append((item["children"], depth))
             continue
 
         # Extract content (remove bullet marker)
@@ -75,7 +72,7 @@ def parse_markdown_list(text):
         if not content:
             continue
 
-        item = {"content": content, "children": [], "heading": None}
+        item = {"content": content, "children": [], "heading": False}
 
         # Pop stack until we find appropriate parent depth
         while stack and stack[-1][1] >= depth:
@@ -102,14 +99,12 @@ def create_items_from_parsed(outline, parsed_items, parent=None, start_order=0):
         start_order: Starting order number for items at this level
     """
     for i, item in enumerate(parsed_items):
-        # heading is None for normal items, or 2-5 for heading levels
-        heading_value = item.get("heading")
         outline_item = OutlineItem.objects.create(
             outline=outline,
             parent=parent,
             content=item["content"],
             order=start_order + i,
-            heading=heading_value,
+            heading=item.get("heading", False),
         )
         if item.get("children"):
             create_items_from_parsed(
@@ -120,8 +115,6 @@ def create_items_from_parsed(outline, parsed_items, parent=None, start_order=0):
 def import_markdown_to_outline(outline, markdown_text):
     """
     Parse markdown and create outline items, appending to existing items.
-
-    Enforces the rule that bullets after a heading must be children of that heading.
 
     Args:
         outline: The Outline instance to add items to
@@ -137,62 +130,15 @@ def import_markdown_to_outline(outline, markdown_text):
     # Delete empty root items (e.g., the initial empty item created with new outlines)
     OutlineItem.objects.filter(outline=outline, parent=None, content="").delete()
 
-    # Find the last heading at root level (if any) to enforce the rule
-    last_root_heading = (
-        OutlineItem.objects.filter(outline=outline, parent=None, heading__isnull=False)
-        .order_by("-order")
-        .first()
+    # Find the max order of existing root items to append after
+    max_order = (
+        OutlineItem.objects.filter(outline=outline, parent=None).aggregate(
+            max_order=models.Max("order")
+        )["max_order"]
+        or -1
     )
 
-    # Determine where to start appending
-    if last_root_heading:
-        # If there's a preceding heading, non-heading items must go under it
-        # Split parsed items: headings go to root, non-headings go under last heading
-        for item in parsed:
-            if item.get("heading"):
-                # Headings go at root level
-                max_order = (
-                    OutlineItem.objects.filter(outline=outline, parent=None).aggregate(
-                        max_order=models.Max("order")
-                    )["max_order"]
-                    or -1
-                )
-                create_items_from_parsed(
-                    outline, [item], parent=None, start_order=max_order + 1
-                )
-                # Update last_root_heading to this new heading
-                last_root_heading = (
-                    OutlineItem.objects.filter(
-                        outline=outline, parent=None, heading__isnull=False
-                    )
-                    .order_by("-order")
-                    .first()
-                )
-            else:
-                # Non-headings go under the last heading
-                max_child_order = (
-                    OutlineItem.objects.filter(
-                        outline=outline, parent=last_root_heading
-                    ).aggregate(max_order=models.Max("order"))["max_order"]
-                    or -1
-                )
-                create_items_from_parsed(
-                    outline,
-                    [item],
-                    parent=last_root_heading,
-                    start_order=max_child_order + 1,
-                )
-    else:
-        # No preceding heading - items go at root level normally
-        max_order = (
-            OutlineItem.objects.filter(outline=outline, parent=None).aggregate(
-                max_order=models.Max("order")
-            )["max_order"]
-            or -1
-        )
-        create_items_from_parsed(
-            outline, parsed, parent=None, start_order=max_order + 1
-        )
+    create_items_from_parsed(outline, parsed, parent=None, start_order=max_order + 1)
 
     # Count total items created (recursively)
     def count_items(items):
@@ -214,9 +160,12 @@ def export_outline_to_markdown(outline):
     Returns:
         Markdown string representation of the outline
 
-    Headings are exported as markdown headings (## through #####) at root level.
+    Headings are exported as markdown headings with level derived from depth:
+    - depth 0 → ## (h2)
+    - depth 1 → ### (h3)
+    - depth 2 → #### (h4)
+    - etc.
     Regular items are exported as indented bullet lists.
-    Blank lines are added before and after headings for well-formed markdown.
     """
 
     def get_sources_text(item):
@@ -238,14 +187,16 @@ def export_outline_to_markdown(outline):
             # Add blank line before heading (unless it's the first item)
             if not is_first:
                 lines.append("")
-            # Export as markdown heading with appropriate level (## through #####)
-            hashes = "#" * item.heading
+            # Export as markdown heading with level derived from depth
+            # depth 0 → ##, depth 1 → ###, depth 2 → ####, etc.
+            heading_level = min(depth + 2, 6)  # Cap at h6
+            hashes = "#" * heading_level
             lines.append(f"{hashes} {content_with_sources}")
             # Add blank line after heading
             lines.append("")
-            # Children of headings are at depth 0 (no indent)
+            # Children of headings continue at depth + 1
             for i, child in enumerate(item.children.all().order_by("order")):
-                lines.extend(export_item(child, depth=0, is_first=(i == 0)))
+                lines.extend(export_item(child, depth + 1, is_first=(i == 0)))
         else:
             indent = "  " * depth
             lines.append(f"{indent}- {content_with_sources}")
@@ -260,7 +211,7 @@ def export_outline_to_markdown(outline):
 
     lines = []
     for i, item in enumerate(root_items):
-        lines.extend(export_item(item, is_first=(i == 0)))
+        lines.extend(export_item(item, depth=0, is_first=(i == 0)))
 
     # Remove consecutive blank lines and trailing blank lines
     result = []

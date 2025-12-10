@@ -45,7 +45,7 @@
       order: parseInt(itemEl.dataset.order) || 0,
       content: content,
       collapsed: itemEl.classList.contains('collapsed'),
-      heading: itemEl.dataset.heading || null,
+      heading: itemEl.hasAttribute('data-heading'),
       highlight: itemEl.querySelector(':scope > .item-row')?.classList.contains('hl-yellow') || false,
       children: children
     };
@@ -619,11 +619,6 @@
     const itemEl = getItemElement(itemId);
     if (!itemEl) return;
 
-    // Can't indent headings - they must stay at top level
-    if (itemEl.dataset.heading) {
-      return;
-    }
-
     // Find previous sibling
     const prevSibling = itemEl.previousElementSibling;
     if (!prevSibling || !prevSibling.classList.contains('outline-item')) {
@@ -763,31 +758,6 @@
     // Find grandparent container (where we'll insert)
     const grandparentChildren = parentItem.parentElement;
 
-    // Block outdent if it would create a top-level bullet after a heading
-    const wouldBeRootLevel = !grandparentChildren?.classList.contains('item-children');
-    if (wouldBeRootLevel) {
-      // Check if there's a heading before or at the parent's position
-      // grandparentChildren is either .outline-items (root) or .item-children
-      const outlineItems = grandparentChildren?.classList.contains('outline-items')
-        ? grandparentChildren
-        : grandparentChildren?.closest('.outline-items');
-      if (outlineItems) {
-        const rootItems = Array.from(outlineItems.querySelectorAll(':scope > .outline-item'));
-        const parentIndex = rootItems.indexOf(parentItem);
-        const hasPrecedingHeading = rootItems.slice(0, parentIndex + 1).some(el => el.dataset.heading);
-        if (hasPrecedingHeading) {
-          // Can't outdent - would violate the rule
-          // Restore focus
-          if (enterEditMode) {
-            editItem(itemEl);
-          } else {
-            selectItem(itemEl, false);
-          }
-          return;
-        }
-      }
-    }
-
     // Capture state for undo before making changes
     pushUndo({
       type: 'outdent',
@@ -901,9 +871,6 @@
       // Find parent's previous sibling (the "above parent")
       const aboveParent = parentItem.previousElementSibling;
       if (!aboveParent?.classList.contains('outline-item')) return;
-
-      // Block if heading (can't gain a different parent)
-      if (itemEl.dataset.heading) return;
 
       // Capture state for undo
       pushUndo({
@@ -1060,9 +1027,6 @@
       // Find parent's next sibling (the "below parent")
       const belowParent = parentItem.nextElementSibling;
       if (!belowParent?.classList.contains('outline-item')) return;
-
-      // Block if heading (can't gain a different parent)
-      if (itemEl.dataset.heading) return;
 
       // Capture state for undo
       pushUndo({
@@ -1363,18 +1327,14 @@
         }
         break;
 
-      case '0':
-      case '2':
-      case '3':
-      case '4':
-      case '5':
-        // Ctrl+0 for normal, Ctrl+2-5 for heading levels
-        if (event.metaKey || event.ctrlKey) {
+      case 'h':
+      case 'H':
+        // Ctrl+Shift+H to toggle heading
+        if ((event.metaKey || event.ctrlKey) && event.shiftKey) {
           event.preventDefault();
-          const level = parseInt(event.key);
           const content = input.value;
           // Send content along with heading request (avoids blur which auto-deletes empty items)
-          htmx.ajax('POST', `/outlines/item/${itemId}/set-heading/${level}/`, {
+          htmx.ajax('POST', `/outlines/item/${itemId}/toggle-heading/`, {
             target: `#outline-item-${itemId}`,
             swap: 'outerHTML',
             values: { content: content }
@@ -2021,17 +1981,13 @@
         }
         break;
 
-      case '0':
-      case '2':
-      case '3':
-      case '4':
-      case '5':
-        // Ctrl+0 for normal, Ctrl+2-5 for heading levels
-        if ((event.metaKey || event.ctrlKey) && focusedItem) {
+      case 'h':
+      case 'H':
+        // Ctrl+Shift+H to toggle heading
+        if ((event.metaKey || event.ctrlKey) && event.shiftKey && focusedItem) {
           event.preventDefault();
-          const level = parseInt(event.key);
           const itemId = focusedItem.dataset.itemId;
-          htmx.ajax('POST', `/outlines/item/${itemId}/set-heading/${level}/`, {
+          htmx.ajax('POST', `/outlines/item/${itemId}/toggle-heading/`, {
             target: `#outline-item-${itemId}`,
             swap: 'outerHTML'
           });
@@ -2147,6 +2103,8 @@
         input.select();
       }
     }
+    const btn = document.getElementById('search-toggle-btn');
+    if (btn) btn.classList.add('active');
   }
 
   function hideSearchBar() {
@@ -2154,6 +2112,8 @@
     if (bar) {
       bar.classList.remove('visible');
     }
+    const btn = document.getElementById('search-toggle-btn');
+    if (btn) btn.classList.remove('active');
     clearSearchHighlights();
     searchMatches = [];
     currentMatchIndex = -1;

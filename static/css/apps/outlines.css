@@ -173,12 +173,12 @@ body:has(.outline-page.standalone) {
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 0.35rem 0.625rem;
-  font-size: 0.875rem;
+  padding: 0.25rem 0.5rem;
+  font-size: 0.8125rem;
   text-decoration: none;
   background: var(--background-control);
   border: solid 1px var(--border-dark);
-  border-radius: var(--radius-md);
+  border-radius: 0.375rem;
   color: var(--button-toolbar);
   outline: none;
   transition: all 0.15s ease;
@@ -216,12 +216,12 @@ body:has(.outline-page.standalone) {
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 0.35rem 0.625rem;
-  font-size: 0.875rem;
+  padding: 0.25rem 0.5rem;
+  font-size: 0.8125rem;
   text-decoration: none;
   background: var(--background-control);
   border: solid 1px var(--border-dark);
-  border-radius: var(--radius-md);
+  border-radius: 0.375rem;
   color: var(--button-toolbar);
   outline: none;
   transition: all 0.15s ease;
@@ -231,6 +231,15 @@ body:has(.outline-page.standalone) {
 .outline-toolbar .toolbar-right a:hover {
   background: var(--background-control);
   color: var(--color-primary);
+}
+
+.outline-toolbar .toolbar-right a.active {
+  background: var(--selected-background);
+  color: var(--selected-color);
+}
+
+.outline-toolbar .toolbar-right #close-btn i {
+  font-size: 0.85rem;
 }
 
 .outline-toolbar .toolbar-subtitle {
@@ -570,14 +579,7 @@ body:has(.outline-page.standalone) {
   background: var(--hl-gray);
 }
 
-/* Heading states (only valid for top-level items - enforced by model) */
-.outline-item[data-heading] > .item-row .item-bullet {
-  display: none;
-}
-
-.outline-item[data-heading] > .item-row .item-content-wrapper {
-  margin-left: 0.5rem;
-}
+/* Heading states */
 
 /* Extend hover area for headings without children to trigger ghost menu */
 .outline-item[data-heading] > .item-row::before {
@@ -589,25 +591,10 @@ body:has(.outline-page.standalone) {
   height: 100%;
 }
 
-.outline-item[data-heading="2"] > .item-row .item-content,
-.outline-item[data-heading="2"] > .item-row .item-input {
-  font-size: 1.25rem;
-}
-
-.outline-item[data-heading="3"] > .item-row .item-content,
-.outline-item[data-heading="3"] > .item-row .item-input {
-  font-size: 1.2rem;
-}
-
-.outline-item[data-heading="4"] > .item-row .item-content,
-.outline-item[data-heading="4"] > .item-row .item-input {
+.outline-item[data-heading] > .item-row .item-content,
+.outline-item[data-heading] > .item-row .item-input {
   font-size: 1.15rem;
-}
-
-.outline-item[data-heading="5"] > .item-row .item-content,
-.outline-item[data-heading="5"] > .item-row .item-input {
   font-weight: 500;
-  font-size: 1.05rem;
 }
 
 /* Item sources (citations) */
@@ -686,10 +673,10 @@ body:has(.outline-page.standalone) {
 }
 
 .search-replace-bar input[type="text"] {
-  padding: 0.375rem 0.75rem;
-  font-size: 1rem;
+  padding: 0.375rem 0.625rem;
+  font-size: 0.9375rem;
   border: 1px solid var(--border-dark);
-  border-radius: 0.5rem;
+  border-radius: 0.375rem;
   background: var(--background-panel);
   color: var(--color-primary);
   min-width: 10rem;
@@ -711,10 +698,11 @@ body:has(.outline-page.standalone) {
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 0.35rem 0.625rem;
+  padding: 0.25rem 0.5rem;
+  font-size: 0.8125rem;
   background: var(--background-control);
   border: solid 1px var(--border-dark);
-  border-radius: var(--radius-md);
+  border-radius: 0.375rem;
   color: var(--button-toolbar);
   outline: none;
   cursor: pointer;
