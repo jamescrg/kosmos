@@ -9,8 +9,9 @@
   let focusedItemId = null;
   let selectedItemIds = new Set();
   let selectionAnchorId = null;  // Where shift+arrow selection started
-  let pendingCursorPosition = null;  // 'start', 'end', or { line: 'first'|'last', x: number }
+  let pendingCursorPosition = null;  // 'start', 'end', 'first', 'last', or 'click'
   let pendingCursorX = null;  // X coordinate to match when positioning cursor
+  let pendingClickY = null;  // Y coordinate for click positioning
 
   // Get CSRF token for HTMX requests
   function getCSRFToken() {
@@ -794,6 +795,108 @@
     return bestPos;
   }
 
+  // Find cursor position from click coordinates relative to textarea
+  function findCursorPositionFromClick(textarea, clickX, clickY) {
+    const text = textarea.value;
+    if (!text) return 0;
+
+    // Create measurer
+    const measurer = document.createElement('div');
+    document.body.appendChild(measurer);
+
+    const style = window.getComputedStyle(textarea);
+    const width = textarea.getBoundingClientRect().width;
+    let lineHeight = parseFloat(style.lineHeight);
+    if (isNaN(lineHeight) || lineHeight < 10) {
+      const fontSize = parseFloat(style.fontSize);
+      lineHeight = fontSize * (parseFloat(style.lineHeight) || 1.4);
+    }
+
+    measurer.style.cssText = `
+      position: absolute;
+      visibility: hidden;
+      white-space: pre-wrap;
+      word-wrap: break-word;
+      overflow-wrap: break-word;
+      width: ${width}px;
+      font-size: ${style.fontSize};
+      font-family: ${style.fontFamily};
+      font-weight: ${style.fontWeight};
+      line-height: ${style.lineHeight};
+      padding: ${style.padding};
+      box-sizing: ${style.boxSizing};
+    `;
+
+    // Search for the character position closest to click coordinates
+    let bestPos = 0;
+    let bestDist = Infinity;
+
+    const step = Math.max(1, Math.floor(text.length / 50));
+    const positions = [];
+    for (let i = 0; i <= text.length; i += step) {
+      positions.push(i);
+    }
+    if (positions[positions.length - 1] !== text.length) {
+      positions.push(text.length);
+    }
+
+    // First pass: sample positions
+    let closestSamplePos = 0;
+    let closestSampleDist = Infinity;
+
+    for (const i of positions) {
+      measurer.innerHTML = '';
+      const beforeText = text.substring(0, i);
+      const charAtPos = text.charAt(i) || '\u200B';
+      const beforeNode = document.createTextNode(beforeText);
+      const marker = document.createElement('span');
+      marker.textContent = charAtPos;
+      measurer.appendChild(beforeNode);
+      measurer.appendChild(marker);
+
+      const newMeasurerRect = measurer.getBoundingClientRect();
+      const markerRect = marker.getBoundingClientRect();
+      const y = markerRect.top - newMeasurerRect.top;
+      const x = markerRect.left - newMeasurerRect.left;
+
+      // Use Euclidean distance for 2D matching
+      const dist = Math.sqrt(Math.pow(x - clickX, 2) + Math.pow(y - clickY, 2));
+      if (dist < closestSampleDist) {
+        closestSampleDist = dist;
+        closestSamplePos = i;
+      }
+    }
+
+    // Refine around the closest sample
+    const refineStart = Math.max(0, closestSamplePos - step);
+    const refineEnd = Math.min(text.length, closestSamplePos + step);
+
+    for (let i = refineStart; i <= refineEnd; i++) {
+      measurer.innerHTML = '';
+      const beforeText = text.substring(0, i);
+      const charAtPos = text.charAt(i) || '\u200B';
+      const beforeNode = document.createTextNode(beforeText);
+      const marker = document.createElement('span');
+      marker.textContent = charAtPos;
+      measurer.appendChild(beforeNode);
+      measurer.appendChild(marker);
+
+      const newMeasurerRect = measurer.getBoundingClientRect();
+      const markerRect = marker.getBoundingClientRect();
+      const y = markerRect.top - newMeasurerRect.top;
+      const x = markerRect.left - newMeasurerRect.left;
+
+      const dist = Math.sqrt(Math.pow(x - clickX, 2) + Math.pow(y - clickY, 2));
+      if (dist < bestDist) {
+        bestDist = dist;
+        bestPos = i;
+      }
+    }
+
+    measurer.remove();
+    return bestPos;
+  }
+
   // Auto-resize textarea to fit content using a hidden measuring div
   window.autoResizeTextarea = function(textarea) {
     if (!textarea) return;
@@ -823,6 +926,18 @@
     textarea.style.height = measurer.offsetHeight + 'px';
   }
 
+  // Capture click position before htmx swap
+  document.body.addEventListener('click', function(event) {
+    const contentWrapper = event.target.closest('.item-content-wrapper');
+    if (contentWrapper && !event.target.classList.contains('item-input')) {
+      // Store click position relative to the content wrapper
+      const rect = contentWrapper.getBoundingClientRect();
+      pendingCursorPosition = 'click';
+      pendingCursorX = event.clientX - rect.left;
+      pendingClickY = event.clientY - rect.top;
+    }
+  }, true);  // Use capture phase to run before htmx
+
   // Auto-focus input when edit mode is triggered
   document.body.addEventListener('htmx:afterSwap', function(event) {
     const input = event.target.querySelector('.item-input');
@@ -848,9 +963,14 @@
             const pos = pendingCursorPosition === 'first' ? 0 : input.value.length;
             input.setSelectionRange(pos, pos);
           }
+        } else if (pendingCursorPosition === 'click' && pendingCursorX !== null && pendingClickY !== null) {
+          // Position cursor at click location
+          const pos = findCursorPositionFromClick(input, pendingCursorX, pendingClickY);
+          input.setSelectionRange(pos, pos);
         }
         pendingCursorPosition = null;
         pendingCursorX = null;
+        pendingClickY = null;
 
         // Ensure the item is marked as focused
         const itemEl = input.closest('.outline-item');
