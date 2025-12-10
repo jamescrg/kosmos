@@ -523,20 +523,36 @@
           htmx.trigger(input, 'blur');
           setTimeout(() => moveItemUp(itemId), 100);
         } else if (event.shiftKey) {
-          // Multiselect up
-          event.preventDefault();
-          htmx.trigger(input, 'blur');
-          setTimeout(() => handleShiftArrow('up'), 50);
+          // Three-stage shift selection (going up)
+          const allTextSelected = input.selectionStart === 0 && input.selectionEnd === input.value.length;
+          const itemIsSelected = selectedItemIds.size >= 1 && selectedItemIds.has(itemId);
+          const selectionAtStart = input.selectionStart === 0;
+
+          if (allTextSelected && itemIsSelected) {
+            // Stage 3: Extend item selection upward
+            event.preventDefault();
+            htmx.trigger(input, 'blur');
+            setTimeout(() => handleShiftArrow('up'), 50);
+          } else if (allTextSelected) {
+            // Stage 2: Select the item itself
+            event.preventDefault();
+            htmx.trigger(input, 'blur');
+            selectItem(itemEl);
+          } else if (selectionAtStart) {
+            // Selection is at start of text - select all
+            event.preventDefault();
+            input.setSelectionRange(0, input.value.length);
+          }
+          // Otherwise let browser handle normal shift+up text selection
         } else if (input.selectionStart === input.selectionEnd) {
           // No text selection - check if on first visual line
-          const { isFirstLine, cursorX } = getCursorLine(input);
+          const { isFirstLine } = getCursorLine(input);
           if (isFirstLine) {
             const prevItem = getPreviousItem(itemEl);
             if (prevItem) {
               event.preventDefault();
-              pendingCursorX = cursorX;
               htmx.trigger(input, 'blur');
-              setTimeout(() => focusItem(prevItem, 'last'), 50);
+              setTimeout(() => focusItem(prevItem, 'start'), 50);
             }
           }
         }
@@ -549,20 +565,36 @@
           htmx.trigger(input, 'blur');
           setTimeout(() => moveItemDown(itemId), 100);
         } else if (event.shiftKey) {
-          // Multiselect down
-          event.preventDefault();
-          htmx.trigger(input, 'blur');
-          setTimeout(() => handleShiftArrow('down'), 50);
+          // Three-stage shift selection (going down)
+          const allTextSelected = input.selectionStart === 0 && input.selectionEnd === input.value.length;
+          const itemIsSelected = selectedItemIds.size >= 1 && selectedItemIds.has(itemId);
+          const selectionAtEnd = input.selectionEnd === input.value.length;
+
+          if (allTextSelected && itemIsSelected) {
+            // Stage 3: Extend item selection downward
+            event.preventDefault();
+            htmx.trigger(input, 'blur');
+            setTimeout(() => handleShiftArrow('down'), 50);
+          } else if (allTextSelected) {
+            // Stage 2: Select the item itself
+            event.preventDefault();
+            htmx.trigger(input, 'blur');
+            selectItem(itemEl);
+          } else if (selectionAtEnd) {
+            // Selection is at end of text - select all
+            event.preventDefault();
+            input.setSelectionRange(0, input.value.length);
+          }
+          // Otherwise let browser handle normal shift+down text selection
         } else if (input.selectionStart === input.selectionEnd) {
           // No text selection - check if on last visual line
-          const { isLastLine, cursorX } = getCursorLine(input);
+          const { isLastLine } = getCursorLine(input);
           if (isLastLine) {
             const nextItem = getNextItem(itemEl);
             if (nextItem) {
               event.preventDefault();
-              pendingCursorX = cursorX;
               htmx.trigger(input, 'blur');
-              setTimeout(() => focusItem(nextItem, 'first'), 50);
+              setTimeout(() => focusItem(nextItem, 'start'), 50);
             }
           }
         }
@@ -827,69 +859,64 @@
       box-sizing: ${style.boxSizing};
     `;
 
-    // Search for the character position closest to click coordinates
-    let bestPos = 0;
-    let bestDist = Infinity;
-
+    // First, determine which visual line was clicked by finding the line's Y range
+    // Sample to find all unique line Y positions
     const step = Math.max(1, Math.floor(text.length / 50));
-    const positions = [];
+    const lineYPositions = new Set();
+
     for (let i = 0; i <= text.length; i += step) {
-      positions.push(i);
-    }
-    if (positions[positions.length - 1] !== text.length) {
-      positions.push(text.length);
-    }
-
-    // First pass: sample positions
-    let closestSamplePos = 0;
-    let closestSampleDist = Infinity;
-
-    for (const i of positions) {
       measurer.innerHTML = '';
       const beforeText = text.substring(0, i);
       const charAtPos = text.charAt(i) || '\u200B';
-      const beforeNode = document.createTextNode(beforeText);
+      measurer.appendChild(document.createTextNode(beforeText));
       const marker = document.createElement('span');
       marker.textContent = charAtPos;
-      measurer.appendChild(beforeNode);
       measurer.appendChild(marker);
 
-      const newMeasurerRect = measurer.getBoundingClientRect();
-      const markerRect = marker.getBoundingClientRect();
-      const y = markerRect.top - newMeasurerRect.top;
-      const x = markerRect.left - newMeasurerRect.left;
+      const y = marker.getBoundingClientRect().top - measurer.getBoundingClientRect().top;
+      lineYPositions.add(Math.round(y));
+    }
 
-      // Use Euclidean distance for 2D matching
-      const dist = Math.sqrt(Math.pow(x - clickX, 2) + Math.pow(y - clickY, 2));
-      if (dist < closestSampleDist) {
-        closestSampleDist = dist;
-        closestSamplePos = i;
+    // Find which line the click is on (click Y should be within lineHeight of line top)
+    const sortedLineYs = Array.from(lineYPositions).sort((a, b) => a - b);
+    let targetLineY = sortedLineYs[0];
+    for (const lineY of sortedLineYs) {
+      // Click is on this line if clickY is between lineY and lineY + lineHeight
+      if (clickY >= lineY && clickY < lineY + lineHeight) {
+        targetLineY = lineY;
+        break;
+      }
+      // Also select this line if it's the closest one above the click
+      if (lineY <= clickY) {
+        targetLineY = lineY;
       }
     }
 
-    // Refine around the closest sample
-    const refineStart = Math.max(0, closestSamplePos - step);
-    const refineEnd = Math.min(text.length, closestSamplePos + step);
+    // Now find the best X position on that line
+    let bestPos = 0;
+    let bestXDist = Infinity;
 
-    for (let i = refineStart; i <= refineEnd; i++) {
+    for (let i = 0; i <= text.length; i++) {
       measurer.innerHTML = '';
       const beforeText = text.substring(0, i);
       const charAtPos = text.charAt(i) || '\u200B';
-      const beforeNode = document.createTextNode(beforeText);
+      measurer.appendChild(document.createTextNode(beforeText));
       const marker = document.createElement('span');
       marker.textContent = charAtPos;
-      measurer.appendChild(beforeNode);
       measurer.appendChild(marker);
 
       const newMeasurerRect = measurer.getBoundingClientRect();
       const markerRect = marker.getBoundingClientRect();
-      const y = markerRect.top - newMeasurerRect.top;
+      const y = Math.round(markerRect.top - newMeasurerRect.top);
       const x = markerRect.left - newMeasurerRect.left;
 
-      const dist = Math.sqrt(Math.pow(x - clickX, 2) + Math.pow(y - clickY, 2));
-      if (dist < bestDist) {
-        bestDist = dist;
-        bestPos = i;
+      // Only consider characters on the target line
+      if (Math.abs(y - targetLineY) < lineHeight * 0.5) {
+        const xDist = Math.abs(x - clickX);
+        if (xDist < bestXDist) {
+          bestXDist = xDist;
+          bestPos = i;
+        }
       }
     }
 
@@ -1055,18 +1082,27 @@
           // Multiselect up
           handleShiftArrow('up');
         } else {
-          // Navigate up
-          if (focusedItem) {
+          // Navigate up and enter edit mode
+          const selectedItems = getSelectedItems();
+          if (selectedItems.length >= 2) {
+            // Multiple items selected - select item above top selected item
+            const items = getVisibleItems();
+            const topSelectedIndex = Math.min(...selectedItems.map(el => items.indexOf(el)));
+            if (topSelectedIndex > 0) {
+              clearSelection();
+              const targetItem = items[topSelectedIndex - 1];
+              focusItem(targetItem, 'start');
+            }
+          } else if (focusedItem) {
             const prevItem = getPreviousItem(focusedItem);
             if (prevItem) {
-              setFocusedItem(prevItem);
-              updateSelectionHighlight();
+              focusItem(prevItem, 'start');
             }
           } else {
             // Focus first item if none focused
             const items = getVisibleItems();
             if (items.length > 0) {
-              setFocusedItem(items[0]);
+              focusItem(items[0], 'start');
             }
           }
         }
@@ -1083,18 +1119,27 @@
           // Multiselect down
           handleShiftArrow('down');
         } else {
-          // Navigate down
-          if (focusedItem) {
+          // Navigate down and enter edit mode
+          const selectedItems = getSelectedItems();
+          if (selectedItems.length >= 2) {
+            // Multiple items selected - select item below bottom selected item
+            const items = getVisibleItems();
+            const bottomSelectedIndex = Math.max(...selectedItems.map(el => items.indexOf(el)));
+            if (bottomSelectedIndex < items.length - 1) {
+              clearSelection();
+              const targetItem = items[bottomSelectedIndex + 1];
+              focusItem(targetItem, 'start');
+            }
+          } else if (focusedItem) {
             const nextItem = getNextItem(focusedItem);
             if (nextItem) {
-              setFocusedItem(nextItem);
-              updateSelectionHighlight();
+              focusItem(nextItem, 'start');
             }
           } else {
             // Focus first item if none focused
             const items = getVisibleItems();
             if (items.length > 0) {
-              setFocusedItem(items[0]);
+              focusItem(items[0], 'start');
             }
           }
         }
