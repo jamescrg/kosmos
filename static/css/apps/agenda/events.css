@@ -66,6 +66,10 @@
 }
 
 .deadline-calculator-results {
+  border-collapse: separate;
+  border-spacing: 0;
+  border: solid 1px var(--border-medium);
+  border-radius: var(--radius-md);
   margin-bottom: 1.5rem;
   margin-top: 0.5rem;
   table-layout: fixed;
@@ -75,4 +79,36 @@
 .deadline-calculator-results td {
   text-align: right;
   width: 50%;
+}
+
+.deadline-calculator-results th {
+  background: transparent;
+}
+
+/* Corner rounding */
+.deadline-calculator-results tr:first-child th:first-child {
+  border-top-left-radius: calc(var(--radius-md) - 1px);
+}
+
+.deadline-calculator-results tr:first-child td:last-child {
+  border-top-right-radius: calc(var(--radius-md) - 1px);
+}
+
+.deadline-calculator-results tr:last-child th:first-child {
+  border-bottom-left-radius: calc(var(--radius-md) - 1px);
+}
+
+.deadline-calculator-results tr:last-child td:last-child {
+  border-bottom-right-radius: calc(var(--radius-md) - 1px);
+}
+
+/* Remove outer borders on last row/column */
+.deadline-calculator-results tr:last-child td,
+.deadline-calculator-results tr:last-child th {
+  border-bottom: none;
+}
+
+.deadline-calculator-results td:last-child,
+.deadline-calculator-results th:last-child {
+  border-right: none;
 }
