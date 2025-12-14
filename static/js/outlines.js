@@ -148,6 +148,30 @@
     }
   }
 
+  // Convert inline markdown to HTML (mirrors Python inline_markdown filter)
+  function inlineMarkdown(text) {
+    if (!text) return '';
+    // Escape HTML first
+    let html = text
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;');
+    // Bold: **text** or __text__
+    html = html.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+    html = html.replace(/__(.+?)__/g, '<strong>$1</strong>');
+    // Italic: *text* or _text_
+    html = html.replace(/\*(.+?)\*/g, '<em>$1</em>');
+    html = html.replace(/(?<!\w)_(.+?)_(?!\w)/g, '<em>$1</em>');
+    // Colored highlights: g==text==, r==text==, c==text==
+    html = html.replace(/g==(.+?)==/g, '<mark class="mark-green">$1</mark>');
+    html = html.replace(/r==(.+?)==/g, '<mark class="mark-red">$1</mark>');
+    html = html.replace(/c==(.+?)==/g, '<mark class="mark-citation">$1</mark>');
+    // Default highlight: ==text==
+    html = html.replace(/==(.+?)==/g, '<mark>$1</mark>');
+    return html;
+  }
+
   // Push operation to undo stack
   function pushUndo(operation) {
     undoStack.push(operation);
@@ -658,14 +682,6 @@
     if (!contentWrapper) return;
 
     const input = contentWrapper.querySelector('.item-input');
-    const viewContent = contentWrapper.querySelector('.item-text');
-
-    // Sync edit input from view content before entering edit mode
-    // This ensures they're always in sync (view content is the source of truth)
-    if (input && viewContent) {
-      const currentViewText = viewContent.textContent || '';
-      setInputValue(input, currentViewText);
-    }
 
     // Add editing class to show the input
     contentWrapper.classList.add('editing');
@@ -1933,10 +1949,43 @@
         break;
 
       case 'z':
-        // Ctrl+Z - application undo
-        if ((event.metaKey || event.ctrlKey) && !event.shiftKey) {
-          event.preventDefault();
-          undo();
+        // Ctrl+Z - let browser handle native undo for text edits in contenteditable
+        // Application-level undo is handled by global keydown when not editing
+        break;
+
+      case 'y':
+        // Alt+Y - wrap selected text with highlight markers ==
+        if (event.altKey && !event.ctrlKey && !event.metaKey) {
+          const selection = window.getSelection();
+          if (selection && selection.toString().length > 0) {
+            event.preventDefault();
+            let selectedText = selection.toString();
+            // Remove any existing highlight markers to prevent nesting
+            selectedText = selectedText.replace(/[grc]?==/g, '');
+            const range = selection.getRangeAt(0);
+            range.deleteContents();
+            range.insertNode(document.createTextNode('==' + selectedText + '=='));
+            // Collapse selection to end
+            selection.collapseToEnd();
+          }
+        }
+        break;
+
+      case 'c':
+        // Alt+C - clear all highlight markers from selected text
+        if (event.altKey && !event.ctrlKey && !event.metaKey) {
+          const selection = window.getSelection();
+          if (selection && selection.toString().length > 0) {
+            event.preventDefault();
+            let selectedText = selection.toString();
+            // Remove all highlight markers (g==, r==, c==, ==)
+            selectedText = selectedText.replace(/[grc]?==/g, '');
+            const range = selection.getRangeAt(0);
+            range.deleteContents();
+            range.insertNode(document.createTextNode(selectedText));
+            // Collapse selection to end
+            selection.collapseToEnd();
+          }
         }
         break;
     }
@@ -2415,7 +2464,7 @@
     if (contentWrapper) {
       const viewContent = contentWrapper.querySelector('.item-text');
       if (viewContent) {
-        viewContent.textContent = content;
+        viewContent.innerHTML = inlineMarkdown(content);
       }
       contentWrapper.classList.remove('editing');
     }
