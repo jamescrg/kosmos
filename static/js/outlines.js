@@ -596,6 +596,60 @@
     });
   }
 
+  // Copy focused or selected items to clipboard as paragraphs
+  function copyItems() {
+    const selected = getSelectedItems();
+    let items = [];
+
+    if (selected.length >= 2) {
+      // Multi-select: use all selected items
+      items = selected;
+    } else if (focusedItemId) {
+      // Single focused item
+      const focusedItem = getItemElement(focusedItemId);
+      if (focusedItem) {
+        items = [focusedItem];
+      }
+    }
+
+    if (items.length === 0) return;
+
+    // Get text content and sources from each item
+    const paragraphs = items.map(item => {
+      const textEl = item.querySelector('.item-text');
+      const text = textEl?.textContent?.trim() || '';
+
+      // Get source citations
+      const sources = Array.from(item.querySelectorAll('.source-citation > a[data-bs-toggle="dropdown"]'))
+        .map(a => a.textContent?.trim())
+        .filter(s => s && s.length > 0);
+
+      if (sources.length > 0) {
+        return text + ' ' + sources.join('; ');
+      }
+      return text;
+    }).filter(text => text.length > 0);
+
+    // Join as paragraphs (double newline between each)
+    const text = paragraphs.join('\n\n');
+
+    // Copy to clipboard with visual feedback
+    const button = document.getElementById('copy-btn');
+    navigator.clipboard.writeText(text).then(() => {
+      if (button) {
+        const originalHtml = button.innerHTML;
+        button.innerHTML = '<i class="bi bi-check-lg"></i>';
+        button.style.color = 'green';
+        setTimeout(() => {
+          button.innerHTML = originalHtml;
+          button.style.color = '';
+        }, 2000);
+      }
+    }).catch(err => {
+      console.error('Failed to copy:', err);
+    });
+  }
+
   // Enter edit mode on an item
   function editItem(itemElement) {
     if (!itemElement) return;
@@ -2309,6 +2363,15 @@
       pendingClickY = event.clientY - rect.top;
     }
   }, true);  // Use capture phase to run before htmx
+
+  // Copy button in toolbar
+  const copyBtn = document.getElementById('copy-btn');
+  if (copyBtn) {
+    copyBtn.addEventListener('click', function(event) {
+      event.preventDefault();
+      copyItems();
+    });
+  }
 
   // Auto-focus input when a new item is created via HTMX swap
   document.body.addEventListener('htmx:afterSwap', function(event) {
