@@ -89,7 +89,7 @@
 }
 
 .toolbar .btn-icon.toggle-alert {
-  background: var(--yellow-100);
+  background: var(--hl-yellow);
 }
 
 .item-selected-highlight {

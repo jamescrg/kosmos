@@ -160,11 +160,11 @@
     <tbody>
       {% for task in objects %}
         <tr>
-          <td class="priority dropdown-cell {% if task.status == 'Complete' %}complete{% endif %} {% if task.date_due < today %}urgent{% endif %}"
+          <td class="priority dropdown-cell {% if task.status == 'Complete' %}complete{% endif %} {% if task.date_due and task.date_due <= today %}hl-yellow{% endif %}"
               data-label="Priority">{% include "matters/tasks/priority.html" %}</td>
-          <td class="matter {% if task.status == 'Complete' %}complete{% endif %} {% if task.date_due < today %}urgent{% endif %}"
+          <td class="matter {% if task.status == 'Complete' %}complete{% endif %} {% if task.date_due and task.date_due <= today %}hl-yellow{% endif %}"
               data-label="Matter">{% include "matters/tasks/matter.html" %}</td>
-          <td class="description {% if task.date_due < today %}urgent{% endif %} {% if task.status == 'Complete' %}complete{% endif %}"
+          <td class="description {% if task.date_due and task.date_due <= today %}hl-yellow{% endif %} {% if task.status == 'Complete' %}complete{% endif %}"
               data-label="Description">
             <a href="#"
                hx-get="{% url 'matters:tasks-edit' matter.id task.id %}"
@@ -175,9 +175,9 @@
                hx-swap="innerHTML">{{ task.description }}</a>
           </td>
           <td class="status dropdown-cell" data-label="Status">{% include "matters/tasks/status.html" %}</td>
-          <td class="user dropdown-cell {% if task.date_due < today %}urgent{% endif %} {% if task.status == 'Complete' %}complete{% endif %}"
+          <td class="user dropdown-cell {% if task.date_due and task.date_due <= today %}hl-yellow{% endif %} {% if task.status == 'Complete' %}complete{% endif %}"
               data-label="User">{% include "matters/tasks/user.html" %}</td>
-          <td class="date {% if task.date_due < today %}urgent{% endif %} {% if task.status == 'Complete' %}complete{% endif %}"
+          <td class="date {% if task.date_due and task.date_due <= today %}hl-yellow{% endif %} {% if task.status == 'Complete' %}complete{% endif %}"
               data-label="Due">{% include "matters/tasks/date-display.html" %}</td>
         </tr>
       {% empty %}
