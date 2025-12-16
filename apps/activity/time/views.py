@@ -181,6 +181,10 @@ def time_filter_quick(request, quick_filter):
     request.session["time_filter"] = filter_data
     request.session.modified = True
 
+    # Support full page redirect via query param
+    if request.GET.get("redirect"):
+        return redirect("activity:time-index")
+
     return HttpResponse(status=204, headers={"HX-Trigger": "timeChanged"})
 
 
@@ -234,7 +238,13 @@ def time_add(request, id=None, request_app="activity"):
             elif request_app == "case":
                 response = HttpResponse(status=204)
                 message = f"{entry.hours} hours recorded for {entry.matter.name}"
-                return toast_success(response, message, title="Time Entry Added")
+                link = {
+                    "url": "/activity/time/filter/quick/today?redirect=1",
+                    "text": "View Today",
+                }
+                return toast_success(
+                    response, message, title="Time Entry Added", link=link
+                )
 
     # if no post data has been submitted, show the entry form
     else:
