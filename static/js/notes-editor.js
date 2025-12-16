@@ -213,6 +213,13 @@ const CollapseHeadings = Extension.create({
 
               // If collapsed, hide each node until next heading of same or higher level
               if (isCollapsed) {
+                // Add spellcheck="false" to the collapsed heading itself
+                decorations.push(
+                  Decoration.node(heading.pos, heading.pos + heading.nodeSize, {
+                    spellcheck: "false",
+                  })
+                );
+
                 const endPos = findCollapseEndPos(headings, index, state.doc);
                 const startPos = heading.pos + heading.nodeSize;
 
