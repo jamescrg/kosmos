@@ -45,3 +45,14 @@
     font-size: 1rem;
     color: var(--color-primary);
 }
+
+#toast-container .toast-link {
+    display: block;
+    color: var(--link);
+    text-decoration: none;
+    margin-top: 0.5rem;
+}
+
+#toast-container .toast-link:hover {
+    color: var(--link-hover);
+}

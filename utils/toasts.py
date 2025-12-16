@@ -25,7 +25,7 @@ Usage in views:
 import json
 
 
-def add_toast(response, toast_type, message, title=None, duration=None):
+def add_toast(response, toast_type, message, title=None, duration=None, link=None):
     """
     Add a toast notification to an HTMX response.
 
@@ -36,6 +36,7 @@ def add_toast(response, toast_type, message, title=None, duration=None):
         title: Optional title for the toast
         duration: Auto-dismiss duration in ms (0 = no auto-dismiss)
                   Defaults: success/warning/info = 5000ms, error = 0 (sticky)
+        link: Optional dict with 'url' and 'text' for a link in the toast body
 
     Returns:
         The modified response object
@@ -50,6 +51,9 @@ def add_toast(response, toast_type, message, title=None, duration=None):
 
     if duration is not None:
         toast_data["duration"] = duration
+
+    if link:
+        toast_data["link"] = link
 
     # Check if there are existing toasts
     existing = response.get("HX-Toasts")
@@ -67,9 +71,9 @@ def add_toast(response, toast_type, message, title=None, duration=None):
     return response
 
 
-def toast_success(response, message, title=None, duration=5000):
+def toast_success(response, message, title=None, duration=5000, link=None):
     """Add a success toast to the response."""
-    return add_toast(response, "success", message, title, duration)
+    return add_toast(response, "success", message, title, duration, link)
 
 
 def toast_error(response, message, title=None, duration=0):

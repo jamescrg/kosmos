@@ -39,7 +39,7 @@ const Toast = (function () {
   }
 
   function createToastElement(options) {
-    const { type, title, message, duration } = {
+    const { type, title, message, duration, link } = {
       ...DEFAULTS,
       ...options,
     };
@@ -53,6 +53,11 @@ const Toast = (function () {
     const icon = ICONS[type] || ICONS.info;
     const color = COLORS[type] || COLORS.info;
 
+    let bodyContent = escapeHtml(message);
+    if (link && link.url && link.text) {
+      bodyContent += ` <a href="${escapeHtml(link.url)}" class="toast-link" hx-boost="false">${escapeHtml(link.text)}</a>`;
+    }
+
     toast.innerHTML = `
       <div class="toast-header">
         <i class="bi ${icon} me-2" style="color: ${color};"></i>
@@ -62,7 +67,7 @@ const Toast = (function () {
         </button>
       </div>
       <div class="toast-body">
-        ${escapeHtml(message)}
+        ${bodyContent}
       </div>
     `;
 
