@@ -220,43 +220,43 @@ body:has(.note-page.standalone) {
   height: 0;
 }
 
-#note-editor h1 {
+#note-editor .ProseMirror h1 {
   font-size: 2rem;
   font-weight: 600;
   line-height: 1.3;
-  margin-top: 1.5rem;
+  margin-top: 2.5rem;
   color: var(--color-primary);
 }
 
-#note-editor h2 {
+#note-editor .ProseMirror h2 {
   font-size: 1.5rem;
   font-weight: 600;
   line-height: 1.4;
-  margin-top: 1.25rem;
+  margin-top: 2.25rem;
   color: var(--color-primary);
 }
 
-#note-editor h3 {
+#note-editor .ProseMirror h3 {
   font-size: 1.25rem;
   font-weight: 600;
   line-height: 1.4;
-  margin-top: 1rem;
+  margin-top: 2rem;
   color: var(--color-primary);
 }
 
-#note-editor h4 {
+#note-editor .ProseMirror h4 {
   font-size: 1.1rem;
   font-weight: 600;
   line-height: 1.4;
-  margin-top: 1rem;
+  margin-top: 2rem;
   color: var(--color-primary);
 }
 
-#note-editor h5 {
+#note-editor .ProseMirror h5 {
   font-size: 1rem;
   font-weight: 600;
   line-height: 1.4;
-  margin-top: 0.75rem;
+  margin-top: 1.75rem;
   color: var(--color-primary);
 }
 
@@ -715,13 +715,26 @@ body:has(.note-page.standalone) {
   height: 1.25rem;
   cursor: pointer;
   color: var(--color-muted);
-  transition: color 0.15s ease;
+  opacity: 0;
+  transition: color 0.15s ease, opacity 0.15s ease;
   border-radius: 0.25rem;
+}
+
+#note-editor h2:hover .heading-toggle,
+#note-editor h3:hover .heading-toggle,
+#note-editor h4:hover .heading-toggle,
+#note-editor h5:hover .heading-toggle,
+#note-editor .heading-toggle:hover {
+  opacity: 1;
 }
 
 #note-editor .heading-toggle:hover {
   color: var(--color-primary);
   background: var(--background-muted);
+}
+
+#note-editor .heading-toggle.collapsed {
+  opacity: 1;
 }
 
 #note-editor .heading-toggle i {
@@ -734,9 +747,14 @@ body:has(.note-page.standalone) {
 }
 
 #note-editor .collapsed-content {
-  visibility: hidden;
-  height: 0;
-  overflow: hidden;
-  margin: 0;
-  padding: 0;
+  display: none;
+}
+
+/* Reduce margin when headings follow collapsed content */
+#note-editor .collapsed-content + h1,
+#note-editor .collapsed-content + h2,
+#note-editor .collapsed-content + h3,
+#note-editor .collapsed-content + h4,
+#note-editor .collapsed-content + h5 {
+  margin-top: 0.75rem;
 }
