@@ -77,6 +77,7 @@
   <link rel="stylesheet" href="{% static_v 'css/apps/case/ai.css' %}" />
   <link rel="stylesheet" href="{% static_v 'css/apps/outlines.css' %}" />
   <link rel="stylesheet" href="{% static_v 'css/apps/notes.css' %}" />
+  <link rel="stylesheet" href="{% static_v 'css/toasts.css' %}" />
   {% if env == 'dev' %}
     <link rel="stylesheet" href="{% static_v 'css/dev.css' %}" />
   {% endif %}
@@ -90,12 +91,15 @@
   {% endif %}
   {% include "modals.html" %}
   {% include "nav.html" %}
+  <div id="toast-container"
+       class="toast-container position-fixed top-0 end-0 p-3"></div>
   {% block content %}
   {% endblock content %}
   <!-- javascript -->
   <script src="//ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
   <script src="https://unpkg.com/htmx.org@1.7.0"></script>
+  <script src="{% static_v 'js/toasts.js' %}"></script>
   <script src="{% static_v 'js/htmx-focus.js' %}"></script>
   <script src="https://unpkg.com/dropzone@5/dist/min/dropzone.min.js"></script>
   <link rel="stylesheet"

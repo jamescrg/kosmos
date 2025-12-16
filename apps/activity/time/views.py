@@ -9,6 +9,7 @@ from apps.activity.expenses.models import ExpenseEntry
 from apps.activity.time.get_time_data import get_time_data
 from apps.matters.models import Matter
 from apps.matters.rates.models import Rate
+from utils.toasts import toast_success
 
 from .export import write_clio_csv, write_standard_csv
 from .filter import TimeEntryFilter
@@ -231,11 +232,9 @@ def time_add(request, id=None, request_app="activity"):
             elif request_app == "matters":
                 return redirect("/activity")
             elif request_app == "case":
-                return render(
-                    request,
-                    "activity/time/success.html",
-                    {"matter": entry.matter, "hours": entry.hours},
-                )
+                response = HttpResponse(status=204)
+                message = f"{entry.hours} hours recorded for {entry.matter.name}"
+                return toast_success(response, message, title="Time Entry Added")
 
     # if no post data has been submitted, show the entry form
     else:
