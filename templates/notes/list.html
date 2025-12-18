@@ -52,7 +52,7 @@
                   class="select-btn filter-dropdown-button {% if selected_topic %}toggle-active{% endif %}"
                   data-bs-toggle="dropdown"
                   aria-expanded="false">
-            {{ selected_topic|default:"All Topics" }}
+            <span class="btn-text">{{ selected_topic|default:"All Topics" }}</span>
             <small>
               <i class="bi bi-chevron-down"></i>
             </small>
@@ -74,54 +74,6 @@
             {% endfor %}
           </ul>
         {% endif %}
-        <button type="button"
-                id="notes-importance-filter"
-                class="select-btn filter-dropdown-button priority-dropdown {% if importance_value %}toggle-active{% endif %}"
-                data-bs-toggle="dropdown"
-                aria-expanded="false">
-          <span>
-            <i class="bi bi-flag with-text"></i>
-            {% if importance_value %}
-              {% if importance_value == 1 %}
-                1 only
-              {% else %}
-                {{ importance_value }} and above
-              {% endif %}
-            {% else %}
-              Importance
-            {% endif %}
-          </span>
-          <small>
-            <i class="bi bi-chevron-down"></i>
-          </small>
-        </button>
-        <ul class="dropdown-menu">
-          {% for importance in importances %}
-            {% if importance != 10 %}
-              <li>
-                <a class="dropdown-item {% if importance == importance_value %}active{% endif %}"
-                   href="#"
-                   hx-get="{% url 'notes:filter-importance' importance %}"
-                   hx-target="#notes">
-                  <i class="bi bi-flag"></i>
-                  {% if importance == 1 %}
-                    1 only
-                  {% else %}
-                    {{ importance }} and above
-                  {% endif %}
-                </a>
-              </li>
-            {% endif %}
-          {% endfor %}
-          <li>
-            <a class="dropdown-item {% if not importance_value %}active{% endif %}"
-               href="#"
-               hx-get="{% url 'notes:filter-importance' 0 %}"
-               hx-target="#notes">
-              <i class="bi bi-flag"></i> All Levels
-            </a>
-          </li>
-        </ul>
         <input type="text"
                id="notes-keyword-input"
                name="keyword"
