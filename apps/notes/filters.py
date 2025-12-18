@@ -1,5 +1,4 @@
 import django_filters
-from django.db.models import Q
 
 from config.helpers import MultipleOrderingFilter
 
@@ -50,7 +49,5 @@ class NotesFilter(django_filters.FilterSet):
 
     def filter_keyword(self, queryset, name, value):
         if value:
-            return queryset.filter(
-                Q(title__icontains=value) | Q(content__icontains=value)
-            )
+            return queryset.filter(title__icontains=value)
         return queryset

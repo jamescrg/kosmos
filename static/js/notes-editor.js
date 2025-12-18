@@ -1743,22 +1743,106 @@ function buildOutline() {
     return;
   }
 
-  let html = "";
-  headings.forEach(function(heading, index) {
-    const text = heading.text || "(empty)";
-    html += '<li class="level-' + heading.level + '" data-pos="' + heading.pos + '">' +
-      text.substring(0, 50) + (text.length > 50 ? "..." : "") + '</li>';
+  // Get collapsed state from localStorage
+  const noteId = window.NOTE_DATA ? window.NOTE_DATA.id : "default";
+  const storageKey = "outline-collapsed-" + noteId;
+  let collapsedItems = [];
+  try {
+    collapsedItems = JSON.parse(localStorage.getItem(storageKey)) || [];
+  } catch (e) {
+    collapsedItems = [];
+  }
+
+  // Build hierarchical structure - group children under their parent h2
+  function buildHierarchicalHtml(headings) {
+    let html = "";
+    let i = 0;
+
+    while (i < headings.length) {
+      const heading = headings[i];
+      const text = heading.text || "(empty)";
+
+      // Find children (headings with level > current until next heading at same or lower level)
+      const children = [];
+      let j = i + 1;
+      while (j < headings.length && headings[j].level > heading.level) {
+        children.push(headings[j]);
+        j++;
+      }
+
+      const hasChildren = children.length > 0;
+      const isCollapsed = collapsedItems.includes(heading.pos);
+      const collapsedClass = isCollapsed ? " collapsed" : "";
+
+      if (hasChildren) {
+        html += '<li class="outline-item has-children level-' + heading.level + collapsedClass + '" data-pos="' + heading.pos + '">';
+        html += '<span class="outline-toggle"><i class="bi bi-chevron-down"></i></span>';
+        html += '<span class="outline-text">' + text + '</span>';
+        html += '<ul class="outline-children">';
+        html += buildHierarchicalHtml(children);
+        html += '</ul>';
+        html += '</li>';
+      } else {
+        html += '<li class="outline-item level-' + heading.level + '" data-pos="' + heading.pos + '">';
+        html += '<span class="outline-toggle-spacer"></span>';
+        html += '<span class="outline-text">' + text + '</span>';
+        html += '</li>';
+      }
+
+      // Skip processed children
+      i = j;
+    }
+
+    return html;
+  }
+
+  outlineList.innerHTML = buildHierarchicalHtml(headings);
+
+  // Add click handlers for toggle arrows
+  outlineList.querySelectorAll(".outline-toggle").forEach(function(toggle) {
+    toggle.addEventListener("click", function(e) {
+      e.stopPropagation();
+      const item = toggle.closest(".outline-item");
+      if (!item) return;
+
+      item.classList.toggle("collapsed");
+
+      // Save collapsed state
+      const pos = parseInt(item.dataset.pos, 10);
+      if (item.classList.contains("collapsed")) {
+        if (!collapsedItems.includes(pos)) {
+          collapsedItems.push(pos);
+        }
+      } else {
+        collapsedItems = collapsedItems.filter(function(p) { return p !== pos; });
+      }
+      localStorage.setItem(storageKey, JSON.stringify(collapsedItems));
+    });
   });
 
-  outlineList.innerHTML = html;
-
-  // Add click handlers
-  outlineList.querySelectorAll("li[data-pos]").forEach(function(item) {
-    item.addEventListener("click", function() {
+  // Add click handlers for heading text
+  outlineList.querySelectorAll(".outline-text").forEach(function(textEl) {
+    textEl.addEventListener("click", function() {
+      const item = textEl.closest(".outline-item");
+      if (!item) return;
       const pos = parseInt(item.dataset.pos, 10);
       scrollToHeading(pos);
     });
   });
+
+  // Also allow clicking items without children
+  outlineList.querySelectorAll(".outline-item:not(.has-children)").forEach(function(item) {
+    if (!item.querySelector(".outline-toggle")) {
+      item.style.cursor = "pointer";
+      item.addEventListener("click", function() {
+        const pos = parseInt(item.dataset.pos, 10);
+        scrollToHeading(pos);
+      });
+    }
+  });
+
+  // Update collapse button icon
+  updateCollapseButtonIcon();
 }
 
 function scrollToHeading(pos) {
@@ -1792,6 +1876,64 @@ let outlineTimer = null;
 function scheduleOutlineUpdate() {
   if (outlineTimer) clearTimeout(outlineTimer);
   outlineTimer = setTimeout(buildOutline, 500);
+}
+
+// Collapse/Expand all outline items
+function setupOutlineCollapseAll() {
+  const btn = document.getElementById("outline-collapse-btn");
+  if (!btn) return;
+
+  btn.addEventListener("click", function() {
+    const outlineList = document.getElementById("outline-list");
+    if (!outlineList) return;
+
+    const collapsibleItems = outlineList.querySelectorAll(".outline-item.has-children");
+    if (collapsibleItems.length === 0) return;
+
+    // Check if all are collapsed
+    const allCollapsed = Array.from(collapsibleItems).every(function(item) {
+      return item.classList.contains("collapsed");
+    });
+
+    // Toggle: if all collapsed, expand all; otherwise collapse all
+    const noteId = window.NOTE_DATA ? window.NOTE_DATA.id : "default";
+    const storageKey = "outline-collapsed-" + noteId;
+    let collapsedPositions = [];
+
+    collapsibleItems.forEach(function(item) {
+      if (allCollapsed) {
+        item.classList.remove("collapsed");
+      } else {
+        item.classList.add("collapsed");
+        const pos = parseInt(item.dataset.pos, 10);
+        if (!isNaN(pos)) {
+          collapsedPositions.push(pos);
+        }
+      }
+    });
+
+    // Save state
+    localStorage.setItem(storageKey, JSON.stringify(collapsedPositions));
+
+    // Update button icon
+    updateCollapseButtonIcon();
+  });
+}
+
+function updateCollapseButtonIcon() {
+  const btn = document.getElementById("outline-collapse-btn");
+  const outlineList = document.getElementById("outline-list");
+  if (!btn || !outlineList) return;
+
+  const icon = btn.querySelector("i");
+  if (!icon) return;
+
+  const collapsibleItems = outlineList.querySelectorAll(".outline-item.has-children");
+  const allCollapsed = collapsibleItems.length > 0 && Array.from(collapsibleItems).every(function(item) {
+    return item.classList.contains("collapsed");
+  });
+
+  icon.className = allCollapsed ? "bi bi-chevron-expand" : "bi bi-chevron-contract";
 }
 
 // =============================================================================
@@ -1916,4 +2058,5 @@ document.addEventListener("DOMContentLoaded", function() {
   restorePanelStates();
   initEditor();
   setupHtmxHandlers();
+  setupOutlineCollapseAll();
 });

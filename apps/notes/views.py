@@ -279,8 +279,8 @@ def get_sidebar_sort(request):
 
 
 def get_sorted_standalone_notes(sort_order):
-    """Get standalone notes with the specified sort order."""
-    return Note.objects.filter(matter__isnull=True).order_by(sort_order)
+    """Get recent standalone notes with the specified sort order, limited to 20."""
+    return Note.objects.filter(matter__isnull=True).order_by(sort_order)[:20]
 
 
 @login_required
