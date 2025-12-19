@@ -40,6 +40,36 @@
   color: var(--color-muted);
 }
 
+/* Search Scope Checkboxes */
+
+.search .search-scopes {
+  display: flex;
+  justify-content: center;
+  gap: 2rem;
+  margin-top: 0.75rem;
+}
+
+.search .search-scope {
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+  font-size: 0.875rem;
+  color: var(--color-secondary);
+  cursor: pointer;
+  user-select: none;
+}
+
+.search .search-scope input[type="checkbox"] {
+  width: 1rem;
+  height: 1rem;
+  accent-color: var(--icon-violet);
+  cursor: pointer;
+}
+
+.search .search-scope:hover {
+  color: var(--color-primary);
+}
+
 /* Search Results Container */
 
 .search .search-results {

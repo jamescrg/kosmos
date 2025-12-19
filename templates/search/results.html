@@ -19,27 +19,6 @@
     </div>
   </div>
 {% endif %}
-{% if proceedings %}
-  <div class="search-section">
-    <div class="search-section-header">
-      <span class="search-section-title">Proceedings</span>
-      <span class="app-badge badge-gray">{{ proceedings|length }}</span>
-    </div>
-    <div class="search-cards">
-      {% for proceeding in proceedings %}
-        <a href="{% url 'matters:proceedings-index' id=proceeding.matter.id %}"
-           class="search-card">
-          <span class="app-badge app-badge-lg badge-gray"><i class="bi bi-building"></i></span>
-          <div class="search-card-content">
-            <div class="search-card-title">{{ proceeding.matter.name }}</div>
-            <div class="search-card-meta">{{ proceeding.forum }} &bull; {{ proceeding.case_number }}</div>
-          </div>
-          <span class="app-badge {% if proceeding.status == 'Active' %}badge-green{% elif proceeding.status == 'Pending' %}badge-yellow{% else %}badge-gray{% endif %}">{{ proceeding.status }}</span>
-        </a>
-      {% endfor %}
-    </div>
-  </div>
-{% endif %}
 {% if contacts %}
   <div class="search-section">
     <div class="search-section-header">
@@ -88,7 +67,31 @@
     </div>
   </div>
 {% endif %}
-{% if not matters and not proceedings and not contacts and not intakes %}
+{% if notes %}
+  <div class="search-section">
+    <div class="search-section-header">
+      <span class="search-section-title">Notes</span>
+      <span class="app-badge badge-gray">{{ notes|length }}</span>
+    </div>
+    <div class="search-cards">
+      {% for note in notes %}
+        <a href="{% url 'notes:note-view' note.id %}"
+           class="search-card"
+           target="_blank">
+          <span class="app-badge app-badge-lg badge-gray"><i class="bi bi-sticky"></i></span>
+          <div class="search-card-content">
+            <div class="search-card-title">{{ note.title }}</div>
+            <div class="search-card-meta">
+              {% if note.topic %}{{ note.topic }} &bull;{% endif %}
+              {{ note.get_category_display }}
+            </div>
+          </div>
+        </a>
+      {% endfor %}
+    </div>
+  </div>
+{% endif %}
+{% if not matters and not contacts and not intakes and not notes %}
   <div class="search-empty">
     <i class="bi bi-search"></i>
     <p>No results found</p>

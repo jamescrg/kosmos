@@ -10,6 +10,15 @@ from apps.notes.models import Note
 
 from .filters import SearchFilter
 
+# Default scopes for case search
+DEFAULT_SCOPES = ["documents", "highlights", "facts", "notes"]
+
+
+def get_active_scopes(request, matter_id):
+    """Get active search scopes from session, defaulting to all enabled."""
+    key = get_session_key("search_scopes", matter_id)
+    return request.session.get(key, DEFAULT_SCOPES)
+
 
 def get_search_data(request, matter, matter_id):
     """Get search results with filters applied from session."""
@@ -17,6 +26,7 @@ def get_search_data(request, matter, matter_id):
 
     filter_session_key = get_session_key("search_filter", matter_id)
     filter_data = request.session.get(filter_session_key, {})
+    active_scopes = get_active_scopes(request, matter_id)
     results = []
     query = filter_data.get("query", "").strip()
 
@@ -28,29 +38,45 @@ def get_search_data(request, matter, matter_id):
             obj = result.object
             result_item = None
 
-            # Filter by matter and build result item
-            if isinstance(obj, Document) and obj.matter_id == matter.id:
+            # Filter by matter, scope, and build result item
+            if (
+                isinstance(obj, Document)
+                and obj.matter_id == matter.id
+                and "documents" in active_scopes
+            ):
                 result_item = {
                     "type": "document",
                     "object": obj,
                     "rank": getattr(result, "watson_rank", 0),
                     "date": obj.date,
                 }
-            elif isinstance(obj, Highlight) and obj.document.matter_id == matter.id:
+            elif (
+                isinstance(obj, Highlight)
+                and obj.document.matter_id == matter.id
+                and "highlights" in active_scopes
+            ):
                 result_item = {
                     "type": "highlight",
                     "object": obj,
                     "rank": getattr(result, "watson_rank", 0),
                     "date": obj.document.date,
                 }
-            elif isinstance(obj, Fact) and obj.matter_id == matter.id:
+            elif (
+                isinstance(obj, Fact)
+                and obj.matter_id == matter.id
+                and "facts" in active_scopes
+            ):
                 result_item = {
                     "type": "fact",
                     "object": obj,
                     "rank": getattr(result, "watson_rank", 0),
                     "date": obj.date,
                 }
-            elif isinstance(obj, Note) and obj.matter_id == matter.id:
+            elif (
+                isinstance(obj, Note)
+                and obj.matter_id == matter.id
+                and "notes" in active_scopes
+            ):
                 result_item = {
                     "type": "note",
                     "object": obj,
@@ -60,11 +86,6 @@ def get_search_data(request, matter, matter_id):
 
             if result_item:
                 results.append(result_item)
-
-        # Apply additional filters from session
-        result_type = filter_data.get("result_type", "")
-        if result_type:
-            results = [r for r in results if r["type"] == result_type]
 
         category = filter_data.get("category", "")
         if category:
@@ -162,6 +183,7 @@ def get_search_data(request, matter, matter_id):
         "documents": documents,
         "filter_data": filter_data,
         "filter": filter_obj,
+        "active_scopes": active_scopes,
         "doc_count": doc_count,
         "highlight_count": highlight_count,
         "fact_count": fact_count,
@@ -218,6 +240,31 @@ def search_query(request, matter_id):
     query = request.POST.get("query", "").strip()
     filter_data["query"] = query
     request.session[filter_session_key] = filter_data
+
+    # Handle scope checkboxes
+    scope_documents = request.POST.get("scope_documents") == "on"
+    scope_highlights = request.POST.get("scope_highlights") == "on"
+    scope_facts = request.POST.get("scope_facts") == "on"
+    scope_notes = request.POST.get("scope_notes") == "on"
+
+    # If any scope checkbox was sent, update scopes; otherwise keep existing
+    if any(key.startswith("scope_") for key in request.POST.keys() if key != "query"):
+        # If no scopes selected, enable all
+        if not any([scope_documents, scope_highlights, scope_facts, scope_notes]):
+            active_scopes = DEFAULT_SCOPES
+        else:
+            active_scopes = []
+            if scope_documents:
+                active_scopes.append("documents")
+            if scope_highlights:
+                active_scopes.append("highlights")
+            if scope_facts:
+                active_scopes.append("facts")
+            if scope_notes:
+                active_scopes.append("notes")
+
+        scope_session_key = get_session_key("search_scopes", matter_id)
+        request.session[scope_session_key] = active_scopes
 
     context = {"matter": matter} | get_search_data(request, matter, matter_id)
     context["is_htmx"] = True

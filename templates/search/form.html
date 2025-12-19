@@ -19,18 +19,34 @@
                  hx-post="/search/results"
                  hx-trigger="keyup changed delay:500ms, search"
                  hx-target="#search-results"
+                 hx-include=".search-scope-checkbox"
                  autocomplete="off"
-                 placeholder="Search for matters, contacts, proceedings, intakes . . ."
+                 placeholder="Search..."
                  autofocus />
-          <span class="input-group-text" id="basic-addon2">
+          <span class="input-group-text">
             <i class="bi bi-search"></i>
           </span>
+        </div>
+        <div class="search-scopes">
+          {% for key, label, model in scopes %}
+            <label class="search-scope">
+              <input type="checkbox"
+                     class="search-scope-checkbox"
+                     name="scope_{{ key }}"
+                     {% if key in active_scopes %}checked{% endif %}
+                     hx-post="/search/results"
+                     hx-trigger="change"
+                     hx-target="#search-results"
+                     hx-include="#search-text, .search-scope-checkbox" />
+              {{ label }}
+            </label>
+          {% endfor %}
         </div>
       </div>
       <div id="search-results" class="search-results">
         <div class="search-results-placeholder">
           <i class="bi bi-search"></i>
-          <p>Search for matters, contacts, proceedings, or intakes</p>
+          <p>Search across your data</p>
         </div>
       </div>
     </div>
