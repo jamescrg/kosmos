@@ -5,13 +5,13 @@
         <input type="search"
                id="search-query-input"
                name="query"
-               placeholder="Search documents, highlights, facts..."
+               placeholder="Search..."
                value="{{ query }}"
                class="search-input"
                hx-post="{% url 'case:search-query' matter.id %}"
                hx-target="#search-results"
                hx-trigger="keyup changed delay:500ms"
-               hx-include="this"
+               hx-include="#search-query-input, .search-scope-checkbox"
                autofocus>
         <span class="search-input-icon"><i class="bi bi-search"></i></span>
       </div>
@@ -25,6 +25,52 @@
           </button>
         {% endif %}
       </div>
+    </div>
+    <div class="search-scopes">
+      <label class="search-scope">
+        <input type="checkbox"
+               class="search-scope-checkbox"
+               name="scope_documents"
+               {% if "documents" in active_scopes %}checked{% endif %}
+               hx-post="{% url 'case:search-query' matter.id %}"
+               hx-trigger="change"
+               hx-target="#search-results"
+               hx-include="#search-query-input, .search-scope-checkbox">
+        Documents
+      </label>
+      <label class="search-scope">
+        <input type="checkbox"
+               class="search-scope-checkbox"
+               name="scope_highlights"
+               {% if "highlights" in active_scopes %}checked{% endif %}
+               hx-post="{% url 'case:search-query' matter.id %}"
+               hx-trigger="change"
+               hx-target="#search-results"
+               hx-include="#search-query-input, .search-scope-checkbox">
+        Highlights
+      </label>
+      <label class="search-scope">
+        <input type="checkbox"
+               class="search-scope-checkbox"
+               name="scope_facts"
+               {% if "facts" in active_scopes %}checked{% endif %}
+               hx-post="{% url 'case:search-query' matter.id %}"
+               hx-trigger="change"
+               hx-target="#search-results"
+               hx-include="#search-query-input, .search-scope-checkbox">
+        Facts
+      </label>
+      <label class="search-scope">
+        <input type="checkbox"
+               class="search-scope-checkbox"
+               name="scope_notes"
+               {% if "notes" in active_scopes %}checked{% endif %}
+               hx-post="{% url 'case:search-query' matter.id %}"
+               hx-trigger="change"
+               hx-target="#search-results"
+               hx-include="#search-query-input, .search-scope-checkbox">
+        Notes
+      </label>
     </div>
     <div id="search-results">{% include "case/search/results.html" %}</div>
   </div>

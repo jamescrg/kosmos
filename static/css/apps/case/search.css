@@ -37,7 +37,7 @@ Search Input
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 1.5rem;
+  padding: 1.5rem 1.5rem 0.75rem;
   position: relative;
 }
 
@@ -89,6 +89,38 @@ Search Input
 .search-clear-btn i {
   margin-left: 0.25rem;
   margin-right: 0;
+}
+
+/*------------------------------------------------
+Search Scopes
+------------------------------------------------*/
+
+.search-scopes {
+  display: flex;
+  justify-content: center;
+  gap: 2rem;
+  padding: 0 1.5rem 1rem;
+}
+
+.search-scope {
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+  font-size: 0.875rem;
+  color: var(--color-secondary);
+  cursor: pointer;
+  user-select: none;
+}
+
+.search-scope input[type="checkbox"] {
+  width: 1rem;
+  height: 1rem;
+  accent-color: var(--icon-violet);
+  cursor: pointer;
+}
+
+.search-scope:hover {
+  color: var(--color-primary);
 }
 
 /*------------------------------------------------

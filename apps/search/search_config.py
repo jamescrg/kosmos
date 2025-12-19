@@ -5,7 +5,6 @@ from watson import search as watson
 from apps.contacts.models import Contact
 from apps.intakes.models import Intake
 from apps.matters.models import Matter
-from apps.matters.proceedings.models import Proceeding
 
 # Register Matter model for search
 watson.register(
@@ -19,14 +18,11 @@ watson.register(
     fields=("name", "company", "email", "phone1", "phone2", "phone3", "notes"),
 )
 
-# Register Proceeding model for search
-watson.register(
-    Proceeding,
-    fields=("case_number", "forum"),
-)
-
 # Register Intake model for search
 watson.register(
     Intake,
     fields=("name", "email", "phone"),
 )
+
+# Note: Note model is registered in apps.case.search_config
+# Filtering for standalone notes (matter__isnull=True) happens in views

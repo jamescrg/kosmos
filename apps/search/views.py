@@ -6,7 +6,15 @@ from watson import search as watson
 from apps.contacts.models import Contact
 from apps.intakes.models import Intake
 from apps.matters.models import Matter
-from apps.matters.proceedings.models import Proceeding
+from apps.notes.models import Note
+
+# Available search scopes
+SEARCH_SCOPES = [
+    ("matters", "Matters", Matter),
+    ("contacts", "Contacts", Contact),
+    ("intakes", "Intakes", Intake),
+    ("notes", "Notes", Note),
+]
 
 # Synonym mappings for search
 SEARCH_SYNONYMS = {
@@ -26,12 +34,21 @@ def expand_search_with_synonyms(query):
     return terms
 
 
+def get_active_scopes(request):
+    """Get active search scopes from session, defaulting to all enabled."""
+    default_scopes = ["matters", "contacts", "intakes", "notes"]
+    return request.session.get("search_scopes", default_scopes)
+
+
 @login_required
 def index(request):
+    active_scopes = get_active_scopes(request)
     context = {
         "app": "search",
         "action": "/search/results",
         "results": False,
+        "scopes": SEARCH_SCOPES,
+        "active_scopes": active_scopes,
     }
     return render(request, "search/content.html", context)
 
@@ -40,64 +57,107 @@ def index(request):
 def results(request):
     text = request.POST.get("search_text", "").strip()
 
+    # Get scope filters from POST (checkboxes)
+    scope_matters = request.POST.get("scope_matters") == "on"
+    scope_contacts = request.POST.get("scope_contacts") == "on"
+    scope_intakes = request.POST.get("scope_intakes") == "on"
+    scope_notes = request.POST.get("scope_notes") == "on"
+
+    # If no scopes selected, enable all (first load or all unchecked)
+    if not any([scope_matters, scope_contacts, scope_intakes, scope_notes]):
+        scope_matters = scope_contacts = scope_intakes = scope_notes = True
+
+    # Save to session for persistence
+    active_scopes = []
+    if scope_matters:
+        active_scopes.append("matters")
+    if scope_contacts:
+        active_scopes.append("contacts")
+    if scope_intakes:
+        active_scopes.append("intakes")
+    if scope_notes:
+        active_scopes.append("notes")
+    request.session["search_scopes"] = active_scopes
+
     if not text:
         return render(
             request,
             "search/results.html",
-            {"matters": None, "contacts": None, "proceedings": None, "intakes": None},
+            {
+                "matters": None,
+                "contacts": None,
+                "intakes": None,
+                "notes": None,
+                "scopes": SEARCH_SCOPES,
+                "active_scopes": active_scopes,
+            },
         )
+
+    matters = []
+    contacts = []
+    intakes = []
+    notes = []
 
     # Digits only - use exact matching for IDs and phone numbers
     if text.isdigit():
-        matters = Matter.objects.filter(client_reference_id=text).order_by("name")
-        contacts = Contact.objects.filter(
-            Q(phone1__contains=text)
-            | Q(phone2__contains=text)
-            | Q(phone3__contains=text)
-        ).order_by("name")
-        proceedings = Proceeding.objects.filter(case_number__contains=text).order_by(
-            "-status"
-        )
-        intakes = Intake.objects.filter(phone__contains=text).order_by("name")
+        if scope_matters:
+            matters = list(
+                Matter.objects.filter(client_reference_id=text).order_by("name")
+            )
+        if scope_contacts:
+            contacts = list(
+                Contact.objects.filter(
+                    Q(phone1__contains=text)
+                    | Q(phone2__contains=text)
+                    | Q(phone3__contains=text)
+                ).order_by("name")
+            )
+        if scope_intakes:
+            intakes = list(Intake.objects.filter(phone__contains=text).order_by("name"))
+        # Notes don't have phone numbers, skip for digit search
     else:
         # Expand search terms with synonyms
         search_terms = expand_search_with_synonyms(text)
 
-        # Use watson for fuzzy search, limited to global search models
-        # Search with all synonym-expanded terms and combine results
-        seen_ids = {
-            "matter": set(),
-            "contact": set(),
-            "proceeding": set(),
-            "intake": set(),
-        }
-        matters = []
-        contacts = []
-        proceedings = []
-        intakes = []
+        # Build list of models to search based on active scopes
+        models_to_search = []
+        if scope_matters:
+            models_to_search.append(Matter)
+        if scope_contacts:
+            models_to_search.append(Contact)
+        if scope_intakes:
+            models_to_search.append(Intake)
+        if scope_notes:
+            models_to_search.append(Note)
 
-        for term in search_terms:
-            search_results = watson.search(
-                term,
-                models=(Matter, Contact, Proceeding, Intake),
-            )
+        if models_to_search:
+            # Use watson for fuzzy search
+            seen_ids = {
+                "matter": set(),
+                "contact": set(),
+                "intake": set(),
+                "note": set(),
+            }
 
-            for result in search_results:
-                obj = result.object
-                if isinstance(obj, Matter) and obj.id not in seen_ids["matter"]:
-                    seen_ids["matter"].add(obj.id)
-                    matters.append(obj)
-                elif isinstance(obj, Contact) and obj.id not in seen_ids["contact"]:
-                    seen_ids["contact"].add(obj.id)
-                    contacts.append(obj)
-                elif (
-                    isinstance(obj, Proceeding) and obj.id not in seen_ids["proceeding"]
-                ):
-                    seen_ids["proceeding"].add(obj.id)
-                    proceedings.append(obj)
-                elif isinstance(obj, Intake) and obj.id not in seen_ids["intake"]:
-                    seen_ids["intake"].add(obj.id)
-                    intakes.append(obj)
+            for term in search_terms:
+                search_results = watson.search(term, models=tuple(models_to_search))
+
+                for result in search_results:
+                    obj = result.object
+                    if isinstance(obj, Matter) and obj.id not in seen_ids["matter"]:
+                        seen_ids["matter"].add(obj.id)
+                        matters.append(obj)
+                    elif isinstance(obj, Contact) and obj.id not in seen_ids["contact"]:
+                        seen_ids["contact"].add(obj.id)
+                        contacts.append(obj)
+                    elif isinstance(obj, Intake) and obj.id not in seen_ids["intake"]:
+                        seen_ids["intake"].add(obj.id)
+                        intakes.append(obj)
+                    elif isinstance(obj, Note) and obj.id not in seen_ids["note"]:
+                        # Only include standalone notes (no matter)
+                        if obj.matter is None:
+                            seen_ids["note"].add(obj.id)
+                            notes.append(obj)
 
     context = {
         "app": "search",
@@ -105,8 +165,10 @@ def results(request):
         "results": True,
         "matters": matters,
         "contacts": contacts,
-        "proceedings": proceedings,
         "intakes": intakes,
+        "notes": notes,
+        "scopes": SEARCH_SCOPES,
+        "active_scopes": active_scopes,
     }
 
     return render(request, "search/results.html", context)
