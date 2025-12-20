@@ -3,9 +3,10 @@ Context assembly for AI chat.
 
 Gathers matter data for the system prompt with priority:
 1. Matter overview, contacts, proceedings (always included)
-2. Highlights - Annotated document excerpts with citations
-3. Documents - OCR text excerpts (ranked by importance)
-4. Timeline facts, tasks, events, settlement (budget-limited)
+2. Notes - Attorney notes and research (highest priority)
+3. Highlights - Annotated document excerpts with citations
+4. Documents - OCR text excerpts (ranked by importance)
+5. Timeline facts, tasks, events, settlement (budget-limited)
 
 Time entries are excluded per user request.
 """
@@ -22,6 +23,7 @@ from apps.case.models import Document, Fact, Highlight
 from apps.matters.models import Relationship
 from apps.matters.proceedings.models import Proceeding
 from apps.matters.settlement.models import SettlementEntry
+from apps.notes.models import Note
 
 logger = logging.getLogger(__name__)
 
@@ -55,6 +57,9 @@ MATTER_CONTEXT_TEMPLATE = """
 ## Court Proceedings
 {proceedings}
 {chat_attachments}
+## Attorney Notes
+{notes}
+
 ## Document Highlights
 {highlights}
 
@@ -106,12 +111,13 @@ def assemble_matter_context(matter, user=None, conversation=None) -> str:
     2. Contacts (always included)
     3. Proceedings (always included)
     4. Chat attachments (if provided, highest priority for temporary context)
-    5. Highlights (highest priority)
-    6. Documents (second priority, by importance)
-    7. Timeline facts (by importance)
-    8. Tasks (pending first)
-    9. Events (upcoming first)
-    10. Settlement info
+    5. Notes (attorney notes and research)
+    6. Highlights (annotated document excerpts)
+    7. Documents (by importance)
+    8. Timeline facts (by importance)
+    9. Tasks (pending first)
+    10. Events (upcoming first)
+    11. Settlement info
     """
     sections = {}
     remaining_budget = MAX_CONTEXT_CHARS
@@ -140,7 +146,13 @@ def assemble_matter_context(matter, user=None, conversation=None) -> str:
     else:
         sections["chat_attachments"] = ""
 
-    # 5. Highlights (highest priority)
+    # 5. Notes (attorney notes and research)
+    budget_notes = min(remaining_budget // 3, 25000)
+    notes = format_notes(matter, budget_notes)
+    sections["notes"] = notes
+    remaining_budget -= len(notes)
+
+    # 6. Highlights (annotated document excerpts)
     budget_highlights = min(remaining_budget // 3, 15000)
     highlights = format_highlights(matter, budget_highlights)
     sections["highlights"] = highlights
@@ -256,8 +268,50 @@ def format_proceedings(matter) -> str:
     return "\n".join(lines)
 
 
+def format_notes(matter, budget: int) -> str:
+    """Format attorney notes and research (highest priority user content)."""
+    notes = Note.objects.filter(matter=matter).order_by("-importance", "-updated_at")
+
+    if not notes:
+        return "No attorney notes."
+
+    lines = []
+    char_count = 0
+
+    for note in notes:
+        # Note header with category and title
+        header = f"\n### {note.title}"
+        if note.category:
+            header += f" [{note.get_category_display()}]"
+        if note.topic:
+            header += f" - {note.topic}"
+
+        if char_count + len(header) > budget:
+            lines.append("\n... (additional notes omitted for brevity)")
+            break
+
+        lines.append(header)
+        char_count += len(header)
+
+        # Include note content (markdown)
+        if note.content:
+            # Limit content per note to leave room for others
+            content_limit = min(2000, budget - char_count)
+            content = note.content[:content_limit]
+            if len(note.content) > content_limit:
+                content += "\n... (content truncated)"
+
+            lines.append(content)
+            char_count += len(content)
+
+        if char_count > budget:
+            break
+
+    return "\n".join(lines) if lines else "No attorney notes."
+
+
 def format_highlights(matter, budget: int) -> str:
-    """Format document highlights (second priority)."""
+    """Format document highlights."""
     highlights = (
         Highlight.objects.filter(document__matter=matter)
         .select_related("document")
