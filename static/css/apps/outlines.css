@@ -755,7 +755,7 @@ body:has(.outline-page.standalone) {
 }
 
 .sortable-drag {
-  background: var(--background-panel);
+  background: var(--background-section);
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
 }
 
@@ -786,7 +786,7 @@ body:has(.outline-page.standalone) {
   font-size: 0.9375rem;
   border: 1px solid var(--border-dark);
   border-radius: 0.375rem;
-  background: var(--background-panel);
+  background: var(--background-section);
   color: var(--color-primary);
   min-width: 10rem;
 }

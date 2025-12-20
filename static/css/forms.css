@@ -56,7 +56,7 @@ textarea {
 
 .dropzone.dz-drag-hover {
   border-color: var(--button-form) !important;
-  background: var(--background-panel) !important;
+  background: var(--background-section) !important;
 }
 
 .dropzone .dz-message {
@@ -69,7 +69,7 @@ textarea {
   display: flex !important;
   align-items: center;
   justify-content: space-between;
-  background: var(--background-panel);
+  background: var(--background-section);
   border: solid 1px var(--border-medium);
   border-radius: var(--radius-md);
   padding: 0.5rem;

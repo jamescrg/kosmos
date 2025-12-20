@@ -112,7 +112,7 @@ Codes Table Action Icons
 }
 
 .codes-reference-table th {
-  background-color: var(--background-panel);
+  background-color: var(--background-section);
   color: var(--color-darker);
   font-weight: 500;
 }

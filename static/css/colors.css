@@ -26,22 +26,21 @@
   /* ==========================================================================
      Backgrounds
      ========================================================================== */
+  --background-nav: var(--stone-200);
   --background-body: var(--stone-300);
-  --background-text: var(--stone-100);
+  --background-subnav: var(--stone-150);
+  --background-section: var(--stone-100);
   --background-lighter: var(--stone-50);
   --background-subtle: var(--stone-25);
-  --background-panel: var(--stone-100);
   --background-control: var(--stone-150);
   --background-muted: var(--stone-200);
 
   /* ==========================================================================
      Navigation
      ========================================================================== */
-  --background-nav: var(--stone-200);
   --color-nav: var(--stone-600);
   --background-nav-tab-active: var(--background-body);
-  --background-subnav: var(--stone-200);
-  --background-subnav-tab-active: var(--background-text);
+  --background-subnav-tab-active: var(--background-section);
 
   /* ==========================================================================
      Buttons

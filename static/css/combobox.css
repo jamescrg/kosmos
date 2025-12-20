@@ -24,7 +24,7 @@ Combobox container and input wrapper
 }
 
 .combobox-input-wrapper input[type="search"].selected {
-  background-color: var(--background-panel);
+  background-color: var(--background-section);
 }
 
 .combobox-clear {
@@ -71,7 +71,7 @@ Assign results list
 }
 
 .assign-results li:hover {
-  background: var(--background-panel);
+  background: var(--background-section);
 }
 
 .assign-results a {

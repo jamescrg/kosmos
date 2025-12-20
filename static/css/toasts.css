@@ -13,7 +13,7 @@
 }
 
 #toast-container .toast-header {
-    background: var(--background-panel);
+    background: var(--background-section);
     border-bottom: 1px solid var(--border-light);
     padding: 0.5rem 0.75rem;
 }

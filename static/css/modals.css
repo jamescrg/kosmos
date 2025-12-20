@@ -1,6 +1,6 @@
 
 .modal-content {
-  background: var(--background-panel);
+  background: var(--background-section);
   border-radius: var(--radius-lg);
 }
 
