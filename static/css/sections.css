@@ -1,6 +1,6 @@
 
 .section {
-  background: var(--background-panel);
+  background: var(--background-section);
   border-radius: var(--radius-md);
   box-shadow: 0 0.0625rem 0.2rem rgba(0, 0, 0, 0.14);
   /* border: solid 1px var(--border-light); */
@@ -171,7 +171,7 @@ Section Layout (header / nav / body)
 
 /* Section Body - main content area */
 .section-body {
-  background: var(--background-panel);
+  background: var(--background-section);
   border-radius: 0 0 var(--radius-md) var(--radius-md);
   padding: 1.25rem 1rem 1.5rem;
 }

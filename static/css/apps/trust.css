@@ -50,7 +50,7 @@ Summary and History
 ========================================================================== */
 
 .trust-contact {
-  background: var(--background-panel);
+  background: var(--background-section);
   margin-bottom: 1.25rem;
   padding: 1.25rem 1rem;
 }

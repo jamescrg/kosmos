@@ -67,7 +67,7 @@
 /* Highlight Text */
 .highlight-card-text {
   padding: 0.75rem 0.5rem;
-  background: var(--background-text);
+  background: var(--background-section);
   color: var(--color-primary);
   line-height: 1.6;
   white-space: pre-wrap;
@@ -248,7 +248,7 @@ Highlight content (td)
 .highlights-list .highlight-text {
   margin: 0.5rem 0;
   padding: 0.5rem;
-  background: var(--background-text);
+  background: var(--background-section);
   color: var(--color-primary);
   line-height: 1.6;
   max-height: 8rem;
@@ -317,7 +317,7 @@ Highlight Detail Modal
 
 .highlight-detail-text {
   padding: 1rem;
-  background: var(--background-text);
+  background: var(--background-section);
   color: var(--color-primary);
   line-height: 1.6;
   white-space: normal;

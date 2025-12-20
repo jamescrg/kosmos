@@ -142,7 +142,7 @@
 }
 
 .search .search-card:hover {
-  background: var(--background-panel);
+  background: var(--background-section);
   border-color: var(--border-medium);
   text-decoration: none;
   color: inherit;
