@@ -425,7 +425,7 @@ body:has(.note-page.standalone) {
   padding: 2rem 3rem 3rem;
   margin-top: 1.5rem;
   min-height: 32rem;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  /* box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1); */
   font-size: 1.1rem;
 }
 
@@ -956,11 +956,11 @@ body:has(.note-page.standalone) {
   z-index: 100;
   align-items: center;
   justify-content: center;
-  gap: 0.5rem;
-  padding: 0.75rem 1rem;
+  gap: 1rem;
+  padding: 0.5rem 1.5rem;
   background: var(--background-muted);
-  border-bottom: 1px solid rgba(0, 0, 0, 0.08);
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08);
+  border-bottom: 1px solid var(--border-medium);
+  box-shadow: none;
 }
 
 .search-replace-bar.visible {
@@ -969,8 +969,8 @@ body:has(.note-page.standalone) {
 
 .search-replace-bar input[type="text"] {
   padding: 0.375rem 0.625rem;
-  font-size: 0.9375rem;
-  border: 1px solid var(--border-dark);
+  font-size: 1rem;
+  border: 1px solid var(--border-medium);
   border-radius: 0.375rem;
   background: var(--background-panel);
   color: var(--color-primary);
@@ -979,7 +979,7 @@ body:has(.note-page.standalone) {
 
 .search-replace-bar input[type="text"]:focus {
   outline: none;
-  border-color: var(--border-dark);
+  border-color: var(--border-medium);
 }
 
 .search-replace-bar #search-count {
@@ -993,8 +993,8 @@ body:has(.note-page.standalone) {
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 0.25rem 0.5rem;
-  font-size: 0.8125rem;
+  padding: 0.125rem 0.375rem;
+  font-size: 1.25rem;
   background: none;
   border: none;
   border-radius: 0.375rem;
@@ -1004,16 +1004,13 @@ body:has(.note-page.standalone) {
   transition: all 0.15s ease;
 }
 
-.search-replace-bar button:hover {
-  color: var(--color-primary);
+.search-replace-bar button i {
+  font-size: inherit;
+  color: inherit;
 }
 
-.search-replace-bar #search-prev,
-.search-replace-bar #search-next,
-.search-replace-bar #search-close {
-  padding: 0;
-  width: 1.75rem;
-  height: 1.75rem;
+.search-replace-bar button:hover {
+  color: var(--color-primary);
 }
 
 /* Search match highlight */
@@ -1023,10 +1020,4 @@ body:has(.note-page.standalone) {
 
 #note-editor .search-match-current {
   background: var(--amber-300);
-}
-
-/* Search toggle button active state */
-.note-toolbar .toolbar-right #search-toggle-btn.active {
-  background: var(--selected-background);
-  color: var(--selected-color);
 }
