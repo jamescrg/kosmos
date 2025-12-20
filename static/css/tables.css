@@ -205,6 +205,8 @@ tbody {
 
 .btn-sort i {
   color: inherit;
+  position: relative;
+  top: 1px;
 }
 
 .btn-sort:hover {
