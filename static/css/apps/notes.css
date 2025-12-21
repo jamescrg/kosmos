@@ -845,7 +845,7 @@ body:has(.note-page.standalone) {
    ============================================================================= */
 
 .notes-list {
-  min-width: 30rem;
+  min-width: 54rem;
 }
 
 .notes-list .category {
@@ -853,7 +853,6 @@ body:has(.note-page.standalone) {
 }
 
 .notes-list .title {
-  min-width: 12rem;
   white-space: normal;
   word-wrap: break-word;
 }
