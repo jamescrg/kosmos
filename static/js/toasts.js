@@ -61,8 +61,8 @@ const Toast = (function () {
 
     toast.innerHTML = `
       <div class="toast-header">
-        <i class="bi ${icon} me-2" style="color: ${color};"></i>
-        <strong class="me-auto">${escapeHtml(title || capitalize(type))}</strong>
+        <i class="${icon}" style="color: ${color};"></i>
+        <strong>${escapeHtml(title || capitalize(type))}</strong>
         <button type="button" class="toast-close" aria-label="Close">
           <i class="icon-x"></i>
         </button>
