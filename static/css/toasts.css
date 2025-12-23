@@ -13,12 +13,17 @@
 }
 
 #toast-container .toast-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 0.5rem;
     background: var(--background-section);
     border-bottom: 1px solid var(--border-light);
     padding: 0.5rem 0.75rem;
 }
 
 #toast-container .toast-header strong {
+    flex: 1;
     font-size: 1rem;
     color: var(--color-darker);
 }
