@@ -62,23 +62,26 @@ body:has(#case-content-container) {
   color: var(--color-primary);
 }
 
-.case-header-info {
-  flex: 1;
-  min-width: 0;
+/* =============================================================================
+   Case Canvas Header - Title and Citation inside content area
+   ============================================================================= */
+
+.case-canvas-header {
+  margin-bottom: 2rem;
+  padding-bottom: 1.5rem;
+  border-bottom: 1px solid var(--border-medium);
 }
 
-.case-title {
-  margin: 0;
-  font-size: 1rem;
+.case-canvas-header .case-title {
+  margin: 0 0 0.5rem 0;
+  font-size: 1.5rem;
   font-weight: 600;
+  line-height: 1.3;
   color: var(--color-primary);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
 }
 
-.case-citation {
-  font-size: 0.875rem;
+.case-canvas-header .case-citation {
+  font-size: 1rem;
   color: var(--text-muted);
 }
 
@@ -119,14 +122,6 @@ body:has(#case-content-container) {
   color: var(--color-primary);
 }
 
-#highlights-header #createHighlightBtn {
-  background: var(--yellow-100);
-  color: var(--color-primary);
-}
-
-#highlights-header #createHighlightBtn:hover {
-  background: var(--yellow-200);
-}
 
 #highlights-list {
   padding: 0.75rem 0;
@@ -214,57 +209,52 @@ body:has(#case-content-container) {
 }
 
 .case-highlight.hl-yellow {
-  background: var(--yellow-200);
+  background: var(--yellow-100) !important;
 }
 
 .case-highlight.hl-green {
-  background: var(--lime-200);
+  background: var(--lime-100) !important;
 }
 
 .case-highlight.hl-blue {
-  background: var(--blue-200);
+  background: var(--blue-100) !important;
 }
 
 .case-highlight.hl-orange {
-  background: var(--orange-200);
+  background: var(--orange-100) !important;
 }
 
 .case-highlight.hl-red {
-  background: var(--red-200);
+  background: var(--red-100) !important;
 }
 
 .case-highlight.hl-purple {
-  background: var(--violet-200);
+  background: var(--violet-100) !important;
 }
 
-/* Active highlight state */
-.case-highlight.active {
-  outline: 2px solid var(--stone-500);
-  outline-offset: 1px;
-}
-
+/* Active highlight state - slightly darker */
 .case-highlight.hl-yellow.active {
-  background: var(--yellow-300);
+  background: var(--yellow-200) !important;
 }
 
 .case-highlight.hl-green.active {
-  background: var(--lime-300);
+  background: var(--lime-200) !important;
 }
 
 .case-highlight.hl-blue.active {
-  background: var(--blue-300);
+  background: var(--blue-200) !important;
 }
 
 .case-highlight.hl-orange.active {
-  background: var(--orange-300);
+  background: var(--orange-200) !important;
 }
 
 .case-highlight.hl-red.active {
-  background: var(--red-300);
+  background: var(--red-200) !important;
 }
 
 .case-highlight.hl-purple.active {
-  background: var(--violet-300);
+  background: var(--violet-200) !important;
 }
 
 /* Selection styling in case content */
