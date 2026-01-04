@@ -238,15 +238,18 @@ Highlight content (td)
   text-decoration: underline;
 }
 
-.highlights-list .highlight-slug span {
-  padding: 0.25rem 0.5rem;
+.highlights-list .highlight-slug {
+  display: flex;
+  align-items: center;
 }
 
-.highlights-list .highlight-slug .source-icon {
-  color: var(--text-muted);
-  margin-left: 0.5rem;
-  margin-right: 0.25rem;
-  font-size: 0.875rem;
+.highlights-list .highlight-slug .app-badge {
+  margin-right: 1rem;
+  padding-right: 0.25rem;
+}
+
+.highlights-list .highlight-slug span {
+  padding: 0.25rem 0.5rem;
 }
 
 .highlights-list .dropdown-cell .btn-ghost {

@@ -1,5 +1,211 @@
 import re
 
+# --- T.6 Case Name Abbreviations (Bluebook Rule 10.2.1 & Table T.6) ---
+# These are specifically for case names, not document titles
+CASE_NAME_ABBREVIATIONS = {
+    # Common words (T.6)
+    "administration": "Admin.",
+    "administrative": "Admin.",
+    "administrator": "Adm'r",
+    "america": "Am.",
+    "american": "Am.",
+    "association": "Ass'n",
+    "authority": "Auth.",
+    "automobile": "Auto.",
+    "automotive": "Auto.",
+    "board": "Bd.",
+    "brother": "Bro.",
+    "brothers": "Bros.",
+    "building": "Bldg.",
+    "business": "Bus.",
+    "center": "Ctr.",
+    "central": "Cent.",
+    "chemical": "Chem.",
+    "commission": "Comm'n",
+    "commissioner": "Comm'r",
+    "committee": "Comm.",
+    "communications": "Commc'ns",
+    "community": "Cmty.",
+    "company": "Co.",
+    "consolidated": "Consol.",
+    "construction": "Constr.",
+    "cooperative": "Coop.",
+    "corporation": "Corp.",
+    "county": "Cnty.",
+    "department": "Dep't",
+    "development": "Dev.",
+    "director": "Dir.",
+    "distribution": "Distrib.",
+    "distributor": "Distrib.",
+    "district": "Dist.",
+    "division": "Div.",
+    "eastern": "E.",
+    "education": "Educ.",
+    "educational": "Educ.",
+    "electric": "Elec.",
+    "electrical": "Elec.",
+    "engineering": "Eng'g",
+    "enterprise": "Enter.",
+    "enterprises": "Enters.",
+    "entertainment": "Ent.",
+    "environment": "Env't",
+    "environmental": "Envtl.",
+    "equipment": "Equip.",
+    "exchange": "Exch.",
+    "executor": "Ex'r",
+    "federal": "Fed.",
+    "federation": "Fed'n",
+    "financial": "Fin.",
+    "foundation": "Found.",
+    "general": "Gen.",
+    "government": "Gov't",
+    "guaranty": "Guar.",
+    "hospital": "Hosp.",
+    "incorporated": "Inc.",
+    "indemnity": "Indem.",
+    "independent": "Indep.",
+    "industrial": "Indus.",
+    "industries": "Indus.",
+    "industry": "Indus.",
+    "information": "Info.",
+    "institute": "Inst.",
+    "institution": "Inst.",
+    "insurance": "Ins.",
+    "international": "Int'l",
+    "investment": "Inv.",
+    "laboratory": "Lab.",
+    "laboratories": "Labs.",
+    "liability": "Liab.",
+    "limited": "Ltd.",
+    "litigation": "Litig.",
+    "machine": "Mach.",
+    "machinery": "Mach.",
+    "maintenance": "Maint.",
+    "management": "Mgmt.",
+    "manufacturing": "Mfg.",
+    "marketing": "Mktg.",
+    "mechanical": "Mech.",
+    "medical": "Med.",
+    "memorial": "Mem'l",
+    "metropolitan": "Metro.",
+    "mortgage": "Mortg.",
+    "municipal": "Mun.",
+    "mutual": "Mut.",
+    "national": "Nat'l",
+    "northern": "N.",
+    "number": "No.",
+    "organization": "Org.",
+    "partnership": "P'ship",
+    "pharmaceutical": "Pharm.",
+    "products": "Prods.",
+    "production": "Prod.",
+    "professional": "Prof'l",
+    "property": "Prop.",
+    "protection": "Prot.",
+    "public": "Pub.",
+    "publication": "Publ'n",
+    "publishing": "Publ'g",
+    "railroad": "R.R.",
+    "railway": "Ry.",
+    "regional": "Reg'l",
+    "republic": "Rep.",
+    "research": "Rsch.",
+    "resource": "Res.",
+    "resources": "Res.",
+    "restaurant": "Rest.",
+    "savings": "Sav.",
+    "school": "Sch.",
+    "science": "Sci.",
+    "secretary": "Sec'y",
+    "securities": "Sec.",
+    "security": "Sec.",
+    "service": "Serv.",
+    "services": "Servs.",
+    "society": "Soc'y",
+    "southern": "S.",
+    "southwest": "Sw.",
+    "southwestern": "Sw.",
+    "state": "St.",
+    "steamship": "S.S.",
+    "subcommittee": "Subcomm.",
+    "superintendent": "Supt.",
+    "surety": "Sur.",
+    "system": "Sys.",
+    "systems": "Sys.",
+    "technical": "Tech.",
+    "technology": "Tech.",
+    "telecommunication": "Telecomm.",
+    "telecommunications": "Telecomms.",
+    "telephone": "Tel.",
+    "television": "T.V.",
+    "township": "Twp.",
+    "transcontinental": "Transcon.",
+    "transport": "Transp.",
+    "transportation": "Transp.",
+    "trust": "Tr.",
+    "trustee": "Tr.",
+    "uniform": "Unif.",
+    "united": "U.",
+    "university": "Univ.",
+    "western": "W.",
+}
+
+# Special multi-word replacements for case names
+CASE_NAME_SPECIAL = {
+    "united states": "U.S.",
+}
+
+
+def abbreviate_case_name(case_name: str) -> str:
+    """
+    Abbreviate a case name according to Bluebook Rule 10.2.1 and Table T.6.
+
+    Args:
+        case_name: Full case name (e.g., "United States v. International Business
+                   Machines Corporation")
+
+    Returns:
+        Abbreviated case name (e.g., "U.S. v. Int'l Bus. Machs. Corp.")
+    """
+    if not case_name:
+        return ""
+
+    # Handle special multi-word replacements first
+    result = case_name
+    for phrase, abbrev in CASE_NAME_SPECIAL.items():
+        # Case-insensitive replacement
+        pattern = re.compile(re.escape(phrase), re.IGNORECASE)
+        result = pattern.sub(abbrev, result)
+
+    # Split by "v." to handle each party separately
+    if " v. " in result:
+        parts = result.split(" v. ", 1)
+        abbreviated_parts = [_abbreviate_party_name(p.strip()) for p in parts]
+        return " v. ".join(abbreviated_parts)
+    else:
+        return _abbreviate_party_name(result)
+
+
+def _abbreviate_party_name(name: str) -> str:
+    """Abbreviate a single party name."""
+    words = name.split()
+    result_words = []
+
+    for i, word in enumerate(words):
+        # Strip punctuation for lookup but preserve it
+        clean_word = re.sub(r"[,.]$", "", word)
+        trailing_punct = word[len(clean_word) :] if len(word) > len(clean_word) else ""
+
+        # Check for abbreviation (case-insensitive)
+        lower_word = clean_word.lower()
+        if lower_word in CASE_NAME_ABBREVIATIONS:
+            result_words.append(CASE_NAME_ABBREVIATIONS[lower_word] + trailing_punct)
+        else:
+            result_words.append(word)
+
+    return " ".join(result_words)
+
+
 # --- Combined T.6 (Parties) & T.16 (Document Types) Abbreviation Map ---
 # NOTE: The keys are lowercased for case-insensitive matching.
 ABBREVIATION_MAP = {

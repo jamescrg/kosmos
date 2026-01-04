@@ -29,7 +29,7 @@ textarea {
   font-size: 1rem;
   line-height: 1.5;
   outline: none;
-  padding: 0.375rem 0.75rem;
+  padding: 0.5rem 0.75rem;
 }
 
 button {
@@ -43,7 +43,8 @@ button {
 }
 
 .toolbar input {
-  padding: 0.35rem 0.625rem;
+  line-height: 1.25rem;
+  padding: 0.5rem 0.75rem;
 }
 
 /* Dropzone styling to match form field styles */

@@ -34,11 +34,6 @@
     <div id="main-container">
       <div id="case-content-container">
         <div id="case-header">
-          <a href="{% url 'case:caselaws-index' matter.id %}"
-             class="btn-icon"
-             title="Back to case law list">
-            <i class="icon-arrow-left"></i>
-          </a>
           {% if caselaw.courtlistener_url %}
             <a href="{{ caselaw.courtlistener_url }}"
                target="_blank"

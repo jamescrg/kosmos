@@ -139,6 +139,11 @@ urlpatterns = [
         name="highlights-filter-importance",
     ),
     path(
+        "case/<int:matter_id>/highlights/filter/source/<str:source_type>/",
+        highlights.highlights_filter_source_type,
+        name="highlights-filter-source-type",
+    ),
+    path(
         "case/<int:matter_id>/highlights/filter/sort/<str:order>/",
         highlights.highlights_filter_sort,
         name="highlights-filter-sort",
