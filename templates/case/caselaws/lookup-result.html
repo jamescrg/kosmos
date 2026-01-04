@@ -15,7 +15,7 @@
     {% if existing %}
       <div class="alert alert-info mt-2">
         <i class="icon-info"></i> This case is already saved to this matter.
-        <a href="{% url 'case:caselaw-view' existing.id %}">View it</a>
+        <a href="{% url 'case:caselaw-viewer' existing.id %}" target="_blank">View it</a>
       </div>
     {% else %}
       {% if text_preview %}

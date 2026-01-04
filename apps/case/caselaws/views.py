@@ -236,30 +236,10 @@ def caselaws_save(request, matter_id):
 
     logger.info("Saved case law %s to matter %s", case_law, matter)
 
-    # Return redirect to view the case
+    # Return redirect to view the case in the viewer
     response = HttpResponse(status=204)
-    response["HX-Redirect"] = f"/case/caselaws/{case_law.id}/"
+    response["HX-Redirect"] = f"/case/caselaws/{case_law.id}/view/"
     return response
-
-
-@login_required
-def caselaw_view(request, caselaw_id):
-    """View a case law entry."""
-    case_law = get_object_or_404(
-        CaseLaw, pk=caselaw_id, matter__in=get_accessible_matters()
-    )
-    matter = case_law.matter
-
-    return render(
-        request,
-        "case/caselaws/view.html",
-        {
-            "app": "documents",
-            "subapp": "caselaws",
-            "matter": matter,
-            "case_law": case_law,
-        },
-    )
 
 
 @login_required
@@ -274,7 +254,7 @@ def caselaw_edit(request, caselaw_id):
         case_law.updated_by = request.user
         case_law.save()
 
-        return redirect("case:caselaw-view", caselaw_id=case_law.id)
+        return redirect("case:caselaws-index", matter_id=case_law.matter_id)
 
     return render(
         request,

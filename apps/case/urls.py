@@ -484,11 +484,6 @@ urlpatterns = [
     ),
     # Case Law operations
     path(
-        "case/caselaws/<int:caselaw_id>/",
-        caselaws.caselaw_view,
-        name="caselaw-view",
-    ),
-    path(
         "case/caselaws/<int:caselaw_id>/edit/",
         caselaws.caselaw_edit,
         name="caselaw-edit",
