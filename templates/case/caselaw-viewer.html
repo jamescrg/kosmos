@@ -39,12 +39,12 @@
              title="Back to case">
             <i class="icon-arrow-left"></i>
           </a>
-          <div class="case-header-info">
-            <h1 class="case-title">{{ caselaw.case_name }}</h1>
-            <span class="case-citation">{{ caselaw.citation }}</span>
-          </div>
         </div>
         <div id="case-content" class="caselaw-html">
+          <div class="case-canvas-header">
+            <h1 class="case-title">{{ caselaw.case_name }}</h1>
+            <div class="case-citation">{{ caselaw.citation }}</div>
+          </div>
           {% if caselaw.html %}
             {{ caselaw.html|safe }}
           {% else %}
@@ -386,7 +386,12 @@
         const mark = document.querySelector(`.case-highlight[data-highlight-id="${highlightId}"]`);
         if (mark) {
           mark.classList.add('active');
-          mark.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          // Scroll the mark into view within the case-content container
+          const caseContent = document.getElementById('case-content');
+          const markRect = mark.getBoundingClientRect();
+          const containerRect = caseContent.getBoundingClientRect();
+          const scrollTop = caseContent.scrollTop + (markRect.top - containerRect.top) - (containerRect.height / 2) + (markRect.height / 2);
+          caseContent.scrollTo({ top: scrollTop, behavior: 'smooth' });
         }
       }
 
@@ -406,64 +411,152 @@
       // Normalize to merge adjacent text nodes
       container.normalize();
 
-      // Sort by offset descending to preserve offsets during replacement
+      // Sort by offset descending to preserve positions during replacement
       const sortedHighlights = [...config.existingHighlights].sort(
         (a, b) => (b.char_offset || 0) - (a.char_offset || 0)
       );
 
       for (const h of sortedHighlights) {
-        if (h.char_offset === null || h.char_offset === undefined) continue;
-        wrapTextAtOffset(container, h.char_offset, h.text, h.id, h.color);
+        if (!h.text) continue;
+        // Try text search approach (more robust than offset-based)
+        const success = findAndWrapText(container, h.text, h.id, h.color);
+        if (!success) {
+          console.warn(`Could not find highlight text for ID ${h.id}:`, h.text.substring(0, 50));
+        } else {
+          // Re-normalize after each successful wrap to merge text nodes
+          container.normalize();
+        }
+      }
+      console.log(`Rendered ${container.querySelectorAll('.case-highlight').length} of ${sortedHighlights.length} highlights`);
+    }
+
+    // Find text in container and wrap it with a highlight mark
+    function findAndWrapText(container, searchText, highlightId, color) {
+      if (!searchText || searchText.length === 0) {
+        console.warn('Empty search text for highlight', highlightId);
+        return false;
+      }
+
+      // Normalize text for comparison: collapse whitespace, trim
+      const normalize = (str) => str.replace(/\s+/g, ' ').trim();
+
+      // Get all text nodes (excluding header)
+      const textNodes = [];
+      const walker = document.createTreeWalker(container, NodeFilter.SHOW_TEXT);
+      let node;
+      while ((node = walker.nextNode())) {
+        if (node.parentNode.closest('.case-canvas-header')) continue;
+        textNodes.push(node);
+      }
+
+      if (textNodes.length === 0) {
+        console.warn('No text nodes found in container for highlight', highlightId);
+        return false;
+      }
+
+      // Build combined text and position map
+      let combinedText = '';
+      const nodeMap = []; // Maps combined text index to {node, localOffset}
+
+      for (const textNode of textNodes) {
+        const nodeText = textNode.textContent;
+        for (let i = 0; i < nodeText.length; i++) {
+          nodeMap.push({ node: textNode, localOffset: i });
+        }
+        combinedText += nodeText;
+      }
+
+      // Try to find the text using several strategies
+      let startIdx = -1;
+      let endIdx = -1;
+
+      // Strategy 1: Direct match
+      startIdx = combinedText.indexOf(searchText);
+      if (startIdx !== -1) {
+        endIdx = startIdx + searchText.length;
+      }
+
+      // Strategy 2: Normalized match
+      if (startIdx === -1) {
+        const normalizedSearch = normalize(searchText);
+        const normalizedCombined = normalize(combinedText);
+        const normalizedIdx = normalizedCombined.indexOf(normalizedSearch);
+
+        if (normalizedIdx !== -1) {
+          // Map normalized index back to original - search for unique prefix
+          const prefix = searchText.split(/\s+/)[0];
+          if (prefix.length >= 3) {
+            startIdx = combinedText.indexOf(prefix);
+            if (startIdx !== -1) {
+              // Find the end by looking for last word
+              const words = searchText.split(/\s+/);
+              const suffix = words[words.length - 1];
+              const suffixIdx = combinedText.indexOf(suffix, startIdx);
+              if (suffixIdx !== -1) {
+                endIdx = suffixIdx + suffix.length;
+              }
+            }
+          }
+        }
+      }
+
+      // Strategy 3: First 50 chars exact match
+      if (startIdx === -1 && searchText.length > 50) {
+        const shortText = searchText.substring(0, 50);
+        startIdx = combinedText.indexOf(shortText);
+        if (startIdx !== -1) {
+          // Estimate end based on search text length
+          endIdx = Math.min(startIdx + searchText.length, combinedText.length);
+        }
+      }
+
+      if (startIdx === -1 || endIdx === -1) {
+        return false;
+      }
+
+      // Clamp indices to valid range
+      startIdx = Math.max(0, startIdx);
+      endIdx = Math.min(endIdx, nodeMap.length);
+
+      if (startIdx >= nodeMap.length || endIdx <= startIdx) return false;
+
+      const startInfo = nodeMap[startIdx];
+      const endInfo = nodeMap[endIdx - 1];
+
+      if (!startInfo || !endInfo) return false;
+
+      // Wrap the text in a mark element
+      try {
+        const range = document.createRange();
+        range.setStart(startInfo.node, startInfo.localOffset);
+        range.setEnd(endInfo.node, endInfo.localOffset + 1);
+
+        const mark = createHighlightMark(highlightId, color);
+
+        // Use extractContents + insertNode (more reliable than surroundContents)
+        const contents = range.extractContents();
+        mark.appendChild(contents);
+        range.insertNode(mark);
+
+        return true;
+      } catch (e) {
+        console.warn('Error wrapping highlight:', e, 'ID:', highlightId);
+        return false;
       }
     }
 
-    function wrapTextAtOffset(container, offset, text, highlightId, color) {
-      // Walk through text nodes to find the one at the offset
-      const walker = document.createTreeWalker(container, NodeFilter.SHOW_TEXT);
-      let currentOffset = 0;
-      let node;
-
-      while ((node = walker.nextNode())) {
-        const nodeLength = node.textContent.length;
-        if (currentOffset + nodeLength > offset) {
-          // Found the starting node
-          const localOffset = offset - currentOffset;
-          const nodeText = node.textContent;
-
-          // Check if the text matches at this position
-          if (nodeText.substring(localOffset, localOffset + text.length) === text) {
-            // Split and wrap
-            const before = nodeText.substring(0, localOffset);
-            const match = nodeText.substring(localOffset, localOffset + text.length);
-            const after = nodeText.substring(localOffset + text.length);
-
-            const mark = document.createElement('mark');
-            mark.className = `case-highlight hl-${color}`;
-            mark.dataset.highlightId = highlightId;
-            mark.textContent = match;
-            mark.addEventListener('click', () => {
-              if (selectedHighlightId === highlightId) {
-                selectHighlight(null);
-              } else {
-                selectHighlight(highlightId);
-              }
-            });
-
-            const parent = node.parentNode;
-            if (before) {
-              parent.insertBefore(document.createTextNode(before), node);
-            }
-            parent.insertBefore(mark, node);
-            if (after) {
-              parent.insertBefore(document.createTextNode(after), node);
-            }
-            parent.removeChild(node);
-            return true;
-          }
+    function createHighlightMark(highlightId, color) {
+      const mark = document.createElement('mark');
+      mark.className = `case-highlight hl-${color}`;
+      mark.dataset.highlightId = highlightId;
+      mark.addEventListener('click', () => {
+        if (selectedHighlightId === highlightId) {
+          selectHighlight(null);
+        } else {
+          selectHighlight(highlightId);
         }
-        currentOffset += nodeLength;
-      }
-      return false;
+      });
+      return mark;
     }
 
     // Sidebar click handlers
