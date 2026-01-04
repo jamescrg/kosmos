@@ -31,6 +31,7 @@ def get_highlights_data(request, matter, matter_id):
     keyword = get_filter_value("keyword")
     order_by = get_filter_value("order_by")
     document_id = get_filter_value("document")
+    source_type = get_filter_value("source_type")
 
     if matter:
         # Include both document and case law highlights
@@ -103,6 +104,7 @@ def get_highlights_data(request, matter, matter_id):
         "selected_importance": (
             f"Importance {importance_value}" if importance_value else ""
         ),
+        "source_type": source_type,
     }
 
 
@@ -196,6 +198,25 @@ def highlights_filter_importance(request, matter_id, importance_value):
     filter_data = request.session.get(filter_session_key, {})
     # Set to empty string when 0 (All) is selected, otherwise use the value
     filter_data["importance"] = "" if importance_value == 0 else importance_value
+
+    request.session[filter_session_key] = filter_data
+    request.session[pagination_session_key] = 1  # Reset to page 1
+
+    return redirect("case:highlights-list", matter_id=matter_id)
+
+
+@login_required
+def highlights_filter_source_type(request, matter_id, source_type):
+    """Filter highlights by source type (case or document)."""
+    filter_session_key = get_session_key("highlights_filter", matter_id)
+    pagination_session_key = get_session_key("highlights_pagination", matter_id)
+    filter_data = request.session.get(filter_session_key, {})
+
+    # Valid source types: "", "case", "document"
+    if source_type in ("case", "document"):
+        filter_data["source_type"] = source_type
+    else:
+        filter_data["source_type"] = ""  # "all" or any other value clears filter
 
     request.session[filter_session_key] = filter_data
     request.session[pagination_session_key] = 1  # Reset to page 1
