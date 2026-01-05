@@ -14,7 +14,7 @@
       <form id="invoice-edit-form"
             hx-post="{% url 'invoicing:invoices-edit' invoice.id %}"
             hx-target="#htmx-modal-container"
-            class="form-compact">
+            class="form-compact col2">
         {% csrf_token %}
         {{ form }}
       </form>

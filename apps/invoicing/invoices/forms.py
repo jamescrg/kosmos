@@ -7,6 +7,11 @@ from config.settings import CustomFormRendererCompact
 
 
 class InvoiceForm(forms.ModelForm):
+    YESNO_CHOICES = (
+        (True, "Yes"),
+        (False, "No"),
+    )
+
     class Meta:
         model = Invoice
         fields = [
@@ -25,7 +30,6 @@ class InvoiceForm(forms.ModelForm):
             "message": forms.Textarea(attrs={"rows": 3, "class": "span2"}),
             "comment": forms.Textarea(attrs={"rows": 3, "class": "span2"}),
             "discount": forms.TextInput(attrs={"class": ""}),
-            "show_comp": forms.CheckboxInput(attrs={"class": ""}),
         }
 
     def clean_matter(self):
@@ -39,6 +43,7 @@ class InvoiceForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.renderer = CustomFormRendererCompact()
+        self.fields["show_comp"].widget = forms.Select(choices=self.YESNO_CHOICES)
 
         today = datetime.now().date()
 
@@ -55,6 +60,11 @@ class InvoiceForm(forms.ModelForm):
 
 
 class EditInvoiceForm(forms.ModelForm):
+    YESNO_CHOICES = (
+        (True, "Yes"),
+        (False, "No"),
+    )
+
     class Meta:
         model = Invoice
 
@@ -63,18 +73,18 @@ class EditInvoiceForm(forms.ModelForm):
             "date_issued",
             "message",
             "comment",
-            "discount",
             "show_comp",
+            "discount",
         ]
         widgets = {
             "date_issued": forms.DateInput(attrs={"type": "date"}),
             "date_limit": forms.DateInput(attrs={"type": "date"}),
             "message": forms.Textarea(attrs={"rows": 3, "class": "span2"}),
             "comment": forms.Textarea(attrs={"rows": 3, "class": "span2"}),
-            "discount": forms.TextInput(attrs={"class": "span2"}),
-            "show_comp": forms.CheckboxInput(attrs={"class": "span2"}),
+            "discount": forms.TextInput(attrs={"class": ""}),
         }
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.renderer = CustomFormRendererCompact()
+        self.fields["show_comp"].widget = forms.Select(choices=self.YESNO_CHOICES)
