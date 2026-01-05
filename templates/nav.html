@@ -21,7 +21,7 @@
           <a id="nav-notes" href="{% url 'notes:index' %}">Notes</a>
         </li>
         <li {% if app == 'invoicing' %}class="active"{% endif %}>
-          <a id="nav-invoicing" href="{% url 'invoicing:unbilled-index' %}">Invoicing</a>
+          <a id="nav-invoicing" href="{% url 'invoicing:invoices-index' %}">Invoicing</a>
         </li>
         <li {% if app == 'intakes' %}class="active"{% endif %}>
           <a id="nav-intakes" href={% url 'intakes:index' %}>Intakes</a>
