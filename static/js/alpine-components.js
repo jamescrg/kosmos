@@ -114,18 +114,29 @@ document.addEventListener('alpine:init', () => {
       }
     },
 
+    // Close when clicking any link or button inside the menu
+    handleMenuClick(event) {
+      const clickedElement = event.target.closest('a, button');
+      if (clickedElement && this.$refs.menu?.contains(clickedElement)) {
+        this.close();
+      }
+    },
+
     init() {
       // Bind event listeners
       this._clickOutsideHandler = this.handleClickOutside.bind(this);
       this._escapeHandler = this.handleEscape.bind(this);
+      this._menuClickHandler = this.handleMenuClick.bind(this);
 
       document.addEventListener('click', this._clickOutsideHandler);
       document.addEventListener('keydown', this._escapeHandler);
+      this.$el.addEventListener('click', this._menuClickHandler);
     },
 
     destroy() {
       document.removeEventListener('click', this._clickOutsideHandler);
       document.removeEventListener('keydown', this._escapeHandler);
+      this.$el.removeEventListener('click', this._menuClickHandler);
     }
   }));
 
