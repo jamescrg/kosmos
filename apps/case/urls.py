@@ -398,6 +398,11 @@ urlpatterns = [
         ai.prompt_editor_modal,
         name="ai-prompt-editor",
     ),
+    path(
+        "case/<int:matter_id>/ai/context-preview/",
+        ai.context_preview,
+        name="ai-context-preview",
+    ),
     # ==========================================================================
     # OBJECT-SPECIFIC ROUTES (operate on specific objects by ID)
     # ==========================================================================
@@ -441,6 +446,11 @@ urlpatterns = [
         "case/documents/<int:document_id>/importance/<int:importance>/",
         documents.document_importance,
         name="document-importance",
+    ),
+    path(
+        "case/documents/<int:document_id>/toggle-ai/",
+        documents.documents_toggle_ai,
+        name="documents-toggle-ai",
     ),
     path(
         "case/documents/<int:document_id>/toggle-select/",

@@ -1,0 +1,66 @@
+{% extends "base-minimal.html" %}
+{% load humanize static %}
+{% block title %}
+  AI Context - {{ matter.name }}
+{% endblock title %}
+{% block extra_css %}
+  <link rel="stylesheet" href="{% static 'css/apps/case/ai.css' %}">
+{% endblock extra_css %}
+{% block content %}
+  <div class="ai-prompt-page standalone">
+    <div class="ai-prompt-canvas">
+      <div class="toolbar">
+        <div class="toolbar-left">
+          <div class="toolbar-title">
+            <h1>AI Context Preview</h1>
+            <span class="text-muted">{{ matter.name }}</span>
+          </div>
+        </div>
+        <div class="toolbar-right">
+          <div class="context-stats">
+            <span><strong>{{ char_count|intcomma }}</strong> characters</span>
+            <span><strong>~{{ token_estimate|intcomma }}</strong> tokens</span>
+          </div>
+        </div>
+      </div>
+      <div class="context-cost-estimates">
+        <h3>Estimated Cost Per Message</h3>
+        <div class="cost-grid">
+          {% for model in model_costs %}
+            <div class="cost-item {% if model.exceeded %}cost-exceeded{% elif model.warning %}cost-warning{% endif %}">
+              <span class="cost-model">{{ model.name }}</span>
+              <span class="cost-value">${{ model.cost|floatformat:4 }}</span>
+              <span class="cost-context {% if model.exceeded %}exceeded{% elif model.warning %}warning{% endif %}">
+                {% if model.exceeded %}<i class="icon-alert-triangle"></i>{% endif %}
+                {{ token_estimate|intcomma }} / {{ model.context_limit|intcomma }}
+                <small>({{ model.usage_pct|floatformat:0 }}%)</small>
+              </span>
+            </div>
+          {% endfor %}
+        </div>
+      </div>
+      <div class="context-sections">
+        {% for section in sections %}
+          <div class="context-section" x-data="{ open:
+            {% if section.expanded %}
+              true
+            {% else %}
+              false
+            {% endif %}
+            }">
+            <button type="button"
+                    class="context-section-header"
+                    @click="open = !open"
+                    :aria-expanded="open">
+              <i class="icon-chevron-right" :class="{ 'rotated': open }"></i>
+              <span>{{ section.title }}</span>
+            </button>
+            <div class="context-section-body" x-show="open" x-collapse>
+              <pre class="context-section-text">{{ section.content }}</pre>
+            </div>
+          </div>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+{% endblock content %}

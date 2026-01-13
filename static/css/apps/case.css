@@ -21,6 +21,22 @@
   width: 10rem;
 }
 
+#documents-list .col-pages {
+  width: 4rem;
+  text-align: center;
+}
+
+#documents-list .col-ai {
+  width: 3rem;
+  text-align: center;
+  padding-left: 0;
+  padding-right: 0;
+}
+
+#documents-list .col-importance {
+  width: 3rem;
+}
+
 /* OCR badge in document column */
 #documents-list .col-document .badge {
   margin-left: 0.25rem;

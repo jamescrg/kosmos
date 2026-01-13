@@ -125,10 +125,15 @@ def collect_context_items(matter, current_conversation=None) -> list[ContextItem
         if doc.description:
             content_parts.append(f"Description: {doc.description}")
         if doc.ocr_text and doc.ocr_status in ["completed", "extracted"]:
-            excerpt = doc.ocr_text[:1500].strip()
-            if len(doc.ocr_text) > 1500:
-                excerpt += "..."
-            content_parts.append(f"Content: {excerpt}")
+            if doc.include_in_ai:
+                # Full text for documents marked for AI inclusion
+                content_parts.append(f"Content:\n{doc.ocr_text}")
+            else:
+                # Truncated excerpt for other documents
+                excerpt = doc.ocr_text[:1500].strip()
+                if len(doc.ocr_text) > 1500:
+                    excerpt += "..."
+                content_parts.append(f"Content: {excerpt}")
 
         items.append(
             ContextItem(

@@ -31,6 +31,12 @@
           {% endfor %}
         </ul>
       </div>
+      <a href="{% url 'case:ai-context-preview' matter.id %}"
+         target="_blank"
+         class="btn-icon ai-context-btn"
+         title="Preview AI context">
+        <i class="icon-file-text"></i> Context
+      </a>
     </div>
   </div>
 </div>

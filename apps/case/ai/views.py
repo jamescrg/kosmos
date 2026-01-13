@@ -829,3 +829,143 @@ def delete_attachment(request, attachment_id):
             "attachments": conversation.attachments.all(),
         },
     )
+
+
+@login_required
+def context_preview(request, matter_id):
+    """Preview the AI context prompt for a matter."""
+    from .context import (
+        ImportanceTier,
+        collect_context_items,
+        format_contacts,
+        format_events,
+        format_items_by_tier,
+        format_matter_overview,
+        format_proceedings,
+        format_settlement,
+        format_tasks,
+        load_legal_prompt,
+    )
+
+    matter, _ = get_matter_from_url(request, matter_id)
+
+    # Build structured sections for display
+    sections = []
+
+    # Legal guidelines
+    legal_prompt = load_legal_prompt()
+    sections.append(
+        {"title": "Legal Guidelines", "content": legal_prompt, "expanded": False}
+    )
+
+    # Matter Overview
+    sections.append(
+        {
+            "title": "Matter Overview",
+            "content": format_matter_overview(matter),
+            "expanded": True,
+        }
+    )
+
+    # Contacts
+    sections.append({"title": "Contacts & Parties", "content": format_contacts(matter)})
+
+    # Proceedings
+    sections.append(
+        {"title": "Court Proceedings", "content": format_proceedings(matter)}
+    )
+
+    # Collect importance-rated items
+    all_items = collect_context_items(matter)
+
+    # Critical items
+    critical = format_items_by_tier(all_items, ImportanceTier.CRITICAL)
+    sections.append(
+        {
+            "title": "Critical Evidence & Information",
+            "content": critical,
+            "expanded": True,
+        }
+    )
+
+    # High importance
+    high = format_items_by_tier(all_items, ImportanceTier.HIGH)
+    sections.append({"title": "High Importance Materials", "content": high})
+
+    # Medium importance
+    medium = format_items_by_tier(all_items, ImportanceTier.MEDIUM)
+    sections.append({"title": "Supporting Materials", "content": medium})
+
+    # Reference
+    reference = format_items_by_tier(all_items, ImportanceTier.REFERENCE)
+    sections.append({"title": "Reference Materials", "content": reference})
+
+    # Tasks
+    sections.append({"title": "Tasks", "content": format_tasks(matter)})
+
+    # Events
+    sections.append({"title": "Upcoming Events", "content": format_events(matter)})
+
+    # Settlement
+    sections.append(
+        {"title": "Settlement Information", "content": format_settlement(matter)}
+    )
+
+    # Calculate stats from full context
+    context_text = assemble_matter_context(matter, user=request.user)
+    char_count = len(context_text)
+    token_estimate = char_count // 4
+
+    # Calculate cost estimates per model (input tokens only, per million)
+    # Prices as of Jan 2025 (for contexts ≤200K tokens)
+    # Context windows: Claude 200K standard, Gemini 1M
+    model_costs = [
+        {
+            "name": "Gemini 2.5 Flash",
+            "input_price": 0.15,  # per million tokens
+            "cost": (token_estimate / 1_000_000) * 0.15,
+            "context_limit": 1_000_000,
+        },
+        {
+            "name": "Gemini 2.5 Pro",
+            "input_price": 1.25,
+            "cost": (token_estimate / 1_000_000) * 1.25,
+            "context_limit": 1_000_000,
+        },
+        {
+            "name": "Gemini 3 Pro",
+            "input_price": 2.00,
+            "cost": (token_estimate / 1_000_000) * 2.00,
+            "context_limit": 1_000_000,
+        },
+        {
+            "name": "Claude Sonnet 4",
+            "input_price": 3.00,
+            "cost": (token_estimate / 1_000_000) * 3.00,
+            "context_limit": 200_000,
+        },
+        {
+            "name": "Claude Opus 4.5",
+            "input_price": 15.00,
+            "cost": (token_estimate / 1_000_000) * 15.00,
+            "context_limit": 200_000,
+        },
+    ]
+
+    # Add usage percentage and warning status
+    for model in model_costs:
+        model["usage_pct"] = (token_estimate / model["context_limit"]) * 100
+        model["exceeded"] = token_estimate > model["context_limit"]
+        model["warning"] = token_estimate > model["context_limit"] * 0.8
+
+    return render(
+        request,
+        "case/ai/context-preview.html",
+        {
+            "matter": matter,
+            "sections": sections,
+            "char_count": char_count,
+            "token_estimate": token_estimate,
+            "model_costs": model_costs,
+        },
+    )
