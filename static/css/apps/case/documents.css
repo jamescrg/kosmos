@@ -20,7 +20,7 @@
 
 /* Column widths */
 #documents-list .col-date {
-  width: 11rem;
+  width: 8rem;
 }
 
 #documents-list .col-category {
@@ -31,8 +31,8 @@
   /* Variable width - takes remaining space */
 }
 
-#documents-list .col-proceeding {
-  width: 10rem;
+#documents-list .col-added {
+  width: 8rem;
 }
 
 #documents-list .col-importance {
@@ -125,9 +125,8 @@
   color: var(--link-hover);
 }
 
-/* Ghost buttons for empty date/proceeding */
-#documents-list .col-date .empty-value-icon,
-#documents-list .col-proceeding .empty-value-icon {
+/* Ghost buttons for empty date */
+#documents-list .col-date .empty-value-icon {
   color: var(--icon-muted);
   display: block;
   opacity: 0;
@@ -135,8 +134,7 @@
   transition: opacity 0.2s;
 }
 
-#documents-list .col-date:hover .empty-value-icon,
-#documents-list .col-proceeding:hover .empty-value-icon {
+#documents-list .col-date:hover .empty-value-icon {
   opacity: 1;
 }
 
