@@ -847,3 +847,15 @@ def force_ocr(request, document_id):
         "case/documents/ocr-badge.html",
         {"document": document},
     )
+
+
+@login_required
+@require_POST
+def documents_toggle_ai(request, document_id):
+    """Toggle the include_in_ai flag on a document."""
+    document = get_object_or_404(Document, pk=document_id)
+
+    document.include_in_ai = not document.include_in_ai
+    document.save(update_fields=["include_in_ai", "updated_by", "updated_at"])
+
+    return HttpResponse(status=204)

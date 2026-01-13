@@ -34,6 +34,7 @@ class FilesForm(forms.ModelForm):
             "date",
             "name",
             "description",
+            "include_in_ai",
         ]
         widgets = {
             "date": forms.DateInput(attrs={"type": "date"}),

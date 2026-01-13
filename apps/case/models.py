@@ -105,6 +105,10 @@ class Document(AuditMixin, models.Model):
     importance = models.PositiveIntegerField(
         default=5, validators=[MinValueValidator(1), MaxValueValidator(10)]
     )
+    include_in_ai = models.BooleanField(
+        default=False,
+        help_text="Include full document text in AI context",
+    )
     history = HistoricalRecords()
 
     def __str__(self):

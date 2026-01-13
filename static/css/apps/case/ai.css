@@ -1519,3 +1519,152 @@
 .citations-unverified-list li {
   color: var(--amber-700);
 }
+
+/* Context Preview Button */
+.ai-context-btn i {
+  margin-right: 0.5rem;
+  color: var(--icon-violet);
+}
+
+/* Context Preview Page */
+.context-stats {
+  display: flex;
+  gap: 1.5rem;
+  font-size: 0.875rem;
+  color: var(--stone-600);
+}
+
+.context-cost-estimates {
+  margin-bottom: 1.5rem;
+  padding: 1rem;
+  background: var(--stone-100);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+}
+
+.context-cost-estimates h3 {
+  margin: 0 0 0.75rem 0;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--stone-600);
+  text-transform: uppercase;
+  letter-spacing: 0.025em;
+}
+
+.cost-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.cost-item {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  padding: 0.5rem 1rem;
+  background: var(--background-light);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  min-width: 8rem;
+}
+
+.cost-model {
+  font-size: 0.9375rem;
+  font-weight: 500;
+  color: var(--stone-600);
+}
+
+.cost-value {
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: var(--stone-800);
+}
+
+.cost-context {
+  font-size: 0.875rem;
+  color: var(--stone-500);
+}
+
+.cost-context small {
+  color: var(--stone-400);
+}
+
+.cost-context.warning {
+  color: var(--amber-600);
+}
+
+.cost-context.exceeded {
+  color: var(--red-600);
+  font-weight: 500;
+}
+
+.cost-context.exceeded i {
+  margin-right: 0.25rem;
+}
+
+.cost-item.cost-warning {
+  border-color: var(--amber-300);
+  background: var(--amber-50);
+}
+
+.cost-item.cost-exceeded {
+  border-color: var(--red-300);
+  background: var(--red-50);
+}
+
+.context-sections {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.context-section {
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--stone-50);
+}
+
+.context-section-header {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  width: 100%;
+  padding: 0.75rem 1rem;
+  background: var(--stone-100);
+  border: none;
+  border-radius: var(--radius-md);
+  font-size: 0.9375rem;
+  font-weight: 500;
+  color: var(--stone-800);
+  cursor: pointer;
+  text-align: left;
+}
+
+.context-section-header:hover {
+  background: var(--stone-200);
+}
+
+.context-section-header i {
+  font-size: 0.875rem;
+  color: var(--stone-500);
+  transition: transform 0.15s ease;
+}
+
+.context-section-header i.rotated {
+  transform: rotate(90deg);
+}
+
+.context-section-body {
+  overflow: hidden;
+}
+
+.context-section-text {
+  margin: 0;
+  padding: 1rem;
+  font-size: 0.9rem;
+  line-height: 1.5;
+  white-space: pre-wrap;
+  word-wrap: break-word;
+  font-family: var(--font-mono);
+  color: var(--stone-700);
+}
