@@ -3,10 +3,10 @@
     <colgroup>
       <col class="col-select">
       <col class="col-category">
-      <col class="col-date">
       <col class="col-document">
-      <col class="col-proceeding">
       <col class="col-pages">
+      <col class="col-date">
+      <col class="col-added">
       <col class="col-ai">
       <col class="col-importance">
     </colgroup>
@@ -20,14 +20,6 @@
         </button>
       </th>
       <th class="col-category">Category</th>
-      <th class="col-date">
-        Date
-        <button class="btn-sort {% if 'date' in current_order %}active{% endif %}"
-                hx-get="{% url 'case:documents-sort' matter.id 'date' %}"
-                hx-target="#documents">
-          <i class="icon-chevrons-up-down"></i>
-        </button>
-      </th>
       <th class="col-document">
         Name
         <button class="btn-sort {% if 'name' in current_order %}active{% endif %}"
@@ -36,8 +28,23 @@
           <i class="icon-chevrons-up-down"></i>
         </button>
       </th>
-      <th class="col-proceeding">Proceeding</th>
-      <th class="col-pages">Pages</th>
+      <th class="col-pages">Pg.</th>
+      <th class="col-date">
+        Date
+        <button class="btn-sort {% if 'date' in current_order %}active{% endif %}"
+                hx-get="{% url 'case:documents-sort' matter.id 'date' %}"
+                hx-target="#documents">
+          <i class="icon-chevrons-up-down"></i>
+        </button>
+      </th>
+      <th class="col-added">
+        Added
+        <button class="btn-sort {% if 'created_at' in current_order %}active{% endif %}"
+                hx-get="{% url 'case:documents-sort' matter.id 'created_at' %}"
+                hx-target="#documents">
+          <i class="icon-chevrons-up-down"></i>
+        </button>
+      </th>
       <th class="col-ai">AI</th>
       <th class="col-importance">
         <button class="btn-sort {% if 'importance' in current_order %}active{% endif %}"

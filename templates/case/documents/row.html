@@ -7,7 +7,6 @@
     </button>
   </td>
   <td class="col-category dropdown-cell">{% include "case/documents/category-display.html" %}</td>
-  <td class="col-date">{% include "case/documents/date-display.html" %}</td>
   <td class="col-document dropdown-cell">
     <div class="document-name-row">
       <div class="document-name-content">
@@ -67,8 +66,9 @@
       </div>
     {% endif %}
   </td>
-  <td class="col-proceeding dropdown-cell">{% include "case/documents/proceeding-display.html" %}</td>
   <td class="col-pages">{{ document.page_count|default:"" }}</td>
+  <td class="col-date">{% include "case/documents/date-display.html" %}</td>
+  <td class="col-added">{{ document.created_at|date:"Y-m-d" }}</td>
   <td class="col-ai">
     <label class="toggle-switch"
            title="{% if document.include_in_ai %}Remove from AI context{% else %}Include in AI context{% endif %}">

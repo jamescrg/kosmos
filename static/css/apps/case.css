@@ -14,7 +14,11 @@
 }
 
 #documents-list .col-date {
-  width: 11rem;
+  width: 8rem;
+}
+
+#documents-list .col-added {
+  width: 8rem;
 }
 
 #documents-list .col-category {
@@ -25,13 +29,10 @@
   /* Variable width - takes remaining space */
 }
 
-#documents-list .col-proceeding {
-  width: 10rem;
-}
 
 #documents-list .col-pages {
   width: 4rem;
-  text-align: center;
+  text-align: left;
 }
 
 #documents-list .col-ai {
@@ -112,9 +113,8 @@
   color: var(--link-hover);
 }
 
-/* Ghost buttons for empty date/proceeding */
-#documents-list .col-date .btn-ghost,
-#documents-list .col-proceeding .btn-ghost {
+/* Ghost buttons for empty date */
+#documents-list .col-date .btn-ghost {
   display: block;
   text-align: center;
 }
@@ -274,7 +274,7 @@
 }
 
 #caselaws-table .col-pages {
-  width: 6rem;
+  width: 4rem;
   text-align: left;
 }
 
