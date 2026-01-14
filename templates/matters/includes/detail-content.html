@@ -1,8 +1,9 @@
 {% include "matters/includes/detail-nav.html" %}
-<div class="section-body"
-     hx-get="{{ tab_list_url }}"
-     hx-trigger="load"
-     hx-swap="innerHTML"></div>
+<div class="section-body">
+  {% if tab_template %}
+    {% include tab_template %}
+  {% endif %}
+</div>
 <div id="mode-pills" class="mode-pills" hx-swap-oob="true">
   <a href="{% url 'matters:detail' id=matter.id %}"
      hx-get="{% url 'matters:mode-content' id=matter.id %}"

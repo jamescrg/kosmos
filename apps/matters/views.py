@@ -157,27 +157,106 @@ def mode_content(request, id):
     if not request.headers.get("HX-Request"):
         return redirect(f"/matters/{id}/{tab}")
 
-    # Map tab names to their list URLs
-    tab_list_urls = {
-        "contacts": f"/matters/{id}/contacts/list/",
-        "rates": f"/matters/{id}/rates/list/",
-        "activity": f"/matters/{id}/activity/list/",
-        "events": f"/matters/{id}/events/list/",
-        "tasks": f"/matters/{id}/tasks/list/",
-        "proceedings": f"/matters/{id}/proceedings/list/",
-        "settlement": f"/matters/{id}/settlement/list/",
-        "ledger": f"/matters/{id}/ledger/list/",
-    }
-
     context = {
         "matter": matter,
         "matters": Matter.objects.filter(status="Open").order_by("name"),
         "mode": "detail",
         "subapp": tab,
-        "tab_list_url": tab_list_urls.get(tab, f"/matters/{id}/contacts/list/"),
     }
 
+    # Fetch tab data directly for single-request loading
+    tab_data = _get_detail_tab_data(request, matter, tab)
+    context.update(tab_data)
+
     return render(request, "matters/includes/detail-content.html", context)
+
+
+def _get_detail_tab_data(request, matter, tab):
+    """Fetch data for the specified detail tab."""
+    from apps.activity.time.models import TimeEntry
+    from apps.activity.time.summary import calculate_summary
+    from apps.management.pagination import CustomPaginator
+    from apps.matters.contacts.views import get_contact_list
+    from apps.matters.events.get_event_data import get_event_data
+    from apps.matters.ledger.get_ledger_data import get_ledger_data
+    from apps.matters.rates.models import Rate
+    from apps.matters.tasks.views import get_matter_tasks_data
+    from apps.trust.trust import get_confirmed_client_balance
+
+    if tab == "contacts":
+        return {
+            "tab_template": "matters/contacts/contact-table.html",
+            **get_contact_list(request, matter),
+        }
+
+    elif tab == "rates":
+        return {
+            "tab_template": "matters/rates/list.html",
+            "rates": Rate.objects.filter(matter=matter).order_by("user__username"),
+        }
+
+    elif tab == "activity":
+        sort_order = request.session.get("matter_activity_sort", "-id")
+        entries = TimeEntry.objects.filter(matter=matter.id).order_by(sort_order)
+        pagination = CustomPaginator(
+            entries, per_page=10, request=request, session_key="activity_pagination"
+        )
+        return {
+            "tab_template": "matters/activity/list.html",
+            "entries": pagination.get_object_list(),
+            "pagination": pagination,
+            "session_key": "activity_pagination",
+            "trigger_key": "matterActivityChanged",
+            "summary": calculate_summary(entries),
+        }
+
+    elif tab == "events":
+        return {
+            "tab_template": "matters/events/list.html",
+            **get_event_data(request, matter),
+        }
+
+    elif tab == "tasks":
+        return {
+            "tab_template": "matters/tasks/list.html",
+            **get_matter_tasks_data(request, matter.id),
+        }
+
+    elif tab == "proceedings":
+        return {
+            "tab_template": "matters/proceedings/list.html",
+            "proceedings": Proceeding.objects.filter(matter=matter.id).order_by("-id"),
+        }
+
+    elif tab == "settlement":
+        return {
+            "tab_template": "matters/settlement/list.html",
+            "entries": SettlementEntry.objects.filter(matter=matter.id).order_by(
+                "date"
+            ),
+        }
+
+    elif tab == "ledger":
+        ledger_data = get_ledger_data(matter)
+        client_trust_balance = 0
+        if matter.client:
+            client_trust_balance = get_confirmed_client_balance(matter.client.id)
+
+        total_cost = (
+            matter.value["invoices"]["payment_sum"]
+            + ledger_data["balance_due"]
+            + matter.value["unbilled"]["net_fees_and_expenses"]
+        )
+
+        return {
+            "tab_template": "matters/ledger/list.html",
+            "client_trust_balance": client_trust_balance,
+            "total_cost": total_cost,
+            **ledger_data,
+        }
+
+    # Fallback
+    return {"tab_template": "matters/contacts/contact-table.html"}
 
 
 @login_required
