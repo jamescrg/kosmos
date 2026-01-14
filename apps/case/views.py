@@ -216,9 +216,9 @@ def _get_case_tab_data(request, matter, matters, matter_id, tab):
 
         # Get LLM choices
         llm_session_key = get_session_key("ai_llm", matter_id)
-        selected_llm = request.session.get(llm_session_key, "claude")
-        llm_choices = [("claude", "Claude"), ("gpt4", "GPT-4"), ("gemini", "Gemini")]
-        selected_llm_display = dict(llm_choices).get(selected_llm, "Claude")
+        selected_llm = request.session.get(llm_session_key, "gemini-3-pro")
+        llm_choices = Conversation.LLM_CHOICES
+        selected_llm_display = dict(llm_choices).get(selected_llm, "Gemini 3 Pro")
 
         return {
             "tab_template": "case/ai/list.html",
