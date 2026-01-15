@@ -43,3 +43,12 @@ repos:
         files: "\\.html"
         language_version: python3.13
         args: [ --profile, django ]
+
+  - repo: local
+    hooks:
+      - id: stylelint
+        name: stylelint
+        entry: npx stylelint --fix
+        language: system
+        files: "static/css/.*\\.css$"
+        exclude: "(dropzone|lucide)\\.css$"
