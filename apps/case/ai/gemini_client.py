@@ -2,6 +2,7 @@
 Google Gemini API client for AI chat.
 
 Uses native Gemini SDK with streaming and thought summaries.
+Supports cancellation mid-request to stop billing.
 """
 
 from typing import Callable
@@ -17,21 +18,26 @@ def send_to_gemini_streaming(
     messages: list[dict],
     model: str = "gemini-2.5-flash",
     on_thought: Callable[[str], None] | None = None,
+    is_cancelled: Callable[[], bool] | None = None,
 ) -> tuple[str, int, int]:
     """
     Send a conversation to Gemini with streaming and thought summaries.
+
+    Checks for cancellation on each chunk to allow stopping mid-request.
 
     Args:
         system_context: The system prompt with matter context
         messages: List of {"role": "user"|"assistant", "content": str}
         model: Gemini model to use (gemini-2.5-flash or gemini-2.5-pro)
         on_thought: Optional callback called with each thought summary
+        is_cancelled: Optional callback that returns True if request should be cancelled
 
     Returns:
         tuple of (response_text, input_tokens, output_tokens)
 
     Raises:
         google.genai.errors.APIError: If the API call fails
+        InterruptedError: If the request was cancelled
     """
     client = genai.Client(api_key=settings.GEMINI_API_KEY)
 
@@ -62,6 +68,10 @@ def send_to_gemini_streaming(
         contents=contents,
         config=config,
     ):
+        # Check for cancellation on each chunk
+        if is_cancelled and is_cancelled():
+            raise InterruptedError("Request cancelled")
+
         # Extract token usage from final chunk
         if chunk.usage_metadata:
             input_tokens = chunk.usage_metadata.prompt_token_count or 0
