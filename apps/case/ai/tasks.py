@@ -87,9 +87,6 @@ def process_ai_request(
 
             def on_thought(thought_text: str):
                 """Callback for thought summaries from Gemini."""
-                # Check for cancellation during thinking
-                if is_cancelled():
-                    raise InterruptedError("Request cancelled")
                 # Truncate very long thoughts for display
                 display_text = thought_text[:300]
                 if len(thought_text) > 300:
@@ -97,7 +94,11 @@ def process_ai_request(
                 update_status("thinking", display_text)
 
             response_text, input_tokens, output_tokens = send_to_gemini_streaming(
-                context_text, chat_history, model=model, on_thought=on_thought
+                context_text,
+                chat_history,
+                model=model,
+                on_thought=on_thought,
+                is_cancelled=is_cancelled,
             )
         else:
             # Claude - show elapsed time updates
@@ -111,7 +112,10 @@ def process_ai_request(
             )
 
             response_text, input_tokens, output_tokens = send_to_claude(
-                context_text, chat_history, model=claude_model
+                context_text,
+                chat_history,
+                model=claude_model,
+                is_cancelled=is_cancelled,
             )
 
         # Check for cancellation before citation verification

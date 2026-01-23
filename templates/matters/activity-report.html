@@ -9,33 +9,27 @@
     <meta name="keywords" content="" />
     <title>{{ matter.name }} - Activity Report</title>
     <link rel="shortcut icon" href={% static 'images/briefcase-fill.svg' %} />
+    <link rel="stylesheet" href={% static_v 'css/palette.css' %} />
+    <link rel="stylesheet" href={% static_v 'css/colors.css' %} />
     <link rel="stylesheet" href={% static_v 'css/pdf/general.css' %} />
-    <link rel="stylesheet" href={% static_v 'css/pdf/invoice.css' %} />
+    <link rel="stylesheet" href={% static_v 'css/pdf/invoice-craig.css' %} />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=Barlow:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap"
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Serif:ital,wght@0,100..900;1,100..900&display=swap"
           rel="stylesheet" />
   </head>
   <body>
     <div class="template">
       <div class="header">
         <div class="header-left">
-          <div class="header-left-left">
-            <img width="100"
-                 height="auto"
-                 class="cb-logo"
-                 alt="cb_logo"
-                 src="{% static 'images/cb_logo.png' %}" />
-          </div>
           <div class="header-left-right">
             <p>
-              CB Legal, <span class="llc">LLC</span>
+              Craig Legal <span class="llc">LLC</span>
             </p>
-            <p>5565 Glenridge Connector</p>
-            <p>Suite 350</p>
-            <p>Atlana, GA 30342</p>
-            <p>(770) 426 - 7740</p>
-            <p>jcraig@cblegal.law</p>
+            <p>3408 Clairmont Rd., No. 160</p>
+            <p>Atlanta, GA 30319</p>
+            <p>(404) 470 - 4950</p>
+            <p>james@craiglegal.law</p>
           </div>
         </div>
         <div class="header-right">
@@ -52,11 +46,11 @@
           <h3>Time Entries</h3>
           <table class="table">
             <tr>
-              <th class="text-left">Date</th>
-              <th class="text-left">Description</th>
-              <th class="text-right">Hours</th>
-              <th class="text-right">Rate</th>
-              <th class="money">Total</th>
+              <th class="text-left hl-gray">Date</th>
+              <th class="text-left hl-gray">Description</th>
+              <th class="text-right hl-gray">Hours</th>
+              <th class="text-right hl-gray">Rate</th>
+              <th class="money hl-gray">Total</th>
             </tr>
             {% for entry in time_entries %}
               <tr>
@@ -79,9 +73,9 @@
           <h3>Expenses</h3>
           <table class="table">
             <tr>
-              <th class="date">Date</th>
-              <th>Description</th>
-              <th class="money">Amount</th>
+              <th class="date hl-gray">Date</th>
+              <th class="hl-gray">Description</th>
+              <th class="money hl-gray">Amount</th>
             </tr>
             {% for expense in expenses %}
               <tr>
@@ -112,8 +106,8 @@
             <td class="money">${{ total_expenses|floatformat:2|intcomma }}</td>
           </tr>
           <tr>
-            <td class="total">Matter Total</td>
-            <td class="money total">${{ matter_total|floatformat:2|intcomma }}</td>
+            <td class="total hl-yellow">Matter Total</td>
+            <td class="money total hl-yellow">${{ matter_total|floatformat:2|intcomma }}</td>
           </tr>
         </table>
       </div>

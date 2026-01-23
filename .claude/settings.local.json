@@ -85,7 +85,9 @@
       "Bash(npm audit:*)",
       "Bash(du:*)",
       "Bash(sudo grep:*)",
-      "Bash(npx stylelint:*)"
+      "Bash(npx stylelint:*)",
+      "Bash(journalctl:*)",
+      "WebFetch(domain:aistudio.google.com)"
     ],
     "deny": []
   }
