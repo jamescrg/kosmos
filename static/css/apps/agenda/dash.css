@@ -17,13 +17,13 @@
   .dashboard-grid > .dashboard-sidebar {
     flex: 0 0 calc(33.333% - 1rem);
     max-width: calc(33.333% - 1rem);
-    order: 2;
+    order: 1;
   }
 
   .dashboard-grid > .dashboard-main {
     flex: 0 0 calc(66.666% - 0.5rem);
     max-width: calc(66.666% - 0.5rem);
-    order: 1;
+    order: 2;
   }
 }
 
