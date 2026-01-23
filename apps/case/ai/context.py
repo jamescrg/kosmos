@@ -246,11 +246,9 @@ def collect_context_items(matter, current_conversation=None) -> list[ContextItem
             f"Date: {conv.updated_at.strftime('%b %d, %Y')}",
         ]
 
-        # Include messages from reference conversation (limit per conversation)
+        # Include all messages from reference conversation
         messages = conv.messages.select_related("user").order_by("created_at")
         msg_lines = []
-        total_chars = 0
-        max_chars = 3000
 
         for msg in messages:
             if msg.role == "user":
@@ -259,16 +257,7 @@ def collect_context_items(matter, current_conversation=None) -> list[ContextItem
             else:
                 msg_line = f"**Assistant:** {msg.content}"
 
-            # Truncate long messages
-            if len(msg_line) > 1000:
-                msg_line = msg_line[:1000] + "... (truncated)"
-
-            if total_chars + len(msg_line) > max_chars:
-                msg_lines.append("... (remaining messages omitted)")
-                break
-
             msg_lines.append(msg_line)
-            total_chars += len(msg_line)
 
         if msg_lines:
             content_parts.append("\n".join(msg_lines))
