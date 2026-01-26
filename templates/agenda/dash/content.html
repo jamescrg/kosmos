@@ -164,11 +164,11 @@
             <tbody>
               {% if low_clearance_matters %}
                 {% for matter in low_clearance_matters %}
-                  <tr>
+                  <tr {% if matter.clearance < 0 %}class="hl-yellow"{% endif %}>
                     <td>
                       <a href="{% url 'matters:ledger' id=matter.id %}">{{ matter.name }}</a>
                     </td>
-                    <td class="numeric {% if matter.clearance < 0 %}urgent{% endif %}">${{ matter.clearance|floatformat:2|intcomma }}</td>
+                    <td class="numeric">${{ matter.clearance|floatformat:2|intcomma }}</td>
                   </tr>
                 {% endfor %}
               {% else %}
