@@ -179,6 +179,12 @@
                hx-target="#htmx-modal-container"
                hx-trigger="click"
                hx-swap="innerHTML">{{ task.description }}</a>
+            <a href="#"
+               class="task-notes-btn {% if task.has_notes %}has-notes{% endif %}"
+               hx-get="{% url 'agenda:tasks-detail' id=task.id %}?matter_id={{ matter.id }}"
+               hx-target="#htmx-modal-container">
+              <i class="icon-sticky-note note-badge-icon {% if task.has_new_notes %}note-badge-new{% endif %}"></i>
+            </a>
           </td>
           <td class="status dropdown-cell {% if task.date_due and task.date_due <= today %}hl-yellow{% endif %} {% if task.status == 'Complete' %}complete{% endif %}"
               data-label="Status">{% include "matters/tasks/status.html" %}</td>
