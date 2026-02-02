@@ -11,7 +11,7 @@
       <div>
         <a class="btn-icon"
            href="#"
-           hx-get="{% url 'agenda:tasks-detail' id=task.id %}"
+           hx-get="{% url 'agenda:tasks-detail' id=task.id %}{% if matter_id %}?matter_id={{ matter_id }}{% endif %}"
            hx-target="#htmx-modal-container"
            hx-trigger="click">
           <i class="icon-arrow-left"></i>
@@ -38,7 +38,7 @@
         <button type="button"
                 class="btn btn-danger"
                 hx-confirm='Are you sure you want to delete this note?'
-                hx-post="{% url 'agenda:tasks-delete-note' id=note.id %}"
+                hx-post="{% url 'agenda:tasks-delete-note' id=note.id %}{% if matter_id %}?matter_id={{ matter_id }}{% endif %}"
                 hx-target="#htmx-modal-container">Delete</button>
       {% else %}
         <button type="button"

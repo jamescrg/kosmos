@@ -446,6 +446,7 @@ def clear_tasks(request):
 @login_required
 def tasks_add_note(request, id):
     task = get_object_or_404(Task, pk=id)
+    matter_id = request.GET.get("matter_id") or request.POST.get("matter_id")
 
     if request.method == "POST":
         form = TaskNoteForm(request.POST, use_required_attribute=False)
@@ -454,7 +455,10 @@ def tasks_add_note(request, id):
             note.task = task
             note.user = request.user
             note.save()
-            return redirect("agenda:tasks-detail", id=task.id)
+            redirect_url = f"/agenda/tasks/{task.id}/detail/"
+            if matter_id:
+                redirect_url += f"?matter_id={matter_id}"
+            return redirect(redirect_url)
     else:
         form = TaskNoteForm(
             initial={
@@ -464,11 +468,16 @@ def tasks_add_note(request, id):
             use_required_attribute=False,
         )
 
+    action = f"/agenda/tasks/{id}/add-note/"
+    if matter_id:
+        action += f"?matter_id={matter_id}"
+
     context = {
         "task": task,
         "form": form,
         "edit": False,
-        "action": f"/agenda/tasks/{id}/add-note/",
+        "action": action,
+        "matter_id": matter_id,
     }
     return render(request, "agenda/tasks/form_note.html", context)
 
@@ -477,6 +486,7 @@ def tasks_add_note(request, id):
 def tasks_detail(request, id):
     task = get_object_or_404(Task, pk=id)
     notes = task.notes.all()
+    matter_id = request.GET.get("matter_id")
 
     # Track view for badge notification system
     UserTaskNoteView.objects.update_or_create(
@@ -493,6 +503,7 @@ def tasks_detail(request, id):
     context = {
         "task": task,
         "notes": notes,
+        "matter_id": matter_id,
     }
     return render(request, "agenda/tasks/detail.html", context)
 
@@ -500,21 +511,30 @@ def tasks_detail(request, id):
 @login_required
 def tasks_edit_note(request, id):
     note = get_object_or_404(TaskNote, pk=id)
+    matter_id = request.GET.get("matter_id") or request.POST.get("matter_id")
 
     if request.method == "POST":
         form = TaskNoteForm(request.POST, instance=note, use_required_attribute=False)
         if form.is_valid():
             form.save()
-            return redirect("agenda:tasks-detail", id=note.task.id)
+            redirect_url = f"/agenda/tasks/{note.task.id}/detail/"
+            if matter_id:
+                redirect_url += f"?matter_id={matter_id}"
+            return redirect(redirect_url)
     else:
         form = TaskNoteForm(instance=note, use_required_attribute=False)
+
+    action = f"/agenda/tasks/note/{id}/edit/"
+    if matter_id:
+        action += f"?matter_id={matter_id}"
 
     context = {
         "task": note.task,
         "note": note,
         "form": form,
         "edit": True,
-        "action": f"/agenda/tasks/note/{id}/edit/",
+        "action": action,
+        "matter_id": matter_id,
     }
     return render(request, "agenda/tasks/form_note.html", context)
 
@@ -523,5 +543,9 @@ def tasks_edit_note(request, id):
 def tasks_delete_note(request, id):
     note = get_object_or_404(TaskNote, pk=id)
     task_id = note.task.id
+    matter_id = request.GET.get("matter_id") or request.POST.get("matter_id")
     note.delete()
-    return redirect("agenda:tasks-detail", id=task_id)
+    redirect_url = f"/agenda/tasks/{task_id}/detail/"
+    if matter_id:
+        redirect_url += f"?matter_id={matter_id}"
+    return redirect(redirect_url)
