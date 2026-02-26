@@ -10,7 +10,7 @@
     "lint:css:fix": "stylelint 'static/css/**/*.css' --fix"
   },
   "dependencies": {
-    "@tiptap/core": "^2.1.13",
+    "@tiptap/core": "^3.20.0",
     "@tiptap/extension-blockquote": "^2.1.13",
     "@tiptap/extension-bold": "^2.1.13",
     "@tiptap/extension-bullet-list": "^2.1.13",
@@ -37,7 +37,7 @@
     "sortablejs": "^1.15.0"
   },
   "devDependencies": {
-    "stylelint": "^17.0.0",
+    "stylelint": "^17.4.0",
     "stylelint-config-standard": "^40.0.0",
     "stylelint-order": "^7.0.1"
   }
