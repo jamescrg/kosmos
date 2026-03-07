@@ -121,9 +121,15 @@
 .task-date {
   background: none;
   border: none;
+  cursor: pointer;
+  font-size: inherit;
   margin: 0;
   padding: 0;
   width: 9rem;
+}
+
+.task-date.flatpickr-input {
+  outline: none;
 }
 
 .tasks-table .menu {

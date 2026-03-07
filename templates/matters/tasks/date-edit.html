@@ -1,9 +1,10 @@
-<input autofocus
-       type="date"
-       name="date_due"
-       class="task-date"
-       value="{{ task.date_due|date:'Y-m-d' }}"
-       hx-post="{% url 'matters:tasks-date' matter.id task.id %}"
-       hx-target="#matterTasks"
-       hx-swap="outerHTML"
-       hx-trigger="blur delay:100ms, keyup[key=='Enter']" />
+<div x-data="{ init() { flatpickr(this.$refs.picker, { dateFormat: 'Y-m-d', defaultDate: '{{ task.date_due|date:"Y-m-d" }}' || null, allowInput: true, onReady: (_, __, fp) => fp.open(), onChange: (_, dateStr) => { this.$refs.picker.value = dateStr; htmx.trigger(this.$refs.picker, 'dateChanged'); }, onClose: (selectedDates) => { if (!selectedDates.length) { htmx.ajax('GET', '{% url "matters:tasks-date" matter.id task.id %}', { target: 'closest td', source: this.$refs.picker }); } } }); } }">
+  <input x-ref="picker"
+         type="text"
+         name="date_due"
+         class="task-date"
+         hx-post="{% url 'matters:tasks-date' matter.id task.id %}"
+         hx-target="#matterTasks"
+         hx-swap="outerHTML"
+         hx-trigger="dateChanged" />
+</div>
