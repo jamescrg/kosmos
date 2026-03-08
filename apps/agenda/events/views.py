@@ -22,7 +22,7 @@ def events_index(request):
     today = date.today()
     third_day = today + timedelta(days=3)
 
-    view_mode = request.session.get("events_view_mode", "list")
+    view_mode = request.session.get("events_view_mode", "calendar")
     table_data = get_table_data(request)
 
     events_filter = request.session.get("events_filter", {})
@@ -46,7 +46,7 @@ def events_list(request):
     today = date.today()
     third_day = today + timedelta(days=3)
 
-    view_mode = request.session.get("events_view_mode", "list")
+    view_mode = request.session.get("events_view_mode", "calendar")
     events_filter = request.session.get("events_filter", {})
     events_filter_status = events_filter.get("status", "")
 
