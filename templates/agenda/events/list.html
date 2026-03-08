@@ -99,7 +99,9 @@
               {% if event.start_time %}{{ event.start_time|time:"g:i A" }}{% endif %}
             </td>
             <td>
-              <a href={% url 'matters:events-index' id=event.matter.id %}>{{ event.matter.name }}</a>
+              {% if event.matter %}
+                <a href="{% url 'matters:events-index' id=event.matter.id %}">{{ event.matter.name }}</a>
+              {% endif %}
             </td>
             <td>
               <a href="#"
