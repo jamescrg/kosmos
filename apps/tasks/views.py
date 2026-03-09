@@ -88,6 +88,7 @@ def tasks_add(request):
             initial={
                 "user": initial_user,
                 "matter": tasks_matter,
+                "date_due": date.today(),
             },
             use_required_attribute=False,
         )
@@ -132,6 +133,7 @@ def tasks_add_quick(request):
     # set task description and some property values
     task.description = description
     task.status = "Pending"
+    task.date_due = date.today()
 
     # auto populate priority from filter
     filter_priority = filter_data.get("priority")
