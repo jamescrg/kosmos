@@ -112,7 +112,7 @@ def get_list_data(request):
 
     # Get current order (remove - prefix if exists)
     current_order = (
-        filter_data.get("order_by", "priority") if filter_data else "priority"
+        (filter_data.get("order_by") or "priority") if filter_data else "priority"
     )
     current_order = current_order.lstrip("-")
 
