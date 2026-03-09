@@ -18,7 +18,7 @@
             <tbody>
               {% if upcoming_events %}
                 {% for event in upcoming_events %}
-                  <tr class="{% if event.date <= tomorrow %}hl-yellow{% endif %}">
+                  <tr>
                     <td class="date">
                       {{ event.date|date:"Y-m-d" }}
                       {% if event.start_time %}{{ event.start_time|time:"g:i A" }}{% endif %}
