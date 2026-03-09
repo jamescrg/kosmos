@@ -132,8 +132,8 @@
 ========================================================================== */
 
 .tasks-toolbar-left {
-  flex-wrap: wrap-reverse;
-  row-gap: 1.25rem;
+  flex-wrap: wrap;
+  gap: 1.25rem;
 }
 
 .tasks-toolbar .filter-tools .filter-dropdown-button {
@@ -145,9 +145,10 @@
 .tasks-add-quick-input {
   background: var(--background-light);
   color: var(--color-primary);
-  margin-right: 1.25rem;
+  max-width: 30rem;
+  min-width: 10rem;
   padding-left: 1rem;
-  width: 30rem;
+  width: 100%;
 }
 
 

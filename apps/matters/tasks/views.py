@@ -213,6 +213,7 @@ def tasks_add(request, id):
             initial={
                 "user": initial_user,
                 "matter": matter,
+                "date_due": date.today(),
                 "focus": focus if focus else "Long Term",  # Default to Long Term
             },
             use_required_attribute=False,
@@ -251,6 +252,7 @@ def tasks_add_quick(request, id):
     # set task description and some property values
     task.description = request.POST["description"]
     task.status = "Pending"
+    task.date_due = date.today()
     task.matter = matter  # Always assign to the current matter
 
     # auto populate priority from filter
