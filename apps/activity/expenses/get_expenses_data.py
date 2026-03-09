@@ -14,6 +14,11 @@ from apps.management.selection import (
 
 def get_expenses_data(request):
     expenses = ExpenseEntry.objects.all()
+
+    # Filter expenses for users without perm_all_matters
+    if not request.user.is_admin and not request.user.perm_all_matters:
+        expenses = expenses.filter(matter__in=request.user.assigned_matters.all())
+
     number_expenses = expenses.count()
 
     default_filter = {
@@ -29,7 +34,7 @@ def get_expenses_data(request):
     filter_data = request.session.get("expenses_filter", {})
 
     if filter_data:
-        filter = ExpenseFilter(filter_data)
+        filter = ExpenseFilter(filter_data, queryset=expenses)
 
         current_date = datetime.now().date()
         filter_label = filter.data.get("filter_label", None)
@@ -51,7 +56,7 @@ def get_expenses_data(request):
         user_id = filter_data.get("user")
         user_id = int(user_id) if user_id not in (None, "") else None
     else:
-        filter = ExpenseFilter(default_filter)
+        filter = ExpenseFilter(default_filter, queryset=expenses)
         expenses = filter.qs
         user_id = None
 

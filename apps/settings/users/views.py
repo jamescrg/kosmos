@@ -1,8 +1,9 @@
 from django.contrib.auth.decorators import login_required
-from django.http import HttpResponse
+from django.http import HttpResponse, HttpResponseBadRequest, HttpResponseForbidden
 from django.shortcuts import render
 
 from apps.accounts.models import CustomUser
+from apps.matters.models import Matter
 from apps.settings.users.filters import UserFilter
 from apps.settings.users.forms import CreateUserForm, UserForm
 from apps.settings.users.users import DEFAULT_USER_FILTER, get_user_list
@@ -115,3 +116,67 @@ def edit_user(request, user_id):
     }
 
     return render(request, "settings/users/form.html", context)
+
+
+@login_required
+def toggle_permission(request, user_id, perm):
+    if not request.user.is_admin:
+        return HttpResponseForbidden()
+
+    VALID_PERMS = ["perm_all_matters", "perm_financial", "perm_intakes", "perm_reports"]
+    if perm not in VALID_PERMS:
+        return HttpResponseBadRequest()
+
+    user = CustomUser.objects.get(id=user_id)
+    setattr(user, perm, not getattr(user, perm))
+    user.save(update_fields=[perm])
+
+    return HttpResponse(status=204, headers={"HX-Trigger": "userListReload"})
+
+
+@login_required
+def matter_assignments(request, user_id):
+    """Render the matter assignment modal for a user."""
+    if not request.user.is_admin:
+        return HttpResponseForbidden()
+    target_user = CustomUser.objects.get(id=user_id)
+    assigned = target_user.assigned_matters.filter(status="Open").order_by("name")
+    assigned_ids = set(assigned.values_list("id", flat=True))
+    unassigned = (
+        Matter.objects.filter(status="Open")
+        .exclude(id__in=assigned_ids)
+        .order_by("name")
+    )
+    context = {
+        "target_user": target_user,
+        "assigned": assigned,
+        "unassigned": unassigned,
+    }
+    return render(request, "settings/users/matter-assignments.html", context)
+
+
+@login_required
+def toggle_matter_assignment(request, user_id, matter_id):
+    """Toggle a matter assignment for a user, then re-render modal body."""
+    if not request.user.is_admin:
+        return HttpResponseForbidden()
+    target_user = CustomUser.objects.get(id=user_id)
+    matter = Matter.objects.get(id=matter_id)
+    if target_user.assigned_matters.filter(id=matter_id).exists():
+        target_user.assigned_matters.remove(matter)
+    else:
+        target_user.assigned_matters.add(matter)
+    # Re-render just the body partial
+    assigned = target_user.assigned_matters.filter(status="Open").order_by("name")
+    assigned_ids = set(assigned.values_list("id", flat=True))
+    unassigned = (
+        Matter.objects.filter(status="Open")
+        .exclude(id__in=assigned_ids)
+        .order_by("name")
+    )
+    context = {
+        "target_user": target_user,
+        "assigned": assigned,
+        "unassigned": unassigned,
+    }
+    return render(request, "settings/users/matter-assignments-body.html", context)

@@ -14,6 +14,11 @@ from apps.management.selection import (
 
 def get_time_data(request):
     entries = TimeEntry.objects.all()
+
+    # Filter time entries for users without perm_all_matters
+    if not request.user.is_admin and not request.user.perm_all_matters:
+        entries = entries.filter(matter__in=request.user.assigned_matters.all())
+
     number_entries = entries.count()
 
     default_filter = {
@@ -30,7 +35,7 @@ def get_time_data(request):
     filter_data = request.session.get("time_filter", {})
 
     if filter_data:
-        filter = TimeEntryFilter(filter_data)
+        filter = TimeEntryFilter(filter_data, queryset=entries)
 
         current_date = datetime.now().date()
         filter_label = filter.data.get("filter_label", None)
@@ -52,7 +57,7 @@ def get_time_data(request):
         user_id = filter_data.get("user")
         user_id = int(user_id) if user_id not in (None, "") else None
     else:
-        filter = TimeEntryFilter(default_filter)
+        filter = TimeEntryFilter(default_filter, queryset=entries)
         entries = filter.qs
         user_id = None
 
