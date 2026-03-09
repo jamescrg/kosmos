@@ -135,14 +135,14 @@
   background: var(--background-light);
   color: var(--color-primary);
   padding-left: 1rem;
-  width: 20rem;
+  width: 30rem;
 }
 
 .tasks-add-quick-input::placeholder {
   color: var(--border-medium);
 }
 
-@media (width <= 768px) {
+@media (width <= 1200px) {
   .tasks-add-quick-input {
     display: none;
   }
