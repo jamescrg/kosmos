@@ -72,6 +72,10 @@
   justify-content: space-between;
 }
 
+.modal-content .deadline-calculator-actions {
+  display: none;
+}
+
 .deadline-calculator-results {
   border: solid 1px var(--border-medium);
   border-collapse: separate;
