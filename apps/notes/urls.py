@@ -87,6 +87,7 @@ urlpatterns = [
         name="folder-select",
     ),
     path("notes/folders/unsorted/", views.note_folder_unsorted, name="folder-unsorted"),
+    path("notes/folders/all/", views.note_folder_all, name="folder-all"),
     path("notes/folders/add/", views.note_folder_add, name="folder-add"),
     path(
         "notes/folders/edit/<int:folder_id>",
@@ -102,5 +103,15 @@ urlpatterns = [
         "notes/folders/delete/<int:folder_id>",
         views.note_folder_delete,
         name="folder-delete",
+    ),
+    path(
+        "notes/folders/move/<int:folder_id>/",
+        views.note_folder_move,
+        name="folder-move",
+    ),
+    path(
+        "notes/folders/toggle/<int:folder_id>/",
+        views.note_folder_toggle_expand,
+        name="folder-toggle",
     ),
 ]

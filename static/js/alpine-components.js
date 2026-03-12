@@ -318,6 +318,11 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
 
+  // Close modal on closeModal HX-Trigger event
+  document.body.addEventListener('closeModal', () => {
+    window.dispatchEvent(new CustomEvent('close-modal'));
+  });
+
   // Intercept hx-confirm to use custom modal instead of browser confirm
   document.body.addEventListener('htmx:confirm', (e) => {
     // Only intercept if there's an hx-confirm attribute (e.detail.question has a value)

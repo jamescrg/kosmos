@@ -57,3 +57,51 @@ function moveFocusToEnd(input) {
   // Move the focus of the caret to the end of the input
   input.scrollLeft = input.scrollWidth;
 }
+
+function getNoteFolderDescendantIds(folderId) {
+  const ids = [];
+  document
+    .querySelectorAll(`[data-parent-id="${folderId}"]`)
+    .forEach((child) => {
+      const childId = child.dataset.folderId;
+      ids.push(childId);
+      ids.push(...getNoteFolderDescendantIds(childId));
+    });
+  return ids;
+}
+
+function toggleNoteFolder(folderId, evt) {
+  evt.preventDefault();
+  evt.stopPropagation();
+
+  const folderEl = document.getElementById(`note-folder-${folderId}`);
+  if (!folderEl) return;
+
+  const caret = folderEl.querySelector(".caret-icon");
+  if (!caret) return;
+
+  const isExpanded = caret.classList.contains("icon-chevron-down");
+
+  if (isExpanded) {
+    caret.classList.replace("icon-chevron-down", "icon-chevron-right");
+    getNoteFolderDescendantIds(folderId).forEach((id) => {
+      const el = document.getElementById(`note-folder-${id}`);
+      if (el) el.classList.add("folder-hidden");
+    });
+  } else {
+    caret.classList.replace("icon-chevron-right", "icon-chevron-down");
+    document
+      .querySelectorAll(`[data-parent-id="${folderId}"]`)
+      .forEach((child) => {
+        child.classList.remove("folder-hidden");
+      });
+  }
+
+  // Persist to session
+  const csrfToken = document.body.getAttribute("hx-headers");
+  const token = csrfToken ? JSON.parse(csrfToken)["X-CSRFToken"] : "";
+  fetch(`/notes/folders/toggle/${folderId}/`, {
+    method: "POST",
+    headers: { "X-CSRFToken": token },
+  });
+}
