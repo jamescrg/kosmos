@@ -28,7 +28,7 @@
     {% include "activity/labels/badge.html" with object_type="expense" object=expense %}
   {% endfor %}
 </td>
-<td class="amount {% if not expense.entered and not expense.invoice %}urgent{% endif %}">
+<td class="amount">
   {% if expense.invoice %}
     {% if expense.comp %}
       comp
