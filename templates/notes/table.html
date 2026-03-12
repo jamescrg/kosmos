@@ -1,14 +1,9 @@
 <div class="table-container">
   <table id="notes-list" class="table notes-list">
     <tr>
-      <th class="category">Category</th>
-      <th class="topic">
-        Topic
-        <button class="btn-sort {% if 'topic' in current_order %}active{% endif %}"
-                hx-get="{% url 'notes:order-by' 'topic' %}"
-                hx-target="#notes">
-          <i class="icon-chevrons-up-down"></i>
-        </button>
+      <th class="col-select">
+        {% url 'notes:select-all' as select_all_url %}
+        {% include "selection/select-all-btn.html" with select_all_url=select_all_url all_selected=all_selected %}
       </th>
       <th class="title">
         Title
@@ -48,7 +43,7 @@
       {% include "notes/row.html" %}
     {% empty %}
       <tr>
-        <td colspan="7" class="empty-message">No notes found.</td>
+        <td colspan="6" class="empty-message">No notes found.</td>
       </tr>
     {% endfor %}
   </table>
