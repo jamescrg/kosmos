@@ -9,7 +9,7 @@ class NoteAdmin(SimpleHistoryAdmin):
 
 
 class NoteFolderAdmin(SimpleHistoryAdmin):
-    list_display = ("id", "name")
+    list_display = ("id", "name", "parent", "depth")
 
 
 admin.site.register(Note, NoteAdmin)

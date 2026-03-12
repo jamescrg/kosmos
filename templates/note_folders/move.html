@@ -1,0 +1,47 @@
+<div class="modal-dialog modal-md">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h1 class="modal-title">Move: {{ folder.name }}</h1>
+      <div>
+        <button type="button" @click="$dispatch('close-modal')">
+          <i class="icon-x"></i>
+        </button>
+      </div>
+    </div>
+    <div class="modal-body">
+      <form id="note-folder-move-form"
+            hx-post="{% url 'notes:folder-move' folder.id %}"
+            hx-target="#note-folders"
+            hx-swap="innerHTML"
+            role="form">
+        {% csrf_token %}
+        <div class="move-tree">
+          <label class="move-tree-item">
+            <input type="radio"
+                   name="destination"
+                   value=""
+                   {% if not folder.parent_id %}checked{% endif %}>
+            <i class="icon-folder"></i>
+            Root level
+          </label>
+          {% for node in move_targets %}
+            <label class="move-tree-item move-depth-{{ node.level }}">
+              <input type="radio"
+                     name="destination"
+                     value="{{ node.folder.id }}"
+                     {% if folder.parent_id == node.folder.id %}checked{% endif %}>
+              <i class="icon-folder"></i>
+              {{ node.folder.name }}
+            </label>
+          {% endfor %}
+        </div>
+      </form>
+    </div>
+    <div class="modal-footer">
+      <button type="button"
+              class="btn btn-secondary"
+              @click="$dispatch('close-modal')">Cancel</button>
+      <button type="submit" form="note-folder-move-form" class="btn btn-success">Move</button>
+    </div>
+  </div>
+</div>

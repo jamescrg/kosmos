@@ -8,7 +8,7 @@ from django.views.decorators.http import require_POST
 from apps.management.pagination import CustomPaginator
 
 from .filters import NotesFilter
-from .forms import NoteFolderForm, NoteForm
+from .forms import NoteFolderForm, NoteFolderMoveForm, NoteForm
 from .models import Note, NoteFolder, NoteView
 
 SIDEBAR_SORT_OPTIONS = [
@@ -19,12 +19,78 @@ SIDEBAR_SORT_OPTIONS = [
 ]
 
 
+# ---------------------------------------------------------------------------
+# Tree-building utilities
+# ---------------------------------------------------------------------------
+
+
+def build_note_folder_tree_flat(folders_qs, expanded_ids):
+    """Build a flat list of tree nodes from a queryset of folders.
+
+    Returns list of dicts:
+        {"folder": f, "level": 0-3, "parent_id": int|None,
+         "has_children": bool, "is_expanded": bool, "is_visible": bool}
+    """
+    folders = list(folders_qs.select_related("parent").order_by("name"))
+
+    # Build parent→children map
+    children_map = {}
+    for f in folders:
+        pid = f.parent_id
+        children_map.setdefault(pid, []).append(f)
+
+    # Build flat list via DFS
+    result = []
+
+    def _walk(parent_id, parent_visible):
+        for f in children_map.get(parent_id, []):
+            is_expanded = f.pk in expanded_ids
+            has_children = f.pk in children_map
+            is_visible = parent_visible
+            result.append(
+                {
+                    "folder": f,
+                    "level": f.depth,
+                    "parent_id": f.parent_id,
+                    "has_children": has_children,
+                    "is_expanded": is_expanded,
+                    "is_visible": is_visible,
+                }
+            )
+            child_visible = is_visible and is_expanded
+            _walk(f.pk, child_visible)
+
+    _walk(None, True)  # Root folders always visible
+    return result
+
+
+def get_valid_move_targets(exclude_folder):
+    """Return folders excluding the given folder, its descendants, and depth-3 folders."""
+    descendant_ids = [d.pk for d in exclude_folder.get_descendants()]
+    exclude_ids = [exclude_folder.pk] + descendant_ids
+    return (
+        NoteFolder.objects.filter(depth__lt=3)
+        .exclude(pk__in=exclude_ids)
+        .order_by("name")
+    )
+
+
+# ---------------------------------------------------------------------------
+# Data helpers
+# ---------------------------------------------------------------------------
+
+
 def get_note_folders_data(request):
-    """Get note folders and selected folder from session."""
-    folders = NoteFolder.objects.order_by("name")
+    """Get note folders tree and selected folder from session."""
+    folders = NoteFolder.objects.all()
+    expanded_ids = set(request.session.get("note_folders_expanded", []))
     selected_folder_id = request.session.get("notes_selected_folder_id")
 
-    if selected_folder_id:
+    tree = build_note_folder_tree_flat(folders, expanded_ids)
+
+    if selected_folder_id == "all":
+        selected_folder = None
+    elif selected_folder_id:
         try:
             selected_folder = NoteFolder.objects.get(pk=selected_folder_id)
         except NoteFolder.DoesNotExist:
@@ -34,8 +100,9 @@ def get_note_folders_data(request):
         selected_folder = None
 
     return {
-        "note_folders": folders,
+        "note_folder_tree": tree,
         "selected_note_folder": selected_folder,
+        "all_folders_selected": selected_folder_id == "all",
     }
 
 
@@ -48,7 +115,9 @@ def get_notes_data(request):
 
     # Apply folder filter
     selected_folder_id = request.session.get("notes_selected_folder_id")
-    if selected_folder_id:
+    if selected_folder_id == "all":
+        pass  # No folder filter — show all notes
+    elif selected_folder_id:
         queryset = queryset.filter(folder_id=selected_folder_id)
     else:
         queryset = queryset.filter(folder_id__isnull=True)
@@ -504,15 +573,10 @@ def note_import_modal(request, note_id):
 
 @login_required
 def reference_search(request, note_id):
-    """Search documents and highlights for note references.
-
-    For standalone notes without a matter, this returns empty results
-    since there are no associated documents or highlights.
-    """
+    """Search documents and highlights for note references."""
     note = get_object_or_404(Note, pk=note_id, matter__isnull=True)
     query = request.GET.get("q", "").strip()
 
-    # Standalone notes don't have access to matter-specific documents/highlights
     context = {
         "note": note,
         "documents": [],
@@ -524,11 +588,7 @@ def reference_search(request, note_id):
 
 @login_required
 def reference_citations(request, note_id):
-    """Return current citations for references.
-
-    For standalone notes, this returns an empty dictionary
-    since there are no associated documents or highlights.
-    """
+    """Return current citations for references."""
     return JsonResponse({})
 
 
@@ -557,6 +617,13 @@ def note_folder_unsorted(request):
 
 
 @login_required
+def note_folder_all(request):
+    """Show notes from all folders."""
+    request.session["notes_selected_folder_id"] = "all"
+    return redirect("notes:index")
+
+
+@login_required
 def note_folder_add(request):
     """Add a new note folder."""
     if request.method == "POST":
@@ -566,9 +633,19 @@ def note_folder_add(request):
             context = get_note_folders_data(request)
             response = render(request, "note_folders/list.html", context)
             response.status_code = 202
+            response["HX-Trigger-After-Swap"] = "closeModal"
             return response
     else:
         form = NoteFolderForm()
+        # Pre-fill parent if a folder is currently selected
+        selected_folder_id = request.session.get("notes_selected_folder_id")
+        if selected_folder_id:
+            try:
+                selected = NoteFolder.objects.get(pk=selected_folder_id)
+                if selected.can_have_children():
+                    form.initial["parent"] = selected.pk
+            except NoteFolder.DoesNotExist:
+                pass
 
     context = {
         "form": form,
@@ -584,15 +661,23 @@ def note_folder_edit(request, folder_id):
     folder = get_object_or_404(NoteFolder, pk=folder_id)
 
     if request.method == "POST":
-        form = NoteFolderForm(request.POST, instance=folder)
+        form = NoteFolderForm(request.POST, instance=folder, exclude_folder=folder)
         if form.is_valid():
-            form.save()
+            old_parent_id = (
+                NoteFolder.objects.filter(pk=folder.pk)
+                .values_list("parent_id", flat=True)
+                .first()
+            )
+            folder = form.save()
+            if folder.parent_id != old_parent_id:
+                folder.update_descendant_depths()
             context = get_note_folders_data(request)
             response = render(request, "note_folders/list.html", context)
             response.status_code = 202
+            response["HX-Trigger-After-Swap"] = "closeModal"
             return response
     else:
-        form = NoteFolderForm(instance=folder)
+        form = NoteFolderForm(instance=folder, exclude_folder=folder)
 
     context = {
         "form": form,
@@ -608,21 +693,44 @@ def note_folder_delete_confirm(request, folder_id):
     """Show delete confirmation for a note folder."""
     folder = get_object_or_404(NoteFolder, pk=folder_id)
     note_count = Note.objects.filter(folder=folder).count()
+    descendants = folder.get_descendants()
+    subfolder_count = len(descendants)
 
     context = {
         "folder": folder,
         "note_count": note_count,
+        "subfolder_count": subfolder_count,
     }
     return render(request, "note_folders/delete-confirm.html", context)
 
 
 @login_required
 def note_folder_delete(request, folder_id):
-    """Delete a note folder."""
+    """Delete a note folder with options for subfolders and notes."""
     folder = get_object_or_404(NoteFolder, pk=folder_id)
+    delete_notes = request.GET.get("delete_notes")
+    delete_subfolders = request.GET.get("delete_subfolders")
 
-    if request.GET.get("delete_notes"):
-        Note.objects.filter(folder=folder).delete()
+    descendants = folder.get_descendants()
+    parent_folder = folder.parent
+
+    if delete_subfolders:
+        # Delete all descendant notes and subfolders
+        for desc in reversed(descendants):
+            Note.objects.filter(folder=desc).delete()
+            desc.delete()
+        if delete_notes:
+            Note.objects.filter(folder=folder).delete()
+    else:
+        # Reparent subfolders to this folder's parent
+        for child in folder.children.all():
+            child.parent = parent_folder
+            child.depth = parent_folder.depth + 1 if parent_folder else 0
+            child.save(update_fields=["parent", "depth"])
+            child.update_descendant_depths()
+
+        if delete_notes:
+            Note.objects.filter(folder=folder).delete()
 
     # Clear selected folder if it was this one
     if request.session.get("notes_selected_folder_id") == folder_id:
@@ -631,3 +739,51 @@ def note_folder_delete(request, folder_id):
     folder.delete()
 
     return HttpResponse(status=204, headers={"HX-Refresh": "true"})
+
+
+@login_required
+def note_folder_move(request, folder_id):
+    """Move a folder to a new parent via modal."""
+    folder = get_object_or_404(NoteFolder, pk=folder_id)
+    valid_targets = get_valid_move_targets(folder)
+
+    if request.method == "POST":
+        form = NoteFolderMoveForm(request.POST)
+        form.fields["destination"].queryset = valid_targets
+        if form.is_valid():
+            destination = form.cleaned_data["destination"]
+            folder.parent = destination
+            folder.depth = destination.depth + 1 if destination else 0
+            folder.save(update_fields=["parent", "depth"])
+            folder.update_descendant_depths()
+
+            context = get_note_folders_data(request)
+            response = render(request, "note_folders/list.html", context)
+            response.status_code = 202
+            response["HX-Trigger-After-Swap"] = "closeModal"
+            return response
+
+    # Build tree for move modal
+    expanded_ids = set(f.pk for f in valid_targets)  # Show all expanded
+    tree = build_note_folder_tree_flat(valid_targets, expanded_ids)
+
+    context = {
+        "folder": folder,
+        "move_targets": tree,
+        "valid_targets": valid_targets,
+    }
+    return render(request, "note_folders/move.html", context)
+
+
+@login_required
+@require_POST
+def note_folder_toggle_expand(request, folder_id):
+    """Toggle folder expand/collapse state in session."""
+    expanded = request.session.get("note_folders_expanded", [])
+    if folder_id in expanded:
+        expanded.remove(folder_id)
+    else:
+        expanded.append(folder_id)
+    request.session["note_folders_expanded"] = expanded
+    request.session.modified = True
+    return HttpResponse(status=204)

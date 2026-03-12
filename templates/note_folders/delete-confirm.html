@@ -11,9 +11,31 @@
     <div class="modal-body">
       <p>Delete folder "{{ folder.name }}"?</p>
       {% if note_count > 0 %}<p>This folder contains {{ note_count }} note{{ note_count|pluralize }}.</p>{% endif %}
+      {% if subfolder_count > 0 %}
+        <p>This folder contains {{ subfolder_count }} subfolder{{ subfolder_count|pluralize }}.</p>
+      {% endif %}
     </div>
     <div class="modal-footer">
-      {% if note_count > 0 %}
+      {% if subfolder_count > 0 %}
+        {% if note_count > 0 %}
+          <button hx-delete="{% url 'notes:folder-delete' folder.id %}"
+                  hx-target="#note-folders"
+                  class="btn btn-success">Reparent &amp; Keep Notes</button>
+          <button hx-delete="{% url 'notes:folder-delete' folder.id %}?delete_notes=true"
+                  hx-target="#note-folders"
+                  class="btn btn-secondary">Reparent &amp; Delete Notes</button>
+          <button hx-delete="{% url 'notes:folder-delete' folder.id %}?delete_notes=true&delete_subfolders=true"
+                  hx-target="#note-folders"
+                  class="btn-icon">Delete All</button>
+        {% else %}
+          <button hx-delete="{% url 'notes:folder-delete' folder.id %}"
+                  hx-target="#note-folders"
+                  class="btn btn-success">Reparent Subfolders</button>
+          <button hx-delete="{% url 'notes:folder-delete' folder.id %}?delete_subfolders=true"
+                  hx-target="#note-folders"
+                  class="btn-icon">Delete All</button>
+        {% endif %}
+      {% elif note_count > 0 %}
         <button hx-delete="{% url 'notes:folder-delete' folder.id %}?keep_notes=true"
                 hx-target="#note-folders"
                 class="btn btn-success">Keep Notes</button>
