@@ -7,26 +7,28 @@
                 hx-target="#htmx-modal-container">
           <i class="icon-plus"></i>
         </button>
-        {% if selected_time %}
-          <div class="dropdown" x-data="dropdown()">
+        {% if user.is_admin or user.perm_financial %}
+          {% if selected_time %}
+            <div class="dropdown" x-data="dropdown()">
+              <button type="button"
+                      class="btn-icon toggle-active"
+                      x-ref="button"
+                      @click="toggle()"
+                      :aria-expanded="open">
+                Actions ({{ selected_time|length }})
+                <small><i class="icon-chevron-down"></i></small>
+              </button>
+              <ul class="dropdown-menu" x-ref="menu" x-show="open" @click="close()">
+                {% include "activity/time/bulk-actions.html" %}
+              </ul>
+            </div>
             <button type="button"
                     class="btn-icon toggle-active"
-                    x-ref="button"
-                    @click="toggle()"
-                    :aria-expanded="open">
-              Actions ({{ selected_time|length }})
-              <small><i class="icon-chevron-down"></i></small>
+                    hx-post="{% url 'activity:time-clear-selection' %}"
+                    hx-swap="none">
+              <i class="icon-x"></i> Clear
             </button>
-            <ul class="dropdown-menu" x-ref="menu" x-show="open" @click="close()">
-              {% include "activity/time/bulk-actions.html" %}
-            </ul>
-          </div>
-          <button type="button"
-                  class="btn-icon toggle-active"
-                  hx-post="{% url 'activity:time-clear-selection' %}"
-                  hx-swap="none">
-            <i class="icon-x"></i> Clear
-          </button>
+          {% endif %}
         {% endif %}
         <button hx-get="{% url 'activity:time-filter' %}"
                 hx-target="#htmx-modal-container"
@@ -118,10 +120,12 @@
   <div class="table-container">
     <table class="table activity">
       <tr>
-        <th class="col-select">
-          {% url 'activity:time-select-all' as select_all_url %}
-          {% include "selection/select-all-btn.html" with select_all_url=select_all_url all_selected=all_selected %}
-        </th>
+        {% if user.is_admin or user.perm_financial %}
+          <th class="col-select">
+            {% url 'activity:time-select-all' as select_all_url %}
+            {% include "selection/select-all-btn.html" with select_all_url=select_all_url all_selected=all_selected %}
+          </th>
+        {% endif %}
         <th class="date">
           Date
           <button class="btn-sort {% if current_order == 'date' %}active{% endif %}"
@@ -150,10 +154,17 @@
       </tr>
       <tr id="time-table"></tr>
       {% for entry in objects %}
-        <tr id="time-{{ entry.id }}">{% include "activity/time/table-row.html" with show_select=True %}</tr>
+        <tr id="time-{{ entry.id }}">
+          {% if user.is_admin or user.perm_financial %}
+            {% include "activity/time/table-row.html" with show_select=True %}
+          {% else %}
+            {% include "activity/time/table-row.html" %}
+          {% endif %}
+        </tr>
       {% empty %}
         <tr>
-          <td colspan="8" class="empty-message">No time entries found.</td>
+          <td colspan="{% if user.is_admin or user.perm_financial %}8{% else %}7{% endif %}"
+              class="empty-message">No time entries found.</td>
         </tr>
       {% endfor %}
     </table>

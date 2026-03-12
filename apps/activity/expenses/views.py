@@ -1,7 +1,7 @@
 from datetime import date, datetime
 
 from django.contrib.auth.decorators import login_required
-from django.http import HttpResponse
+from django.http import HttpResponse, HttpResponseForbidden
 from django.shortcuts import get_object_or_404, redirect, render
 from django.views.decorators.http import require_POST
 
@@ -352,6 +352,9 @@ def expenses_clear_selection(request):
 
 @login_required
 def expenses_bulk_update_matter(request):
+    if not request.user.is_admin and not request.user.perm_financial:
+        return HttpResponseForbidden()
+
     key = get_session_key("selected_expenses")
     selected_expenses = get_selected_ids(request, key)
 
@@ -390,6 +393,9 @@ def expenses_bulk_update_matter(request):
 
 @login_required
 def expenses_bulk_update_comp(request):
+    if not request.user.is_admin and not request.user.perm_financial:
+        return HttpResponseForbidden()
+
     key = get_session_key("selected_expenses")
     selected_expenses = get_selected_ids(request, key)
 
