@@ -55,7 +55,9 @@ document.addEventListener('alpine:init', () => {
       menu.style.left = `${rect.left}px`;
       menu.style.right = 'auto';
       menu.style.bottom = 'auto';
-      menu.style.minWidth = `${rect.width}px`;
+      if (button.tagName === 'BUTTON') {
+        menu.style.minWidth = `${rect.width}px`;
+      }
 
       // Check if menu would overflow viewport and adjust
       this.$nextTick(() => {
@@ -316,6 +318,11 @@ document.addEventListener('DOMContentLoaded', () => {
     if (e.detail.xhr.status === 204) {
       window.dispatchEvent(new CustomEvent('close-modal'));
     }
+  });
+
+  // Close modal on closeModal HX-Trigger event
+  document.body.addEventListener('closeModal', () => {
+    window.dispatchEvent(new CustomEvent('close-modal'));
   });
 
   // Intercept hx-confirm to use custom modal instead of browser confirm

@@ -55,6 +55,7 @@ urlpatterns = [
         name="note-content-partial",
     ),
     path("notes/<int:note_id>/edit/", views.note_edit, name="edit"),
+    path("notes/<int:note_id>/move/", views.note_move, name="note-move"),
     path("notes/<int:note_id>/delete/", views.note_delete, name="delete"),
     path("notes/<int:note_id>/content/", views.note_content, name="note-content"),
     path("notes/<int:note_id>/autosave/", views.note_autosave, name="note-autosave"),
@@ -80,4 +81,58 @@ urlpatterns = [
         views.reference_citations,
         name="note-citations",
     ),
+    # Note folder views
+    path(
+        "notes/folders/select/<int:folder_id>/",
+        views.note_folder_select,
+        name="folder-select",
+    ),
+    path("notes/folders/unsorted/", views.note_folder_unsorted, name="folder-unsorted"),
+    path("notes/folders/all/", views.note_folder_all, name="folder-all"),
+    path("notes/folders/add/", views.note_folder_add, name="folder-add"),
+    path(
+        "notes/folders/edit/<int:folder_id>",
+        views.note_folder_edit,
+        name="folder-edit",
+    ),
+    path(
+        "notes/folders/delete/<int:folder_id>/confirm",
+        views.note_folder_delete_confirm,
+        name="folder-delete-confirm",
+    ),
+    path(
+        "notes/folders/delete/<int:folder_id>",
+        views.note_folder_delete,
+        name="folder-delete",
+    ),
+    path(
+        "notes/folders/move/<int:folder_id>/",
+        views.note_folder_move,
+        name="folder-move",
+    ),
+    path(
+        "notes/folders/toggle/<int:folder_id>/",
+        views.note_folder_toggle_expand,
+        name="folder-toggle",
+    ),
+    path(
+        "notes/folders/toggle-all/",
+        views.note_folder_toggle_all,
+        name="folder-toggle-all",
+    ),
+    # Note multi-select views
+    path(
+        "notes/toggle-select/<int:note_id>/",
+        views.notes_toggle_select,
+        name="toggle-select",
+    ),
+    path("notes/select-all/", views.notes_select_all, name="select-all"),
+    path("notes/clear-selection/", views.notes_clear_selection, name="clear-selection"),
+    path(
+        "notes/bulk-set-importance/",
+        views.notes_bulk_set_importance,
+        name="bulk-set-importance",
+    ),
+    path("notes/bulk-move/", views.notes_bulk_move, name="bulk-move"),
+    path("notes/bulk-delete/", views.notes_bulk_delete, name="bulk-delete"),
 ]
