@@ -1,4 +1,31 @@
 /* =============================================================================
+   Notes List Layout (Sidebar + Content)
+   ============================================================================= */
+
+.notes-layout {
+  display: flex;
+  flex-direction: column-reverse;
+  gap: 1rem;
+}
+
+@media (width >= 768px) {
+  .notes-layout {
+    flex-direction: row;
+    gap: 1.5rem;
+  }
+
+  .notes-layout > .notes-sidebar {
+    flex: 0 0 calc(25% - 0.75rem);
+    max-width: calc(25% - 0.75rem);
+  }
+
+  .notes-layout > .notes-content {
+    flex: 1;
+    min-width: 0;
+  }
+}
+
+/* =============================================================================
    Notes Editor Styles
    ============================================================================= */
 

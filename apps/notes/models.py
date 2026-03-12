@@ -9,6 +9,19 @@ from utils.models import AuditMixin
 User = get_user_model()
 
 
+class NoteFolder(AuditMixin, models.Model):
+    id = models.BigAutoField(primary_key=True)
+    name = models.CharField(max_length=50)
+    history = HistoricalRecords()
+
+    def __str__(self):
+        return self.name
+
+    class Meta:
+        db_table = "app_note_folder"
+        ordering = ["name"]
+
+
 class Note(AuditMixin, models.Model):
     """Rich markdown note for a matter with inline document/highlight references."""
 
@@ -31,6 +44,9 @@ class Note(AuditMixin, models.Model):
     )
     matter = models.ForeignKey(
         Matter, on_delete=models.CASCADE, related_name="notes", null=True, blank=True
+    )
+    folder = models.ForeignKey(
+        NoteFolder, on_delete=models.SET_NULL, blank=True, null=True
     )
     title = models.CharField(max_length=255)
     category = models.CharField(max_length=20, choices=CATEGORY_CHOICES, default="note")

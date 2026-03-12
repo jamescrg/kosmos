@@ -80,4 +80,27 @@ urlpatterns = [
         views.reference_citations,
         name="note-citations",
     ),
+    # Note folder views
+    path(
+        "notes/folders/select/<int:folder_id>/",
+        views.note_folder_select,
+        name="folder-select",
+    ),
+    path("notes/folders/unsorted/", views.note_folder_unsorted, name="folder-unsorted"),
+    path("notes/folders/add/", views.note_folder_add, name="folder-add"),
+    path(
+        "notes/folders/edit/<int:folder_id>",
+        views.note_folder_edit,
+        name="folder-edit",
+    ),
+    path(
+        "notes/folders/delete/<int:folder_id>/confirm",
+        views.note_folder_delete_confirm,
+        name="folder-delete-confirm",
+    ),
+    path(
+        "notes/folders/delete/<int:folder_id>",
+        views.note_folder_delete,
+        name="folder-delete",
+    ),
 ]

@@ -8,8 +8,8 @@ from django.views.decorators.http import require_POST
 from apps.management.pagination import CustomPaginator
 
 from .filters import NotesFilter
-from .forms import NoteForm
-from .models import Note, NoteView
+from .forms import NoteFolderForm, NoteForm
+from .models import Note, NoteFolder, NoteView
 
 SIDEBAR_SORT_OPTIONS = [
     ("-viewed_at", "Recently viewed"),
@@ -19,12 +19,39 @@ SIDEBAR_SORT_OPTIONS = [
 ]
 
 
+def get_note_folders_data(request):
+    """Get note folders and selected folder from session."""
+    folders = NoteFolder.objects.order_by("name")
+    selected_folder_id = request.session.get("notes_selected_folder_id")
+
+    if selected_folder_id:
+        try:
+            selected_folder = NoteFolder.objects.get(pk=selected_folder_id)
+        except NoteFolder.DoesNotExist:
+            selected_folder = None
+            request.session["notes_selected_folder_id"] = None
+    else:
+        selected_folder = None
+
+    return {
+        "note_folders": folders,
+        "selected_note_folder": selected_folder,
+    }
+
+
 def get_notes_data(request):
     """Get standalone notes data with filters applied from session."""
     filter_session_key = "standalone_notes_filter"
     filter_data = request.session.get(filter_session_key, {})
 
     queryset = Note.objects.filter(matter__isnull=True).order_by("-updated_at")
+
+    # Apply folder filter
+    selected_folder_id = request.session.get("notes_selected_folder_id")
+    if selected_folder_id:
+        queryset = queryset.filter(folder_id=selected_folder_id)
+    else:
+        queryset = queryset.filter(folder_id__isnull=True)
 
     if filter_data:
         notes_filter = NotesFilter(filter_data, queryset=queryset)
@@ -94,9 +121,13 @@ def get_notes_data(request):
 @login_required
 def notes_index(request):
     """Main standalone notes list view."""
-    context = {
-        "app": "notes",
-    } | get_notes_data(request)
+    context = (
+        {
+            "app": "notes",
+        }
+        | get_notes_data(request)
+        | get_note_folders_data(request)
+    )
 
     return render(request, "notes/main.html", context)
 
@@ -104,9 +135,13 @@ def notes_index(request):
 @login_required
 def notes_list(request):
     """HTMX partial for standalone notes list."""
-    context = {
-        "app": "notes",
-    } | get_notes_data(request)
+    context = (
+        {
+            "app": "notes",
+        }
+        | get_notes_data(request)
+        | get_note_folders_data(request)
+    )
 
     return render(request, "notes/list.html", context)
 
@@ -495,3 +530,104 @@ def reference_citations(request, note_id):
     since there are no associated documents or highlights.
     """
     return JsonResponse({})
+
+
+# ---------------------------------------------------------------------------
+# Note Folder views
+# ---------------------------------------------------------------------------
+
+
+@login_required
+def note_folder_select(request, folder_id):
+    """Select a note folder, filtering the notes list."""
+    saved_folder = request.session.get("notes_selected_folder_id")
+    if folder_id == saved_folder:
+        request.session["notes_selected_folder_id"] = None
+    else:
+        request.session["notes_selected_folder_id"] = folder_id
+
+    return redirect("notes:index")
+
+
+@login_required
+def note_folder_unsorted(request):
+    """Show unsorted (no folder) notes."""
+    request.session["notes_selected_folder_id"] = None
+    return redirect("notes:index")
+
+
+@login_required
+def note_folder_add(request):
+    """Add a new note folder."""
+    if request.method == "POST":
+        form = NoteFolderForm(request.POST)
+        if form.is_valid():
+            form.save()
+            context = get_note_folders_data(request)
+            response = render(request, "note_folders/list.html", context)
+            response.status_code = 202
+            return response
+    else:
+        form = NoteFolderForm()
+
+    context = {
+        "form": form,
+        "action": "/notes/folders/add/",
+        "edit": False,
+    }
+    return render(request, "note_folders/form.html", context)
+
+
+@login_required
+def note_folder_edit(request, folder_id):
+    """Edit a note folder."""
+    folder = get_object_or_404(NoteFolder, pk=folder_id)
+
+    if request.method == "POST":
+        form = NoteFolderForm(request.POST, instance=folder)
+        if form.is_valid():
+            form.save()
+            context = get_note_folders_data(request)
+            response = render(request, "note_folders/list.html", context)
+            response.status_code = 202
+            return response
+    else:
+        form = NoteFolderForm(instance=folder)
+
+    context = {
+        "form": form,
+        "action": f"/notes/folders/edit/{folder_id}",
+        "edit": True,
+        "folder": folder,
+    }
+    return render(request, "note_folders/form.html", context)
+
+
+@login_required
+def note_folder_delete_confirm(request, folder_id):
+    """Show delete confirmation for a note folder."""
+    folder = get_object_or_404(NoteFolder, pk=folder_id)
+    note_count = Note.objects.filter(folder=folder).count()
+
+    context = {
+        "folder": folder,
+        "note_count": note_count,
+    }
+    return render(request, "note_folders/delete-confirm.html", context)
+
+
+@login_required
+def note_folder_delete(request, folder_id):
+    """Delete a note folder."""
+    folder = get_object_or_404(NoteFolder, pk=folder_id)
+
+    if request.GET.get("delete_notes"):
+        Note.objects.filter(folder=folder).delete()
+
+    # Clear selected folder if it was this one
+    if request.session.get("notes_selected_folder_id") == folder_id:
+        request.session["notes_selected_folder_id"] = None
+
+    folder.delete()
+
+    return HttpResponse(status=204, headers={"HX-Refresh": "true"})

@@ -1,0 +1,30 @@
+<div class="modal-dialog modal-md">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h1 class="modal-title">Delete Folder</h1>
+      <div>
+        <button type="button" @click="$dispatch('close-modal')">
+          <i class="icon-x"></i>
+        </button>
+      </div>
+    </div>
+    <div class="modal-body">
+      <p>Delete folder "{{ folder.name }}"?</p>
+      {% if note_count > 0 %}<p>This folder contains {{ note_count }} note{{ note_count|pluralize }}.</p>{% endif %}
+    </div>
+    <div class="modal-footer">
+      {% if note_count > 0 %}
+        <button hx-delete="{% url 'notes:folder-delete' folder.id %}?keep_notes=true"
+                hx-target="#note-folders"
+                class="btn btn-success">Keep Notes</button>
+        <button hx-delete="{% url 'notes:folder-delete' folder.id %}?delete_notes=true"
+                hx-target="#note-folders"
+                class="btn-icon">Delete</button>
+      {% else %}
+        <button hx-delete="{% url 'notes:folder-delete' folder.id %}"
+                hx-target="#note-folders"
+                class="btn btn-success">Delete</button>
+      {% endif %}
+    </div>
+  </div>
+</div>
