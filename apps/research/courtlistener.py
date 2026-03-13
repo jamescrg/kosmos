@@ -102,11 +102,12 @@ def search_opinions(query, court="", limit=5):
     """
     api_token = get_api_token()
     if not api_token:
-        return []
+        return [], 0
 
     params = {
         "q": query,
         "type": "o",
+        "order_by": "score desc",
         "page_size": limit,
     }
     if court:
@@ -126,7 +127,7 @@ def search_opinions(query, court="", limit=5):
                 response.status_code,
                 response.text[:200],
             )
-            return []
+            return [], response.status_code
 
         data = response.json()
         results = []
@@ -150,8 +151,8 @@ def search_opinions(query, court="", limit=5):
                 }
             )
 
-        return results
+        return results, 200
 
     except requests.RequestException as e:
         logger.exception("Error searching CourtListener: %s", e)
-        return []
+        return [], 0
