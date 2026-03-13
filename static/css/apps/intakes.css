@@ -36,7 +36,7 @@ Detail View - Left Panel
 .intake-section.details table {
   border: 1px solid var(--border-medium);
   border-collapse: separate;
-  border-radius: var(--radius-sm);
+  border-radius: var(--radius-md);
   border-spacing: 0;
   margin-bottom: 1.5rem;
   width: 100%;
@@ -48,19 +48,19 @@ Detail View - Left Panel
 
 /* Corner rounding */
 .intake-section.details tr:first-child th {
-  border-top-left-radius: calc(var(--radius-sm) - 1px);
+  border-top-left-radius: calc(var(--radius-md) - 1px);
 }
 
 .intake-section.details tr:first-child td {
-  border-top-right-radius: calc(var(--radius-sm) - 1px);
+  border-top-right-radius: calc(var(--radius-md) - 1px);
 }
 
 .intake-section.details tr:last-child th {
-  border-bottom-left-radius: calc(var(--radius-sm) - 1px);
+  border-bottom-left-radius: calc(var(--radius-md) - 1px);
 }
 
 .intake-section.details tr:last-child td {
-  border-bottom-right-radius: calc(var(--radius-sm) - 1px);
+  border-bottom-right-radius: calc(var(--radius-md) - 1px);
 }
 
 .intake-section.details tr:last-child th,
