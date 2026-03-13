@@ -77,12 +77,26 @@ class ResearchResult(AuditMixin):
     verify_status = models.CharField(
         max_length=20, choices=VERIFY_STATUS_CHOICES, default="none"
     )
+    review_summary = models.TextField(blank=True, default="")
 
     class Meta:
         ordering = ["position"]
 
     def __str__(self):
         return f"Result {self.position}: {self.case_name[:50]}"
+
+    @property
+    def unassessed_count(self):
+        return self.verifications.filter(summary="").count()
+
+
+TREATMENT_CHOICES = [
+    ("", ""),
+    ("positive", "Positive"),
+    ("negative", "Negative"),
+    ("neutral", "Neutral"),
+    ("distinguished", "Distinguished"),
+]
 
 
 class CitationVerification(AuditMixin):
@@ -97,6 +111,9 @@ class CitationVerification(AuditMixin):
     cluster_id = models.IntegerField(null=True, blank=True)
     courtlistener_url = models.URLField(max_length=500, blank=True, default="")
     depth = models.IntegerField(default=0)
+    treatment = models.CharField(
+        max_length=20, choices=TREATMENT_CHOICES, blank=True, default=""
+    )
     summary = models.TextField(blank=True, default="")
 
     class Meta:

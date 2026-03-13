@@ -1,0 +1,50 @@
+{% load markdown_extras %}
+<div class="research-verification-item" id="citation-{{ v.id }}">
+  <div class="research-verification-header">
+    <div class="research-verification-case">
+      {{ v.case_name }}
+      {% if v.courtlistener_url %}
+        <a href="{{ v.courtlistener_url }}"
+           target="_blank"
+           rel="noopener"
+           class="btn btn-icon research-card-link"
+           title="View on CourtListener"><i class="icon-external-link"></i></a>
+      {% endif %}
+    </div>
+    {% if v.treatment == "positive" %}
+      <span class="app-badge app-badge-sm badge-lime"><i class="icon-check"></i> Positive</span>
+    {% elif v.treatment == "negative" %}
+      <span class="app-badge app-badge-sm badge-red">Negative</span>
+    {% elif v.treatment == "neutral" and v.summary %}
+      <span class="app-badge app-badge-sm badge-yellow">Neutral</span>
+    {% elif v.treatment == "distinguished" %}
+      <span class="app-badge app-badge-sm badge-yellow">Distinguished</span>
+    {% endif %}
+  </div>
+  <div class="research-verification-meta">
+    {% if v.citation %}{{ v.citation }} &middot;{% endif %}
+    {{ v.court }}
+    {% if v.date_filed %}({{ v.date_filed }}){% endif %}
+    &middot; Cited {{ v.depth }} time{{ v.depth|pluralize }}
+  </div>
+  {% if v.summary %}
+    <div class="research-verification-summary">{{ v.summary|render_markdown }}</div>
+  {% elif assessing %}
+    <div class="research-status-msg"
+         hx-get="{% url 'research:citation-status' v.id %}"
+         hx-trigger="load delay:3s"
+         hx-target="#citation-{{ v.id }}"
+         hx-swap="outerHTML">
+      <i class="icon-loader spin"></i> Assessing...
+    </div>
+  {% else %}
+    <div class="research-verification-assess">
+      <button class="btn btn-sm"
+              hx-post="{% url 'research:assess-citation' v.id %}"
+              hx-target="#citation-{{ v.id }}"
+              hx-swap="outerHTML">
+        <i class="icon-check-circle"></i> Assess
+      </button>
+    </div>
+  {% endif %}
+</div>

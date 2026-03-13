@@ -2,6 +2,7 @@
 
 import json
 import logging
+import re
 import threading
 
 import requests
@@ -37,6 +38,47 @@ def process_research_query(query_id):
     thread.start()
 
 
+def sanitize_query(query):
+    """Validate and fix common CourtListener query syntax issues.
+
+    Returns the sanitized query string.
+    """
+    # Fix word~N (invalid: fuzzy doesn't take integer distance).
+    # word~ is valid (fuzzy), "phrase"~N is valid (proximity).
+    # Match bare word (not after a closing quote) followed by ~N
+    query = re.sub(r'(?<!")~(\d+)', "~", query)
+
+    # Fix unbalanced parentheses
+    depth = 0
+    for ch in query:
+        if ch == "(":
+            depth += 1
+        elif ch == ")":
+            depth -= 1
+            if depth < 0:
+                # More closing than opening — strip this excess
+                break
+    if depth > 0:
+        query += ")" * depth
+    elif depth < 0:
+        # Remove excess closing parens from the end
+        while depth < 0 and query.endswith(")"):
+            query = query[:-1]
+            depth += 1
+
+    # Fix unbalanced quotes — append a closing quote if odd count
+    if query.count('"') % 2 != 0:
+        query += '"'
+
+    # Remove fielded searches (e.g. court_id:xxx) — court filtering is separate
+    query = re.sub(r"\b\w+_id:\S+", "", query)
+
+    # Collapse multiple spaces
+    query = re.sub(r"  +", " ", query).strip()
+
+    return query
+
+
 def _refine_query(query_id):
     """Use AI to convert natural language query into structured search syntax."""
     ResearchQuery.objects.filter(pk=query_id).update(status="refining")
@@ -56,31 +98,43 @@ def _refine_query(query_id):
         "not just the keywords from the user's question.\n"
         "- Include the legal terminology courts actually use when addressing this issue.\n"
         "- Think about what holdings, standards, or tests a relevant opinion would contain.\n\n"
-        "CourtListener search syntax:\n"
+        "CourtListener search syntax (Solr-based):\n"
         "- AND (or &): intersection (AND is the default between terms)\n"
         "- OR: union of alternatives\n"
         "- NOT (or - prefix): exclude terms\n"
         '- "quoted phrase": exact phrase match, no stemming\n'
         "- (parentheses): group expressions, may be nested\n"
-        '- "phrase"~N: proximity — words within N words of each other\n'
-        "- term~: fuzzy match for spelling variations (e.g. negligen~)\n"
-        "- wild*: wildcard matching (* for multiple chars, ? for single)\n"
-        "- [x TO y]: range queries (numbers or dates)\n\n"
-        "Important: the ~ operator means different things depending on context:\n"
-        '- After a quoted phrase ("border fence"~50) it is a proximity operator\n'
-        "- After a single word (immigrant~) it is a fuzzy/spelling operator\n"
-        "Do NOT use ~N after a single word for proximity.\n\n"
+        '- "phrase"~N: proximity — words within N words of each other (ONLY after quoted phrases)\n'
+        "- term~: fuzzy match for spelling variations (no number after ~)\n"
+        "- stem*: wildcard prefix matching — matches all words starting with the stem\n"
+        "  Examples: waiv* → waive, waived, waiver; negligen* → negligence, negligent, negligently\n"
+        "  Use wildcards instead of OR-listing inflections of the same word:\n"
+        "  BAD:  (waive OR waived OR waiver OR waiving)\n"
+        "  GOOD: waiv*\n"
+        "  OR groups are still correct for genuinely different terms (e.g. suit OR action)\n"
+        '- "phrase"~N: proximity — words within N words of each other (ONLY after quoted phrases)\n'
+        "- term~: fuzzy match for spelling variations (no number after ~)\n\n"
+        "CRITICAL SYNTAX RULES — violating these causes server errors:\n"
+        "- The ~ operator ONLY works two ways:\n"
+        '  1. "quoted phrase"~N → proximity (OK: "summary judgment"~5)\n'
+        "  2. word~ → fuzzy spelling (OK: negligen~)\n"
+        "- NEVER write word~N (e.g. motion~3) — this is INVALID and will crash the search\n"
+        "- NEVER use ~ between or after bare words for proximity — use quoted phrases instead\n"
+        "- Parentheses MUST be balanced\n"
+        "- Quotes MUST be balanced\n"
+        "- Do NOT use fielded search (e.g. court_id:) — court filtering is handled separately\n"
+        "- Do NOT use range queries [x TO y] — not supported on the full-text search field\n\n"
         "Guidelines:\n"
-        "- Use OR groups for synonyms and alternative legal phrasings\n"
-        "- Use proximity operators for multi-word concepts that may appear in varied forms\n"
+        "- Use stem* wildcards for word inflections instead of OR-listing every form\n"
+        '- Use OR groups for genuinely different terms or phrases (e.g. suit OR action OR "cause of action")\n'
+        "- Use proximity operators on quoted phrases for multi-word concepts\n"
         "- Group related concepts with parentheses and connect groups with AND\n"
-        "- Be expansive with alternatives — more OR branches improve recall\n"
-        "- Do NOT use fielded search (e.g. court_id:) — court filtering is handled separately\n\n"
+        "- Keep the query under 3 levels of nesting to avoid complexity issues\n\n"
         "Example input: Can a joint tenant with right of survivorship file an "
         "equitable partition suit?\n"
-        'Example output: (("joint tenant"~5 "right of survivorship") OR '
-        '"joint tenancy with right of survivorship") AND ("equitable partition" '
-        'OR partition) AND (suit OR "file suit" OR action OR "legal action")\n\n'
+        'Example output: ("joint tenancy" OR "joint tenant") '
+        'AND "right of survivorship" AND ("equitable partition" OR partition) '
+        'AND (suit OR action OR "cause of action")\n\n'
         "Return ONLY the search query string, nothing else."
     )
     user_prompt = query.query_text
@@ -90,6 +144,7 @@ def _refine_query(query_id):
             system_prompt, [{"role": "user", "content": user_prompt}]
         )
         structured = response_text.strip().strip("`").strip()
+        structured = sanitize_query(structured)
         ResearchQuery.objects.filter(pk=query_id).update(structured_query=structured)
     except Exception:
         logger.exception("Error refining query %s, using raw text", query_id)
@@ -124,11 +179,26 @@ def _process_query(query_id):
         search_text = query.structured_query or query.query_text
         court = get_court_ids(query.state, query.include_federal)
 
-        results = search_opinions(search_text, court=court, limit=10)
+        results, status_code = search_opinions(search_text, court=court, limit=10)
+
+        # If the structured query caused a server error, retry with raw query text
+        if not results and status_code == 500 and query.structured_query:
+            logger.warning(
+                "Structured query failed for %s, retrying with raw text", query_id
+            )
+            results, status_code = search_opinions(
+                query.query_text, court=court, limit=10
+            )
 
         if not results:
+            if status_code == 500:
+                msg = "CourtListener returned an error. The search query may be too complex."
+            elif status_code != 200:
+                msg = f"CourtListener search failed (status {status_code})."
+            else:
+                msg = "No results found on CourtListener."
             ResearchQuery.objects.filter(pk=query_id).update(
-                status="error", error_message="No results found on CourtListener."
+                status="error", error_message=msg
             )
             return
 
@@ -178,7 +248,7 @@ def _process_query(query_id):
 
         ResearchQuery.objects.filter(pk=query_id).update(status="processing")
 
-        # Phase 2: Process each result
+        # Phase 2: Process each result (in CL relevance order)
         result_records = ResearchResult.objects.filter(query_id=query_id).order_by(
             "position"
         )
@@ -191,6 +261,18 @@ def _process_query(query_id):
                 ResearchResult.objects.filter(pk=result.id).update(
                     relevance="error", status_message="Error during processing"
                 )
+
+        # Phase 2.5: Reorder by assessed relevance — high first, medium after, low removed
+        ResearchResult.objects.filter(query_id=query_id, relevance="low").delete()
+
+        RELEVANCE_ORDER = {"high": 0, "medium": 1, "error": 2}
+        remaining = list(
+            ResearchResult.objects.filter(query_id=query_id).order_by("position")
+        )
+        remaining.sort(key=lambda r: (RELEVANCE_ORDER.get(r.relevance, 1), r.position))
+        for i, result in enumerate(remaining, 1):
+            if result.position != i:
+                ResearchResult.objects.filter(pk=result.id).update(position=i)
 
         # Phase 3: Final summary
         _generate_final_summary(query_id)
@@ -362,14 +444,22 @@ Provide a concise synthesis:"""
     ResearchResult.objects.filter(query_id=query_id).update(opinion_text="")
 
 
-def verify_result(result_id):
-    """Run citation verification in a background daemon thread."""
-    thread = threading.Thread(target=_verify_result, args=(result_id,), daemon=True)
+def review_result(result_id):
+    """Run citation review in a background daemon thread."""
+    thread = threading.Thread(target=_review_result, args=(result_id,), daemon=True)
     thread.start()
 
 
-def _verify_result(result_id):
-    """Fetch top forward citations by depth and summarize their treatment."""
+def review_more_citations(result_id):
+    """Evaluate more unevaluated forward citations in a background thread."""
+    thread = threading.Thread(
+        target=_review_more_citations, args=(result_id,), daemon=True
+    )
+    thread.start()
+
+
+def _review_result(result_id):
+    """Fetch forward citations by depth, generate case summary, assess top 5."""
     try:
         result = ResearchResult.objects.get(pk=result_id)
     except ResearchResult.DoesNotExist:
@@ -399,58 +489,21 @@ def _verify_result(result_id):
             ResearchResult.objects.filter(pk=result_id).update(verify_status="error")
             return
 
-        # Fetch top 5 forward citations by depth
-        forward_cites = get_forward_citations(opinion_id, limit=5)
+        # Generate 150-word case summary
+        opinion = fetch_opinion(opinion_id)
+        if opinion.found:
+            _generate_review_summary(result_id, result, opinion.plain_text)
+
+        # Fetch forward citations (top 20 by depth)
+        forward_cites = get_forward_citations(opinion_id, limit=20)
         if not forward_cites:
             ResearchResult.objects.filter(pk=result_id).update(verify_status="complete")
             return
 
-        query_text = result.query.query_text
-
+        # Create CitationVerification records for all with metadata
         for i, cite in enumerate(forward_cites, 1):
             citing_id = cite["citing_opinion_id"]
-            depth = cite["depth"]
-
-            # Fetch the citing opinion
-            citing_opinion = fetch_opinion(citing_id)
-            if not citing_opinion.found:
-                continue
-
-            # Get cluster info for the citing opinion's metadata
-            # The opinion endpoint gives us the cluster URL
             citing_meta = _get_opinion_metadata(citing_id)
-
-            # Summarize the citing opinion's treatment
-            truncated = citing_opinion.plain_text[:8000]
-            system_prompt = (
-                "You are a legal research assistant. Respond ONLY with valid JSON."
-            )
-            user_prompt = (
-                f"This opinion cites {result.case_name}. Analyze how this citing opinion "
-                f"treats the cited case and its relevance to the research query.\n\n"
-                f"Research Query: {query_text}\n"
-                f"Original Case: {result.case_name} ({result.citation})\n\n"
-                f"Citing Opinion Text (excerpt):\n{truncated}\n\n"
-                f'Respond with JSON: {{"treatment": "positive/negative/neutral/distinguished",'
-                f' "summary": "2-3 sentence summary of how this opinion treats the cited case '
-                f'and its relevance to the research query"}}'
-            )
-
-            summary = ""
-            try:
-                response_text, _, _ = send_to_gemini(
-                    system_prompt, [{"role": "user", "content": user_prompt}]
-                )
-                cleaned = response_text.strip()
-                if cleaned.startswith("```"):
-                    cleaned = cleaned.split("\n", 1)[-1].rsplit("```", 1)[0].strip()
-                parsed = json.loads(cleaned)
-                treatment = parsed.get("treatment", "neutral")
-                detail = parsed.get("summary", "")
-                summary = f"**{treatment.title()}** — {detail}" if detail else treatment
-            except Exception:
-                logger.exception("Error summarizing forward citation %s", citing_id)
-                summary = "Could not analyze treatment."
 
             CitationVerification.objects.create(
                 result_id=result_id,
@@ -461,15 +514,153 @@ def _verify_result(result_id):
                 date_filed=citing_meta.get("date_filed", ""),
                 cluster_id=citing_meta.get("cluster_id"),
                 courtlistener_url=citing_meta.get("courtlistener_url", ""),
-                depth=depth,
-                summary=summary,
+                depth=cite["depth"],
+                summary="",
             )
+
+        # Assess top 5 by depth
+        top_verifications = CitationVerification.objects.filter(
+            result_id=result_id
+        ).order_by("position")[:5]
+        _assess_citations(result, top_verifications)
 
         ResearchResult.objects.filter(pk=result_id).update(verify_status="complete")
 
     except Exception:
-        logger.exception("Error verifying result %s", result_id)
+        logger.exception("Error reviewing result %s", result_id)
         ResearchResult.objects.filter(pk=result_id).update(verify_status="error")
+
+
+def _generate_review_summary(result_id, result, opinion_text):
+    """Generate a 150-word case summary for the Review tab."""
+    truncated = opinion_text[:8000]
+    system_prompt = "You are a legal research assistant. Write clear, concise prose."
+    user_prompt = (
+        f"Write a 150-word summary of this case. Focus on the key facts, "
+        f"the legal issue, and the court's holding.\n\n"
+        f"Case: {result.case_name}\n"
+        f"Court: {result.court}\n"
+        f"Date: {result.date_filed}\n\n"
+        f"Opinion Text (excerpt):\n{truncated}"
+    )
+
+    try:
+        response_text, _, _ = send_to_gemini(
+            system_prompt, [{"role": "user", "content": user_prompt}]
+        )
+        ResearchResult.objects.filter(pk=result_id).update(
+            review_summary=response_text.strip()
+        )
+    except Exception:
+        logger.exception("Error generating review summary for result %s", result_id)
+
+
+def _assess_citations(result, verifications):
+    """Generate AI treatment summaries for a set of CitationVerification records."""
+    query_text = result.query.query_text if result.query_id else ""
+
+    for v in verifications:
+        if not v.cluster_id:
+            continue
+
+        # Get opinion_id from cluster
+        cluster = fetch_cluster(v.cluster_id)
+        if not cluster:
+            continue
+        sub_opinions = cluster.get("sub_opinions", [])
+        if not sub_opinions:
+            continue
+        try:
+            citing_opinion_id = int(sub_opinions[0].rstrip("/").split("/")[-1])
+        except (ValueError, IndexError):
+            continue
+
+        citing_opinion = fetch_opinion(citing_opinion_id)
+        if not citing_opinion.found:
+            continue
+
+        truncated = citing_opinion.plain_text[:8000]
+        system_prompt = (
+            "You are a legal research assistant. Respond ONLY with valid JSON."
+        )
+        context = f"Research Query: {query_text}\n" if query_text else ""
+        user_prompt = (
+            f"This opinion cites {result.case_name}. Analyze how this citing opinion "
+            f"treats the cited case.\n\n"
+            f"{context}"
+            f"Original Case: {result.case_name} ({result.citation})\n\n"
+            f"Citing Opinion Text (excerpt):\n{truncated}\n\n"
+            f'Respond with JSON: {{"treatment": "positive/negative/neutral/distinguished",'
+            f' "summary": "2-3 sentence summary of how this opinion treats the cited case"}}'
+        )
+
+        treatment = "neutral"
+        summary = ""
+        try:
+            response_text, _, _ = send_to_gemini(
+                system_prompt, [{"role": "user", "content": user_prompt}]
+            )
+            cleaned = response_text.strip()
+            if cleaned.startswith("```"):
+                cleaned = cleaned.split("\n", 1)[-1].rsplit("```", 1)[0].strip()
+            parsed = json.loads(cleaned)
+            treatment = parsed.get("treatment", "neutral")
+            if treatment not in ("positive", "negative", "neutral", "distinguished"):
+                treatment = "neutral"
+            summary = parsed.get("summary", "")
+        except Exception:
+            logger.exception("Error summarizing forward citation %s", v.id)
+            summary = "Could not analyze treatment."
+
+        CitationVerification.objects.filter(pk=v.id).update(
+            treatment=treatment, summary=summary
+        )
+
+
+def assess_single_citation(verification_id):
+    """Assess a single citation in a background thread."""
+    thread = threading.Thread(
+        target=_assess_single_citation, args=(verification_id,), daemon=True
+    )
+    thread.start()
+
+
+def _assess_single_citation(verification_id):
+    """Assess a single CitationVerification record."""
+    try:
+        v = CitationVerification.objects.select_related("result").get(
+            pk=verification_id
+        )
+    except CitationVerification.DoesNotExist:
+        return
+
+    try:
+        _assess_citations(v.result, [v])
+    except Exception:
+        logger.exception("Error assessing citation %s", verification_id)
+
+
+def _review_more_citations(result_id):
+    """Assess the next batch of unevaluated forward citations."""
+    try:
+        result = ResearchResult.objects.get(pk=result_id)
+    except ResearchResult.DoesNotExist:
+        return
+
+    ResearchResult.objects.filter(pk=result_id).update(verify_status="verifying")
+
+    try:
+        unassessed = CitationVerification.objects.filter(
+            result_id=result_id, summary=""
+        ).order_by("position")[:5]
+
+        if unassessed:
+            _assess_citations(result, unassessed)
+
+        ResearchResult.objects.filter(pk=result_id).update(verify_status="complete")
+    except Exception:
+        logger.exception("Error reviewing more citations for result %s", result_id)
+        ResearchResult.objects.filter(pk=result_id).update(verify_status="complete")
 
 
 def _get_opinion_metadata(opinion_id):
