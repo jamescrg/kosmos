@@ -1,9 +1,11 @@
 {% extends "settings/main.html" %}
 {% block subcontent %}
-  <div class="settings-checklists-container">
-    <div id="checklist-templates"
-         hx-trigger="checklistTemplateListReload from:body"
-         hx-get="{% url 'settings:checklist-template-list' %}"
-         hx-target="this">{% include "settings/checklists/template-table.html" %}</div>
+  <div class="checklists-layout">
+    <div id="checklist-folders" class="checklists-sidebar">{% include "settings/checklists/folder-list.html" %}</div>
+    <div id="checklists"
+         class="checklists-content"
+         hx-trigger="checklistsChanged from:body"
+         hx-get="{% url 'settings:checklists-list' %}"
+         hx-target="this">{% include "settings/checklists/list.html" %}</div>
   </div>
 {% endblock subcontent %}

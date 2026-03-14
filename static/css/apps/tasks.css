@@ -562,6 +562,119 @@
 }
 
 /* ==========================================================================
+ Checklists Settings Layout
+========================================================================== */
+
+.checklists-layout {
+  display: flex;
+  flex-direction: column-reverse;
+  gap: 1rem;
+}
+
+@media (width >= 768px) {
+  .checklists-layout {
+    flex-direction: row;
+    gap: 1.5rem;
+  }
+
+  .checklists-layout > .checklists-sidebar {
+    flex: 0 0 calc(25% - 0.75rem);
+    max-width: calc(25% - 0.75rem);
+  }
+
+  .checklists-layout > .checklists-content {
+    flex: 1;
+    min-width: 0;
+  }
+}
+
+/* Checklists table */
+.checklists-list {
+  min-width: 40rem;
+}
+
+.checklists-list th.col-select,
+.checklists-list td.col-select {
+  padding-left: 0;
+  padding-right: 0;
+  text-align: center;
+  vertical-align: middle;
+  width: 2.5rem;
+}
+
+.checklists-list .name {
+  overflow-wrap: break-word;
+  white-space: normal;
+}
+
+.checklists-list .items-count {
+  text-align: center;
+  width: 4rem;
+}
+
+.checklists-list .user {
+  width: 7rem;
+}
+
+.checklists-list .created {
+  width: 8rem;
+}
+
+.checklists-list .updated {
+  width: 8rem;
+}
+
+.checklists-list td {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  vertical-align: middle;
+  white-space: nowrap;
+}
+
+.checklists-list .name {
+  overflow-wrap: break-word;
+  white-space: normal;
+}
+
+.checklists-list .checklist-name-link {
+  color: var(--link);
+  text-decoration: none;
+}
+
+.checklists-list .checklist-name-link:hover {
+  color: var(--link-hover);
+}
+
+.checklists-list .menu-icon {
+  opacity: 0;
+  transition: opacity 0.15s ease;
+}
+
+.checklists-list tr:hover .menu-icon {
+  opacity: 1;
+}
+
+/* Fix dropdown overflow */
+.table-container:has(.checklists-list) {
+  overflow-x: auto;
+  overflow-y: visible;
+}
+
+/* Checklist folder depth indentation */
+#checklist-folders .folder-depth-1 { padding-left: 1.125rem; }
+#checklist-folders .folder-depth-2 { padding-left: 2rem; }
+#checklist-folders .folder-depth-3 { padding-left: 2.875rem; }
+
+/* Fix dropdown overflow in checklist folders */
+#checklist-folders .list-group {
+  overflow: visible;
+}
+
+#checklist-folders .list-group-item {
+  padding-left: 0.125rem;
+}
+
+/* ==========================================================================
  Mobile Card Layout
 ========================================================================== */
 
