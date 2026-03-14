@@ -153,13 +153,28 @@ urlpatterns = [
     ),
     path(
         "settings/checklists/list/",
-        checklist_urls.checklist_template_list,
-        name="checklist-template-list",
+        checklist_urls.checklists_list,
+        name="checklists-list",
     ),
     path(
-        "settings/checklists/filter/<str:status>/",
-        checklist_urls.checklist_template_filter,
-        name="checklist-template-filter",
+        "settings/checklists/table/",
+        checklist_urls.checklists_table,
+        name="checklists-table",
+    ),
+    path(
+        "settings/checklists/order-by/<str:order>/",
+        checklist_urls.checklists_order_by,
+        name="checklists-order-by",
+    ),
+    path(
+        "settings/checklists/filter/keyword/",
+        checklist_urls.checklists_filter_keyword,
+        name="checklists-filter-keyword",
+    ),
+    path(
+        "settings/checklists/filter/status/<str:status>/",
+        checklist_urls.checklists_filter_status,
+        name="checklists-filter-status",
     ),
     path(
         "settings/checklists/add/",
@@ -177,6 +192,11 @@ urlpatterns = [
         name="delete-checklist-template",
     ),
     path(
+        "settings/checklists/<int:template_id>/move/",
+        checklist_urls.checklist_template_move,
+        name="checklist-template-move",
+    ),
+    path(
         "settings/checklists/<int:template_id>/items/add/",
         checklist_urls.add_template_item,
         name="add-template-item",
@@ -185,6 +205,83 @@ urlpatterns = [
         "settings/checklists/items/<int:item_id>/delete/",
         checklist_urls.delete_template_item,
         name="delete-template-item",
+    ),
+    # Checklist folders
+    path(
+        "settings/checklists/folders/select/<int:folder_id>/",
+        checklist_urls.checklist_folder_select,
+        name="checklist-folder-select",
+    ),
+    path(
+        "settings/checklists/folders/unsorted/",
+        checklist_urls.checklist_folder_unsorted,
+        name="checklist-folder-unsorted",
+    ),
+    path(
+        "settings/checklists/folders/all/",
+        checklist_urls.checklist_folder_all,
+        name="checklist-folder-all",
+    ),
+    path(
+        "settings/checklists/folders/add/",
+        checklist_urls.checklist_folder_add,
+        name="checklist-folder-add",
+    ),
+    path(
+        "settings/checklists/folders/edit/<int:folder_id>",
+        checklist_urls.checklist_folder_edit,
+        name="checklist-folder-edit",
+    ),
+    path(
+        "settings/checklists/folders/delete/<int:folder_id>/confirm",
+        checklist_urls.checklist_folder_delete_confirm,
+        name="checklist-folder-delete-confirm",
+    ),
+    path(
+        "settings/checklists/folders/delete/<int:folder_id>",
+        checklist_urls.checklist_folder_delete,
+        name="checklist-folder-delete",
+    ),
+    path(
+        "settings/checklists/folders/move/<int:folder_id>/",
+        checklist_urls.checklist_folder_move,
+        name="checklist-folder-move",
+    ),
+    path(
+        "settings/checklists/folders/toggle/<int:folder_id>/",
+        checklist_urls.checklist_folder_toggle_expand,
+        name="checklist-folder-toggle",
+    ),
+    path(
+        "settings/checklists/folders/toggle-all/",
+        checklist_urls.checklist_folder_toggle_all,
+        name="checklist-folder-toggle-all",
+    ),
+    # Checklist multi-select
+    path(
+        "settings/checklists/toggle-select/<int:template_id>/",
+        checklist_urls.checklists_toggle_select,
+        name="checklists-toggle-select",
+    ),
+    path(
+        "settings/checklists/select-all/",
+        checklist_urls.checklists_select_all,
+        name="checklists-select-all",
+    ),
+    path(
+        "settings/checklists/clear-selection/",
+        checklist_urls.checklists_clear_selection,
+        name="checklists-clear-selection",
+    ),
+    path(
+        "settings/checklists/bulk-move/",
+        checklist_urls.checklists_bulk_move,
+        name="checklists-bulk-move",
+    ),
+    path(
+        "settings/checklists/bulk-delete/",
+        checklist_urls.checklists_bulk_delete,
+        name="checklists-bulk-delete",
     ),
     # Matters (Practice Areas)
     path("settings/matters/", matter_urls.matters_index, name="matters-index"),

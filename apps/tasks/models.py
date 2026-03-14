@@ -8,8 +8,82 @@ from apps.matters.models import Matter
 from utils.models import AuditMixin
 
 
+class ChecklistFolder(AuditMixin, models.Model):
+    id = models.BigAutoField(primary_key=True)
+    name = models.CharField(max_length=50)
+    parent = models.ForeignKey(
+        "self",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="children",
+    )
+    depth = models.IntegerField(default=0)
+    history = HistoricalRecords(table_name="app_checklist_folder_history")
+
+    class Meta:
+        db_table = "app_checklist_folder"
+        ordering = ["name"]
+
+    def __str__(self):
+        return self.name
+
+    def get_ancestors(self):
+        ancestors = []
+        current = self.parent
+        while current is not None:
+            ancestors.append(current)
+            current = current.parent
+        ancestors.reverse()
+        return ancestors
+
+    def get_descendants(self):
+        descendants = []
+        for child in self.children.all():
+            descendants.append(child)
+            descendants.extend(child.get_descendants())
+        return descendants
+
+    def can_have_children(self):
+        return self.depth < 3
+
+    def clean(self):
+        from django.core.exceptions import ValidationError
+
+        if self.parent_id is not None:
+            if self.parent_id == self.pk:
+                raise ValidationError("A folder cannot be its own parent.")
+            if self.parent.depth >= 3:
+                raise ValidationError("Maximum folder depth (4 levels) exceeded.")
+            current = self.parent
+            while current is not None:
+                if current.pk == self.pk:
+                    raise ValidationError("Circular folder reference detected.")
+                current = current.parent
+            self.depth = self.parent.depth + 1
+        else:
+            self.depth = 0
+
+    def save(self, *args, **kwargs):
+        if not kwargs.get("update_fields"):
+            self.full_clean()
+        super().save(*args, **kwargs)
+
+    def update_descendant_depths(self):
+        for child in self.children.all():
+            child.depth = self.depth + 1
+            child.save(update_fields=["depth"])
+
+
 class ChecklistTemplate(AuditMixin, models.Model):
     name = models.CharField(max_length=100)
+    folder = models.ForeignKey(
+        ChecklistFolder,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="templates",
+    )
     is_active = models.BooleanField(default=True)
     history = HistoricalRecords(table_name="app_checklist_template_history")
 
