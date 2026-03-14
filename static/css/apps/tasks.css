@@ -387,13 +387,6 @@
   animation: task-highlight-fade 2s ease-out;
 }
 
-.task-notes-date {
-  color: var(--color-muted);
-  font-size: 0.9rem;
-  position: relative;
-  top: 1px;
-  margin-left: 0.25rem;
-}
 
 
 /* ==========================================================================
@@ -732,7 +725,6 @@
 
   /* Hide notes and checklist icons on mobile */
   .task-notes-btn,
-  .task-notes-date,
   .task-checklist-btn {
     display: none;
   }
