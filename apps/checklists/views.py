@@ -35,6 +35,49 @@ TASKS_TRIGGER = "tasksChanged"
 
 
 # ---------------------------------------------------------------------------
+# Item grouping helper
+# ---------------------------------------------------------------------------
+
+
+def group_items_by_section(items):
+    """Group ordered items by section, producing hierarchical numbering.
+
+    Returns a list of group dicts:
+      [{"section": <item|None>, "numbered_items": [{"item": item, "number": "1."}, ...]}]
+    Each section restarts numbering. Sub-items use hierarchical notation
+    (1., 1.1., 1.1.1.) based on depth.
+    """
+    groups = []
+    current_group = {"section": None, "numbered_items": []}
+
+    for item in items:
+        if item.item_type == "section":
+            # Save previous group if it has items or is not the root
+            if current_group["numbered_items"] or current_group["section"] is not None:
+                groups.append(current_group)
+            current_group = {"section": item, "numbered_items": []}
+        else:
+            current_group["numbered_items"].append({"item": item, "number": ""})
+
+    groups.append(current_group)
+
+    # Assign hierarchical numbers within each group
+    for group in groups:
+        counters = [0, 0, 0]  # depth 0, 1, 2
+        for entry in group["numbered_items"]:
+            d = min(entry["item"].depth, 2)
+            counters[d] += 1
+            # Reset deeper counters
+            for i in range(d + 1, 3):
+                counters[i] = 0
+            # Build number string
+            parts = [str(counters[i]) for i in range(d + 1)]
+            entry["number"] = ".".join(parts) + "."
+
+    return groups
+
+
+# ---------------------------------------------------------------------------
 # Tree-building utilities
 # ---------------------------------------------------------------------------
 
@@ -268,6 +311,7 @@ def edit_checklist_template(request, template_id):
         "form": form,
         "template": template,
         "items": items,
+        "item_groups": group_items_by_section(items),
     }
     return render(request, "checklists/template-form.html", context)
 
@@ -318,6 +362,9 @@ def add_template_item(request, template_id):
 
     if request.method == "POST":
         description = request.POST.get("description", "").strip()
+        item_type = request.POST.get("item_type", "item")
+        if item_type not in ("item", "section"):
+            item_type = "item"
         if description:
             max_order = (
                 template.items.order_by("-order")
@@ -329,13 +376,18 @@ def add_template_item(request, template_id):
                 template=template,
                 description=description,
                 order=max_order + 1,
+                item_type=item_type,
             )
 
     items = template.items.all()
     return render(
         request,
         "checklists/template-items.html",
-        {"template": template, "items": items},
+        {
+            "template": template,
+            "items": items,
+            "item_groups": group_items_by_section(items),
+        },
     )
 
 
@@ -349,7 +401,11 @@ def delete_template_item(request, item_id):
     return render(
         request,
         "checklists/template-items.html",
-        {"template": template, "items": items},
+        {
+            "template": template,
+            "items": items,
+            "item_groups": group_items_by_section(items),
+        },
     )
 
 
@@ -375,6 +431,67 @@ def reorder_template_items(request, template_id):
 
     except json.JSONDecodeError:
         return JsonResponse({"success": False, "error": "Invalid JSON"}, status=400)
+
+
+@login_required
+@require_POST
+def promote_template_item(request, item_id):
+    item = get_object_or_404(ChecklistTemplateItem, pk=item_id)
+    if item.item_type == "item" and item.depth > 0:
+        item.depth -= 1
+        item.save(update_fields=["depth"])
+    template = item.template
+    items = template.items.all()
+    return render(
+        request,
+        "checklists/template-items.html",
+        {
+            "template": template,
+            "items": items,
+            "item_groups": group_items_by_section(items),
+        },
+    )
+
+
+@login_required
+@require_POST
+def demote_template_item(request, item_id):
+    item = get_object_or_404(ChecklistTemplateItem, pk=item_id)
+    if item.item_type == "item" and item.depth < 2:
+        item.depth += 1
+        item.save(update_fields=["depth"])
+    template = item.template
+    items = template.items.all()
+    return render(
+        request,
+        "checklists/template-items.html",
+        {
+            "template": template,
+            "items": items,
+            "item_groups": group_items_by_section(items),
+        },
+    )
+
+
+@login_required
+@require_POST
+def edit_template_item(request, item_id):
+    item = get_object_or_404(ChecklistTemplateItem, pk=item_id)
+    description = request.POST.get("description", "").strip()
+    if description:
+        item.description = description
+        item.save(update_fields=["description"])
+    template = item.template
+    items = template.items.all()
+    return render(
+        request,
+        "checklists/template-items.html",
+        {
+            "template": template,
+            "items": items,
+            "item_groups": group_items_by_section(items),
+        },
+    )
 
 
 # ---------------------------------------------------------------------------
@@ -658,8 +775,9 @@ def checklist_modal(request, task_id):
     UserChecklistView.objects.update_or_create(user=request.user, task=task)
 
     checklist_items = checklist.items.all()
-    checklist_total = checklist_items.count()
-    checklist_done = checklist_items.filter(is_complete=True).count()
+    countable = checklist_items.filter(item_type="item")
+    checklist_total = countable.count()
+    checklist_done = countable.filter(is_complete=True).count()
 
     context = {
         "task": task,
@@ -668,6 +786,7 @@ def checklist_modal(request, task_id):
         "checklist_done": checklist_done,
         "checklist_total": checklist_total,
         "matter_id": matter_id,
+        "item_groups": group_items_by_section(checklist_items),
     }
     return render(request, "checklists/checklist-modal.html", context)
 
@@ -692,6 +811,8 @@ def attach_checklist(request, task_id):
                 checklist=checklist,
                 description=item.description,
                 order=item.order,
+                item_type=item.item_type,
+                depth=item.depth,
             )
 
         redirect_url = f"/checklists/{task.id}/modal/"
@@ -712,7 +833,11 @@ def checklist_search(request, task_id):
     matter_id = request.GET.get("matter_id", "")
     query = request.GET.get("q", "").strip()
 
-    templates = ChecklistTemplate.objects.all()
+    from django.db.models import Count, Q
+
+    templates = ChecklistTemplate.objects.annotate(
+        item_count=Count("items", filter=Q(items__item_type="item"))
+    )
     if query:
         templates = templates.filter(name__icontains=query)
 
@@ -743,8 +868,9 @@ def toggle_checklist_item(request, item_id):
 
     checklist = item.checklist
     checklist_items = checklist.items.all()
-    checklist_total = checklist_items.count()
-    checklist_done = checklist_items.filter(is_complete=True).count()
+    countable = checklist_items.filter(item_type="item")
+    checklist_total = countable.count()
+    checklist_done = countable.filter(is_complete=True).count()
 
     context = {
         "task": task,
@@ -753,6 +879,7 @@ def toggle_checklist_item(request, item_id):
         "checklist_done": checklist_done,
         "checklist_total": checklist_total,
         "matter_id": matter_id,
+        "item_groups": group_items_by_section(checklist_items),
     }
     return render(request, "checklists/checklist.html", context)
 
@@ -791,12 +918,14 @@ def refresh_checklist(request, task_id):
             checklist=checklist,
             description=item.description,
             order=item.order,
+            item_type=item.item_type,
+            depth=item.depth,
         )
     checklist.name = checklist.template.name
     checklist.save()
 
     checklist_items = checklist.items.all()
-    checklist_total = checklist_items.count()
+    checklist_total = checklist_items.filter(item_type="item").count()
     checklist_done = 0
 
     context = {
@@ -806,5 +935,6 @@ def refresh_checklist(request, task_id):
         "checklist_done": checklist_done,
         "checklist_total": checklist_total,
         "matter_id": matter_id,
+        "item_groups": group_items_by_section(checklist_items),
     }
     return render(request, "checklists/checklist.html", context)

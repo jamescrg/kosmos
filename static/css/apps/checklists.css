@@ -30,7 +30,7 @@
 
 .checklist-modal-name {
   color: var(--color-primary);
-  font-size: 1.1rem;
+  font-size: 1.4rem;
   margin: 0;
 }
 
@@ -61,9 +61,8 @@
 }
 
 .checklist-item {
-  align-items: center;
+  align-items: flex-start;
   border-top: solid 1px var(--border-medium);
-  cursor: pointer;
   display: flex;
   gap: 0.5rem;
   padding: 0.5rem 0.25rem;
@@ -71,6 +70,7 @@
 
 .checklist-check-icon {
   color: var(--color-muted-more);
+  cursor: pointer;
   flex-shrink: 0;
   font-size: 1.1rem;
 }
@@ -82,8 +82,9 @@
 .checklist-item-number {
   color: var(--color-muted);
   flex-shrink: 0;
+  margin-top: 0.125rem;
   text-align: right;
-  width: 1.25rem;
+  width: 2.5rem;
 }
 
 .checklist-item-complete .checklist-item-number {
@@ -155,7 +156,7 @@
 }
 
 .template-item {
-  align-items: center;
+  align-items: flex-start;
   border-bottom: solid 1px var(--border-medium);
   display: flex;
   gap: 0.5rem;
@@ -164,7 +165,7 @@
 
 
 .template-item-handle {
-  color: var(--icon-muted);
+  color: var(--color-muted-more);
   cursor: grab;
   flex-shrink: 0;
 }
@@ -173,28 +174,84 @@
   cursor: grabbing;
 }
 
-.template-item-number {
-  color: var(--color-muted);
-  flex-shrink: 0;
-  text-align: right;
-  width: 1.25rem;
-}
-
 .template-item-description {
   flex: 1;
   min-width: 0;
 }
 
-.template-item-delete {
-  color: var(--icon-muted);
+.template-item-edit-input {
+  background: inherit;
+  border: none;
+  flex: 1;
+  font: inherit;
+  min-width: 0;
+  outline: none;
+  padding: 0;
+}
+
+.template-item-menu-btn {
+  color: var(--color-muted-more);
   flex-shrink: 0;
-  margin-left: auto;
 }
 
 .template-item-empty {
   color: var(--color-muted);
   font-style: italic;
   padding: 0.5rem 0.25rem;
+}
+
+/* Depth indentation — both editor and completion */
+.checklist-depth-1 { padding-left: 1.5rem; }
+.checklist-depth-2 { padding-left: 3rem; }
+
+/* Section headings — completion view */
+.checklist-section-heading {
+  background: var(--background-control);
+  border-top: solid 1px var(--border-medium);
+  font-weight: 600;
+  padding: 0.5rem 0.25rem;
+}
+
+/* Section header — template editor */
+.template-section-header {
+  align-items: center;
+  background: var(--background-control);
+  border-bottom: solid 1px var(--border-medium);
+  border-top: solid 1px var(--border-medium);
+  display: flex;
+  font-weight: 600;
+  gap: 0.5rem;
+  padding: 0.5rem 0.25rem;
+}
+
+.template-section-handle {
+  color: var(--color-muted-more);
+  cursor: grab;
+  flex-shrink: 0;
+}
+
+.template-section-handle:active {
+  cursor: grabbing;
+}
+
+.template-section-title {
+  flex: 1;
+  min-width: 0;
+}
+
+/* Group items list */
+.template-group-items {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+/* Promote/demote buttons */
+.template-item-depth-btn {
+  color: var(--color-muted-more);
+  flex-shrink: 0;
+  position: relative;
+  top: 2px;
 }
 
 /* ==========================================================================
