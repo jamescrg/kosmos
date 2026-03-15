@@ -122,7 +122,7 @@ def get_list_data(request):
         cl = checklists_by_task.get(task.id)
         if cl:
             task.has_checklist = True
-            items = cl.items.all()
+            items = [i for i in cl.items.all() if i.item_type == "item"]
             task.checklist_total = len(items)
             task.checklist_done = sum(1 for i in items if i.is_complete)
             task.checklist_complete = task.checklist_done == task.checklist_total

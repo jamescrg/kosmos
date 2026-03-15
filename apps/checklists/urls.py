@@ -49,6 +49,21 @@ urlpatterns = [
         name="delete-template-item",
     ),
     path(
+        "checklists/items/<int:item_id>/promote/",
+        views.promote_template_item,
+        name="promote-template-item",
+    ),
+    path(
+        "checklists/items/<int:item_id>/demote/",
+        views.demote_template_item,
+        name="demote-template-item",
+    ),
+    path(
+        "checklists/items/<int:item_id>/edit/",
+        views.edit_template_item,
+        name="edit-template-item",
+    ),
+    path(
         "checklists/<int:template_id>/items/reorder/",
         views.reorder_template_items,
         name="reorder-template-items",

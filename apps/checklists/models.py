@@ -93,11 +93,20 @@ class ChecklistTemplate(AuditMixin, models.Model):
 
 
 class ChecklistTemplateItem(models.Model):
+    ITEM_TYPE_CHOICES = [
+        ("item", "Item"),
+        ("section", "Section"),
+    ]
+
     template = models.ForeignKey(
         ChecklistTemplate, on_delete=models.CASCADE, related_name="items"
     )
     description = models.CharField(max_length=200)
     order = models.IntegerField(default=0)
+    item_type = models.CharField(
+        max_length=10, choices=ITEM_TYPE_CHOICES, default="item"
+    )
+    depth = models.IntegerField(default=0)
 
     class Meta:
         db_table = "app_checklist_template_item"
@@ -139,6 +148,11 @@ class Checklist(AuditMixin, models.Model):
 
 
 class ChecklistItem(models.Model):
+    ITEM_TYPE_CHOICES = [
+        ("item", "Item"),
+        ("section", "Section"),
+    ]
+
     checklist = models.ForeignKey(
         Checklist, on_delete=models.CASCADE, related_name="items"
     )
@@ -149,6 +163,10 @@ class ChecklistItem(models.Model):
     )
     completed_at = models.DateTimeField(null=True, blank=True)
     order = models.IntegerField(default=0)
+    item_type = models.CharField(
+        max_length=10, choices=ITEM_TYPE_CHOICES, default="item"
+    )
+    depth = models.IntegerField(default=0)
 
     class Meta:
         db_table = "app_checklist_item"
@@ -161,6 +179,6 @@ class ChecklistItem(models.Model):
 def can_complete_task(task):
     try:
         checklist = task.checklist
-        return not checklist.items.filter(is_complete=False).exists()
+        return not checklist.items.filter(is_complete=False, item_type="item").exists()
     except Checklist.DoesNotExist:
         return True

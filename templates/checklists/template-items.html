@@ -10,27 +10,115 @@
          maxlength="200"
          required
          autofocus>
-  <button type="submit" class="btn-icon template-item-add-btn">
+  <button type="submit"
+          name="item_type"
+          value="item"
+          class="btn-icon template-item-add-btn">
     <i class="icon-plus"></i>
   </button>
+  <button type="submit"
+          name="item_type"
+          value="section"
+          class="btn-icon template-item-add-btn"
+          title="Add section heading">
+    <i class="icon-heading"></i>
+  </button>
 </form>
-<ul class="template-items-list"
-    id="template-items-sortable"
-    data-template-id="{{ template.id }}">
-  {% for item in items %}
-    <li class="template-item" data-item-id="{{ item.id }}">
-      <i class="icon-grip-vertical template-item-handle"></i>
-      <span class="template-item-number">{{ forloop.counter }}.</span>
-      <span class="template-item-description">{{ item.description }}</span>
-      <button hx-post="{% url 'checklists:delete-template-item' item.id %}"
-              hx-target="#template-items"
-              hx-swap="innerHTML"
-              hx-confirm="Remove this item?"
-              class="btn-icon template-item-delete">
-        <i class="icon-x"></i>
-      </button>
-    </li>
-  {% empty %}
-    <li class="template-item-empty">No items yet. Add items above.</li>
+<div id="template-sections-sortable" data-template-id="{{ template.id }}">
+  {% for group in item_groups %}
+    <div class="template-group"
+         data-section-id="{{ group.section.id|default:'root' }}">
+      {% if group.section %}
+        <div class="template-section-header" data-item-id="{{ group.section.id }}">
+          <i class="icon-grip-vertical template-section-handle"></i>
+          <span class="template-section-title">{{ group.section.description }}</span>
+          <div class="dropdown" x-data="dropdown()">
+            <button class="btn-icon template-item-menu-btn"
+                    type="button"
+                    x-ref="button"
+                    @click="toggle()">
+              <i class="icon-ellipsis-vertical"></i>
+            </button>
+            <ul class="dropdown-menu dropdown-menu-end"
+                x-ref="menu"
+                x-show="open"
+                @click="close()">
+              <li>
+                <a class="dropdown-item"
+                   href="#"
+                   onclick="editTemplateItem(this, '{% url 'checklists:edit-template-item' group.section.id %}'); return false;">
+                  <i class="icon-pencil"></i> Edit
+                </a>
+              </li>
+              <li>
+                <a class="dropdown-item urgent"
+                   href="#"
+                   hx-post="{% url 'checklists:delete-template-item' group.section.id %}"
+                   hx-target="#template-items"
+                   hx-swap="innerHTML"
+                   hx-confirm="Remove this section?">
+                  <i class="icon-trash-2"></i> Delete
+                </a>
+              </li>
+            </ul>
+          </div>
+        </div>
+      {% endif %}
+      <ul class="template-group-items">
+        {% for entry in group.numbered_items %}
+          <li class="template-item checklist-depth-{{ entry.item.depth }}"
+              data-item-id="{{ entry.item.id }}">
+            <i class="icon-grip-vertical template-item-handle"></i>
+            <span class="template-item-description">{{ entry.item.description }}</span>
+            <button hx-post="{% url 'checklists:promote-template-item' entry.item.id %}"
+                    hx-target="#template-items"
+                    hx-swap="innerHTML"
+                    class="btn-icon template-item-depth-btn"
+                    title="Outdent">
+              <i class="icon-arrow-left"></i>
+            </button>
+            <button hx-post="{% url 'checklists:demote-template-item' entry.item.id %}"
+                    hx-target="#template-items"
+                    hx-swap="innerHTML"
+                    class="btn-icon template-item-depth-btn"
+                    title="Indent">
+              <i class="icon-arrow-right"></i>
+            </button>
+            <div class="dropdown" x-data="dropdown()">
+              <button class="btn-icon template-item-menu-btn"
+                      type="button"
+                      x-ref="button"
+                      @click="toggle()">
+                <i class="icon-ellipsis-vertical"></i>
+              </button>
+              <ul class="dropdown-menu dropdown-menu-end"
+                  x-ref="menu"
+                  x-show="open"
+                  @click="close()">
+                <li>
+                  <a class="dropdown-item"
+                     href="#"
+                     onclick="editTemplateItem(this, '{% url 'checklists:edit-template-item' entry.item.id %}'); return false;">
+                    <i class="icon-pencil"></i> Edit
+                  </a>
+                </li>
+                <li>
+                  <a class="dropdown-item urgent"
+                     href="#"
+                     hx-post="{% url 'checklists:delete-template-item' entry.item.id %}"
+                     hx-target="#template-items"
+                     hx-swap="innerHTML"
+                     hx-confirm="Remove this item?">
+                    <i class="icon-trash-2"></i> Delete
+                  </a>
+                </li>
+              </ul>
+            </div>
+          </li>
+        {% empty %}
+          {% if not group.section %}<li class="template-item-empty">No items yet. Add items above.</li>{% endif %}
+        {% endfor %}
+      </ul>
+    </div>
   {% endfor %}
-</ul>
+</div>
