@@ -31,6 +31,8 @@
             <li {% if subapp == "integrations" %}class="active"{% endif %}>
               <a href="{% url 'settings:integrations-index' %}">Integrations</a>
             </li>
+          {% endif %}
+          {% if user.role == 'ADMIN' or user.perm_financial %}
             <li {% if subapp == "checklists" %}class="active"{% endif %}>
               <a href="{% url 'checklists:index' %}">Checklists</a>
             </li>
