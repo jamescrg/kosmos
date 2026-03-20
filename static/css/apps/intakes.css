@@ -19,11 +19,6 @@ body.intake-detail .navbar .active::after {
   background: var(--background-subnav);
 }
 
-body.intake-detail .section {
-  background: var(--background-section);
-  border-radius: var(--radius-md);
-  box-shadow: 0 0.0625rem 0.2rem rgb(0 0 0 / 14%);
-}
 
 /* ==========================================================================
    Intakes Detail Layout (Bootstrap grid replacement)

@@ -1,8 +1,8 @@
 {% extends "base.html" %}
 {% block content %}
   <div id="content" class="container content">
-    <div class="section">
-      <nav class="section-nav">
+    <div class="detail">
+      <nav class="subnav">
         <ul>
           <li {% if subapp == "history" %}class="active"{% endif %}>
             <a href="{% url 'research:history' %}">History</a>
@@ -15,7 +15,7 @@
           </li>
         </ul>
       </nav>
-      <div class="section-body">
+      <div class="detail-body">
         {% block subcontent %}
         {% endblock subcontent %}
       </div>
