@@ -1,133 +1,64 @@
 
-.section {
-  /* background: var(--background-section); */
+.detail {
   margin-bottom: 1.5rem;
-  padding: 1.25rem 1rem 1.5rem;
 }
 
-.toolbar {
-  align-items: center;
-  display: flex;
-  flex-direction: row;
-  justify-content: space-between;
-  padding: 0 0 1.25rem;
-}
-
-.toolbar a:not(.dropdown-menu *),
-.toolbar button:not(.dropdown-menu *) {
-  align-items: center;
-  background: var(--background-control);
-  border: solid 1px var(--border-medium);
-  border-radius: var(--radius-sm);
-  color: var(--button-toolbar);
-  display: inline-flex;
-  gap: 0.375rem;
-  line-height: 1.25;
-  outline: none;
-  padding: 0.5rem 0.75rem;
-}
-
-.toolbar-left {
-  align-items: center;
-  display: flex;
-  flex-direction: row;
-  flex-wrap: wrap;
-  gap: 1.25rem;
-  justify-content: left;
-}
-
-.toolbar h1,
-.toolbar h2 {
-  margin: 0 1.25rem 0 0;
-}
-
-.filter-tools {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 1.25rem;
-}
-
-.select-property {
-  background-color: var(--background-control);
-  border: solid 1px var(--border-medium);
-  color: var(--button-toolbar);
-  padding: 0.25rem;
-}
-
-.toolbar-center {
-  flex: 1;
-  display: flex;
-  justify-content: center;
-}
-
-.toolbar-right {
-  align-items: center;
-  display: flex;
-  flex-direction: row;
-  justify-content: right;
-}
-
-.toolbar-right > a,
-.toolbar-right button {
-  margin-left: 1rem;
-}
-
-.section-text {
+.detail-text {
   margin-bottom: 1rem;
   padding: 0 1rem;
 }
 
-.section>.list-group {
+.detail > .list-group {
   border: none;
 }
 
 
 /* ==========================================================================
-Section Layout (header / nav / body)
+Detail Layout (header / subnav / body)
 ========================================================================== */
 
-/* Container resets when using section layout children */
-.section:has(.section-body) {
+/* Container resets when using detail layout children */
+.detail:has(.detail-body) {
   padding: 0;
 }
 
-/* Section Header - title/toolbar area */
-.section-header {
+/* Detail Header - title/toolbar area */
+.detail-header {
   background: var(--background-subnav);
   padding: 1.25rem 1rem 0.5rem;
 }
 
-.section-header .toolbar {
+.detail-header .toolbar {
   padding-bottom: 0;
 }
 
-.section-header .toolbar a,
-.section-header .toolbar button {
+.detail-header .toolbar a,
+.detail-header .toolbar button {
   border: solid 1px var(--border-medium);
 }
 
-.section-header .dropdown-menu a {
+.detail-header .dropdown-menu a {
   border: none;
 }
 
-/* Section Nav - tab navigation */
-.section-nav {
+/* Subnav - tab navigation */
+.subnav {
   background: var(--background-subnav);
   margin: 0;
   padding: 0.25rem 0 0 calc(var(--radius-md) * 1.5);
 }
 
-.section-nav ul {
+.subnav ul {
   margin: 0.25rem 0 0;
   padding: 0;
 }
 
-.section-nav li {
+.subnav li {
   display: inline-block;
   padding: 0.5rem 1rem;
 }
 
-.section-nav a {
+.subnav a {
   color: var(--color-nav);
   margin: 0;
   padding-bottom: 0.5rem;
@@ -135,14 +66,14 @@ Section Layout (header / nav / body)
   top: 0.05rem;
 }
 
-.section-nav .active {
+.subnav .active {
   background: var(--background-subnav-tab-active);
   border-radius: var(--radius-md) var(--radius-md) 0 0;
   position: relative;
 }
 
-.section-nav .active::before,
-.section-nav .active::after {
+.subnav .active::before,
+.subnav .active::after {
   background: var(--background-subnav-tab-active);
   bottom: 0;
   content: "";
@@ -151,31 +82,31 @@ Section Layout (header / nav / body)
   width: var(--radius-md);
 }
 
-.section-nav .active::before {
+.subnav .active::before {
   left: calc(-1 * var(--radius-md));
   -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 8 8'%3E%3Cpath d='M8,0 L8,8 L0,8 A8,8 0 0,0 8,0 Z' fill='white'/%3E%3C/svg%3E");
   mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 8 8'%3E%3Cpath d='M8,0 L8,8 L0,8 A8,8 0 0,0 8,0 Z' fill='white'/%3E%3C/svg%3E");
 }
 
-.section-nav .active::after {
+.subnav .active::after {
   -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 8 8'%3E%3Cpath d='M0,0 L0,8 L8,8 A8,8 0 0,1 0,0 Z' fill='white'/%3E%3C/svg%3E");
   mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 8 8'%3E%3Cpath d='M0,0 L0,8 L8,8 A8,8 0 0,1 0,0 Z' fill='white'/%3E%3C/svg%3E");
   right: calc(-1 * var(--radius-md));
 }
 
-.section-nav li:first-child.active {
+.subnav li:first-child.active {
   border-radius: var(--radius-md) var(--radius-md) 0 0;
 }
 
-/* Section Body - main content area */
-.section-body {
+/* Detail Body - main content area */
+.detail-body {
   background: var(--background-section);
   border-radius: 0 0 var(--radius-md) var(--radius-md);
   padding: 1.25rem 1rem 1.5rem;
 }
 
-/* Section Body without nav - fully rounded corners */
-.section > .section-body:first-child {
+/* Detail Body without nav - fully rounded corners */
+.detail > .detail-body:first-child {
   border-radius: var(--radius-md);
 }
 
@@ -185,58 +116,49 @@ Section Layout (header / nav / body)
 ========================================================================== */
 
 @media (width <= 1000px) {
-  .filter-tools {
-    gap: 0.75rem;
-  }
-
-  .filter-tools .select-btn.large-btn,
-  .filter-tools .select-btn.filter-dropdown-button {
-    min-width: 0;
-  }
-
-  /* Section header toolbar: allow wrapping, keep badge next to title */
-  .section-header .toolbar {
+  /* Detail header toolbar: allow wrapping, keep badge next to title */
+  .detail-header .toolbar {
     flex-wrap: wrap;
     gap: 0.75rem;
   }
 
-  .section-header .toolbar-left {
+  .detail-header .toolbar-left {
     align-items: center;
     flex-direction: row;
     flex-wrap: wrap;
   }
 
-  .section-header .toolbar-left h1 {
+  .detail-header .toolbar-left h1 {
     flex: 1 1 100%;
     margin-bottom: 1rem;
     margin-right: 1rem;
   }
 
-  .section-header .toolbar-left .filter-tools {
+  .detail-header .toolbar-left .filter-tools {
     flex: 0 1 auto;
   }
 
   /* Remove left margin from copy button on small screens */
-  .section-header .toolbar-right .copy-btn {
+  .detail-header .toolbar-right .copy-btn {
     margin-left: 0;
   }
 
-  /* Section nav mobile: horizontal scroll */
-  .section-nav {
+  /* Subnav mobile: horizontal scroll */
+  .subnav {
     -webkit-overflow-scrolling: touch;
     overflow-x: auto;
   }
 
-  .section-nav ul {
+  .subnav ul {
     display: flex;
     flex-wrap: nowrap;
   }
 
-  .section-nav li {
+  .subnav li {
     flex-shrink: 0;
   }
 
-  .section-nav .active {
+  .subnav .active {
     padding-bottom: 0;
   }
 }
