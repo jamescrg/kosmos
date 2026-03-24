@@ -85,7 +85,7 @@ jobs:
         run: uv sync
 
       - name: Run migrations
-        run: python manage.py migrate
+        run: uv run python manage.py migrate
 
       - name: Run tests
-        run: pytest --splits 4 --group ${{ matrix.group }} -n auto --dist=loadscope --tb=short -q
+        run: uv run pytest --splits 4 --group ${{ matrix.group }} -n auto --dist=loadscope --tb=short -q
