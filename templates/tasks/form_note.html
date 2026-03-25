@@ -8,7 +8,7 @@
           Add Note
         {% endif %}
       </h1>
-      <div>
+      <div class="modal-header-actions">
         <a class="btn-icon"
            href="#"
            hx-get="{% url 'tasks:detail' id=task.id %}{% if matter_id %}?matter_id={{ matter_id }}{% endif %}"
