@@ -988,10 +988,10 @@ def delete_attachment(request, attachment_id):
 
 
 def _importance_label(importance):
-    """Map importance value (1-10) to a display label."""
-    if importance <= 3:
+    """Map importance value (1-5) to a display label."""
+    if importance >= 4:
         return "high"
-    elif importance <= 6:
+    elif importance >= 3:
         return "med"
     else:
         return "low"

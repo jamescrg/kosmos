@@ -3,10 +3,10 @@ Context assembly for AI chat.
 
 Gathers matter data for the system prompt, organized by importance:
 1. Matter overview, contacts, proceedings (always included)
-2. Critical evidence (importance 1-2) - across all content types
-3. High importance (importance 3-4) - across all content types
-4. Medium importance (importance 5-6) - across all content types
-5. Reference materials (importance 7+) - across all content types
+2. Critical evidence (importance 5) - across all content types
+3. High importance (importance 4) - across all content types
+4. Medium importance (importance 3) - across all content types
+5. Reference materials (importance 1-2) - across all content types
 6. Administrative info (tasks, events, settlement)
 
 Content types with importance ratings:
@@ -50,19 +50,19 @@ LEGAL_PROMPT_FILE = Path(settings.BASE_DIR) / "docs" / "ai-prompt.md"
 class ImportanceTier(Enum):
     """Importance tiers for context items."""
 
-    CRITICAL = "CRITICAL"  # Importance 1-2
-    HIGH = "HIGH"  # Importance 3-4
-    MEDIUM = "MEDIUM"  # Importance 5-6
-    REFERENCE = "REFERENCE"  # Importance 7+
+    CRITICAL = "CRITICAL"  # Importance 5 (Highest)
+    HIGH = "HIGH"  # Importance 4 (High)
+    MEDIUM = "MEDIUM"  # Importance 3 (Normal)
+    REFERENCE = "REFERENCE"  # Importance 1-2 (Low/Lowest)
 
 
 def get_importance_tier(importance: int) -> ImportanceTier:
-    """Map importance value (1-10) to a tier."""
-    if importance <= 2:
+    """Map importance value (1-5) to a tier."""
+    if importance >= 5:
         return ImportanceTier.CRITICAL
-    elif importance <= 4:
+    elif importance >= 4:
         return ImportanceTier.HIGH
-    elif importance <= 6:
+    elif importance >= 3:
         return ImportanceTier.MEDIUM
     else:
         return ImportanceTier.REFERENCE
@@ -211,7 +211,7 @@ def collect_context_items(matter, current_conversation=None) -> list[ContextItem
 
         items.append(
             ContextItem(
-                importance=1,  # Always CRITICAL for notes
+                importance=5,  # Always CRITICAL for notes
                 item_type="note",
                 content="\n".join(content_parts),
                 source_id=note.id,
@@ -232,14 +232,14 @@ def collect_context_items(matter, current_conversation=None) -> list[ContextItem
 
         items.append(
             ContextItem(
-                importance=3,  # Default to HIGH for case law
+                importance=4,  # Default to HIGH for case law
                 item_type="caselaw",
                 content="\n".join(content_parts),
                 source_id=caselaw.id,
             )
         )
 
-    # Collect Reference Conversations (importance 3 = HIGH since explicitly flagged)
+    # Collect Reference Conversations (importance 4 = HIGH since explicitly flagged)
     reference_convos = Conversation.objects.filter(
         matter=matter, is_reference=True
     ).order_by("-updated_at")
@@ -270,15 +270,15 @@ def collect_context_items(matter, current_conversation=None) -> list[ContextItem
 
         items.append(
             ContextItem(
-                importance=3,  # HIGH importance for reference conversations
+                importance=4,  # HIGH importance for reference conversations
                 item_type="conversation",
                 content="\n".join(content_parts),
                 source_id=conv.id,
             )
         )
 
-    # Sort by importance (lowest number = most important)
-    items.sort(key=lambda x: x.importance)
+    # Sort by importance (highest number = most important)
+    items.sort(key=lambda x: x.importance, reverse=True)
 
     return items
 

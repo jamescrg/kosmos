@@ -164,13 +164,10 @@ def format_manifest_for_prompt(items: list[ManifestItem], token_budget: int) -> 
     for item in items:
         type_label = "DOC" if item.item_type == "document" else "CASE"
         date_str = f", {item.date}" if item.date else ""
-        # Invert importance (DB uses 1=highest, 10=lowest) so the
-        # LLM sees a higher number for more important items.
-        priority = 11 - item.importance
         lines.append(
             f'[{type_label}-{item.item_id}] "{item.name}" '
             f"({item.category}{date_str}) - {item.description} "
-            f"[~{item.word_count:,} words, priority: {priority}/10]"
+            f"[~{item.word_count:,} words, priority: {item.importance}/5]"
         )
 
     return "\n".join(lines)
@@ -284,7 +281,7 @@ def _fallback_by_importance(
     token_budget: int,
 ) -> list[tuple[str, int]]:
     """Fallback: select items by importance until budget is filled."""
-    sorted_items = sorted(manifest_items, key=lambda x: x.importance)
+    sorted_items = sorted(manifest_items, key=lambda x: x.importance, reverse=True)
     selected = []
     used_tokens = 0
 
