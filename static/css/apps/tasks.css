@@ -14,6 +14,27 @@
 }
 
 /* ==========================================================================
+ Priority Colors
+========================================================================== */
+
+tr.priority-5 > td.priority .button-link,
+i.priority-5 {
+  color: var(--red-600);
+}
+
+tr.priority-4 > td.priority .button-link,
+i.priority-4 {
+  color: var(--violet-600);
+}
+
+tr.priority-2 > td.priority .button-link,
+i.priority-2,
+tr.priority-1 > td.priority .button-link,
+i.priority-1 {
+  color: var(--color-muted-more);
+}
+
+/* ==========================================================================
  Shared Styles
 ========================================================================== */
 
