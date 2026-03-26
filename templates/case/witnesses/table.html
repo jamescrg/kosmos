@@ -30,7 +30,7 @@
       <th class="email">Email</th>
       <th class="importance">
         <button class="btn-sort {% if 'importance' in current_order %}active{% endif %}"
-                hx-get="{% url 'case:witnesses-sort' matter.id 'importance' %}"
+                hx-get="{% url 'case:witnesses-sort' matter.id '-importance' %}"
                 hx-target="#witnesses"
                 title="Sort by importance">
           <i class="icon-flag"></i>

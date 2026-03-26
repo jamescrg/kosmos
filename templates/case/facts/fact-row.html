@@ -1,5 +1,5 @@
 <tr id="fact-{{ fact.id }}"
-    class="{% if fact.color %}hl-{{ fact.color|lower }}{% endif %}">
+    class="importance-{{ fact.importance }}{% if fact.color %} hl-{{ fact.color|lower }}{% endif %}">
   <td class="date-time{% if fact.color %} hl-{{ fact.color|lower }}{% endif %}">
     <span>{{ fact.date|date:'Y-m-d' }}
       {% if fact.time %}{{ fact.time|time:'g:i A' }}{% endif %}

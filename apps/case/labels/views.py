@@ -277,7 +277,11 @@ def add_label_to(request, object_type, object_id):
         except Label.DoesNotExist:
             pass
 
-    context = {context_key: obj, "importance_choices": range(1, 11), "matter": matter}
+    context = {
+        context_key: obj,
+        "importance_choices": range(5, 0, -1),
+        "matter": matter,
+    }
 
     # Add selected_caselaws for caselaw row template
     if object_type == "caselaw" and matter:
@@ -305,7 +309,11 @@ def remove_label_from(request, object_type, object_id):
         except Label.DoesNotExist:
             pass
 
-    context = {context_key: obj, "importance_choices": range(1, 11), "matter": matter}
+    context = {
+        context_key: obj,
+        "importance_choices": range(5, 0, -1),
+        "matter": matter,
+    }
 
     # Add selected_caselaws for caselaw row template
     if object_type == "caselaw" and matter:
@@ -332,7 +340,11 @@ def labels_create_and_apply(request, object_type, object_id):
         label = Label.objects.create(matter=matter, name=name, color=color)
         obj.labels.add(label)
 
-    context = {context_key: obj, "importance_choices": range(1, 11), "matter": matter}
+    context = {
+        context_key: obj,
+        "importance_choices": range(5, 0, -1),
+        "matter": matter,
+    }
 
     # Add selected_caselaws for caselaw row template
     if object_type == "caselaw" and matter:

@@ -84,12 +84,16 @@
                 :aria-expanded="open">
           <span>
             <i class="icon-flag with-text"></i>
-            {% if importance_value %}
-              {% if importance_value == 1 %}
-                1 only
-              {% else %}
-                {{ importance_value }} and above
-              {% endif %}
+            {% if importance_value == 5 %}
+              Highest
+            {% elif importance_value == 4 %}
+              High
+            {% elif importance_value == 3 %}
+              Normal
+            {% elif importance_value == 2 %}
+              Low
+            {% elif importance_value == 1 %}
+              Lowest
             {% else %}
               Importance
             {% endif %}
@@ -99,30 +103,35 @@
           </small>
         </button>
         <ul class="dropdown-menu" x-ref="menu" x-show="open">
-          {% for importance in importances %}
-            {% if importance != 10 %}
-              <li>
-                <a class="dropdown-item {% if importance == importance_value %}active{% endif %}"
-                   href="#"
-                   hx-get="{% url 'case:notes-filter-importance' matter.id importance %}"
-                   hx-target="#notes">
-                  <i class="icon-flag"></i>
-                  {% if importance == 1 %}
-                    1 only
-                  {% else %}
-                    {{ importance }} and above
-                  {% endif %}
-                </a>
-              </li>
-            {% endif %}
-          {% endfor %}
+          <li>
+            <a class="dropdown-item {% if importance_value == 5 %}active{% endif %}"
+               href="#"
+               hx-get="{% url 'case:notes-filter-importance' matter.id 5 %}"
+               hx-target="#notes"><i class="icon-chevrons-up importance-5"></i> Highest</a>
+          </li>
+          <li>
+            <a class="dropdown-item {% if importance_value == 4 %}active{% endif %}"
+               href="#"
+               hx-get="{% url 'case:notes-filter-importance' matter.id 4 %}"
+               hx-target="#notes"><i class="icon-chevron-up importance-4"></i> High</a>
+          </li>
+          <li>
+            <a class="dropdown-item {% if importance_value == 3 %}active{% endif %}"
+               href="#"
+               hx-get="{% url 'case:notes-filter-importance' matter.id 3 %}"
+               hx-target="#notes"><i class="icon-equal"></i> Normal</a>
+          </li>
+          <li>
+            <a class="dropdown-item {% if importance_value == 2 %}active{% endif %}"
+               href="#"
+               hx-get="{% url 'case:notes-filter-importance' matter.id 2 %}"
+               hx-target="#notes"><i class="icon-chevron-down importance-2"></i> Low</a>
+          </li>
           <li>
             <a class="dropdown-item {% if not importance_value %}active{% endif %}"
                href="#"
                hx-get="{% url 'case:notes-filter-importance' matter.id 0 %}"
-               hx-target="#notes">
-              <i class="icon-flag"></i> All Levels
-            </a>
+               hx-target="#notes"><i class="icon-flag"></i> All Levels</a>
           </li>
         </ul>
       </div>

@@ -3,8 +3,13 @@ from django import forms
 from apps.case.models import Highlight
 from config.settings import CustomFormRendererCompact
 
-# Importance choices for select widget (1-10)
-IMPORTANCE_CHOICES = tuple((i, f"Importance {i}") for i in range(1, 11))
+IMPORTANCE_CHOICES = (
+    (5, "Highest"),
+    (4, "High"),
+    (3, "Normal"),
+    (2, "Low"),
+    (1, "Lowest"),
+)
 
 
 class HighlightForm(forms.ModelForm):

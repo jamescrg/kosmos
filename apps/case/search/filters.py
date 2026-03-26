@@ -4,7 +4,13 @@ from django.db.models import Q
 
 from apps.case.models import Document, Label
 
-IMPORTANCE_CHOICES = tuple((i, f"Importance {i}") for i in range(1, 11))
+IMPORTANCE_CHOICES = (
+    (5, "Highest"),
+    (4, "High"),
+    (3, "Normal"),
+    (2, "Low"),
+    (1, "Lowest"),
+)
 
 
 class SearchFilter(django_filters.FilterSet):
@@ -55,7 +61,7 @@ class SearchFilter(django_filters.FilterSet):
     importance = django_filters.ChoiceFilter(
         choices=IMPORTANCE_CHOICES,
         method="filter_noop",
-        label="Importance (≤)",
+        label="Importance (≥)",
         empty_label="All",
     )
 
