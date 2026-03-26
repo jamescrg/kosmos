@@ -44,7 +44,7 @@
              value="{{ keyword }}"
              class="filter-input keyword-input {% if keyword %}toggle-active{% endif %}"
              hx-get="{% url 'notes:filter-keyword' %}"
-             hx-target="#notes-table"
+             hx-target="#notes"
              hx-trigger="keyup changed delay:500ms"
              hx-include="this"
              oninput="this.classList.toggle('toggle-active', this.value.trim() !== '')">
@@ -60,4 +60,7 @@
     </div>
   {% endif %}
 </div>
-<div id="notes-table">{% include "notes/table-with-pagination.html" %}</div>
+<div id="notes-table">{% include "notes/table.html" %}</div>
+<div class="flex-start-space">
+  <div>{% include "pagination.html" %}</div>
+</div>
