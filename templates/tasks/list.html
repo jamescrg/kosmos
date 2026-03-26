@@ -25,18 +25,16 @@
                   @click="toggle()"
                   :aria-expanded="open">
           <span><i class="icon-flag with-text"></i>
-          {% if priority_value %}
-            {% if priority_value == 5 %}
-              Highest
-            {% elif priority_value == 4 %}
-              High
-            {% elif priority_value == 3 %}
-              Normal
-            {% elif priority_value == 2 %}
-              Low
-            {% else %}
-              Lowest
-            {% endif %}
+          {% if priority_value == 5 %}
+            Highest
+          {% elif priority_value == 4 %}
+            High
+          {% elif priority_value == 3 %}
+            Normal
+          {% elif priority_value == 2 %}
+            Low
+          {% elif priority_value == 1 %}
+            Lowest
           {% else %}
             Priority
           {% endif %}
@@ -94,7 +92,7 @@
               x-ref="button"
               @click="toggle()"
               :aria-expanded="open">
-        <span><i class="icon-{% if user_id %}user{% else %}users{% endif %} with-text"></i>{{ selected_user|default:"All Users" }}</span>
+        <span><i class="icon-{% if user_id %}user{% else %}users{% endif %} with-text"></i>&nbsp;{{ selected_user|default:"All Users" }}</span>
         <small>
           <i class="icon-chevron-down"></i>
         </small>
@@ -196,7 +194,7 @@
           <button class="btn-sort {% if current_order == 'priority' %}active{% endif %}"
                   hx-target="#tasks"
                   hx-swap="innerHTML"
-                  hx-post="{% url 'tasks:filter-sort' 'priority' %}">
+                  hx-post="{% url 'tasks:filter-sort' '-priority' %}">
             <i class="icon-flag"></i>
           </button>
         </th>
