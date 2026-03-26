@@ -27,7 +27,7 @@
       </th>
       <th class="importance">
         <button class="btn-sort {% if 'importance' in current_order %}active{% endif %}"
-                hx-get="{% url 'case:highlights-filter-sort' matter.id 'importance' %}"
+                hx-get="{% url 'case:highlights-filter-sort' matter.id '-importance' %}"
                 hx-target="#highlights"
                 title="Sort by importance">
           <i class="icon-flag"></i>

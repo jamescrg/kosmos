@@ -7,14 +7,40 @@
     <i class="icon-flag with-text"></i> Importance
   </button>
   <ul class="dropdown-menu" x-ref="menu" x-show="open" @click="close()">
-    {% for i in "1234567890"|make_list %}
-      <li>
-        <a class="dropdown-item"
-           href="#"
-           hx-post="{% url 'notes:bulk-set-importance' %}"
-           hx-vals='{"importance": "{{ forloop.counter }}"}'
-           hx-swap="none"><i class="icon-flag"></i> {{ forloop.counter }}</a>
-      </li>
-    {% endfor %}
+    <li>
+      <a class="dropdown-item"
+         href="#"
+         hx-post="{% url 'notes:bulk-set-importance' %}"
+         hx-vals='{"importance": "5"}'
+         hx-swap="none"><i class="icon-chevrons-up importance-5"></i> Highest</a>
+    </li>
+    <li>
+      <a class="dropdown-item"
+         href="#"
+         hx-post="{% url 'notes:bulk-set-importance' %}"
+         hx-vals='{"importance": "4"}'
+         hx-swap="none"><i class="icon-chevron-up importance-4"></i> High</a>
+    </li>
+    <li>
+      <a class="dropdown-item"
+         href="#"
+         hx-post="{% url 'notes:bulk-set-importance' %}"
+         hx-vals='{"importance": "3"}'
+         hx-swap="none"><i class="icon-equal"></i> Normal</a>
+    </li>
+    <li>
+      <a class="dropdown-item"
+         href="#"
+         hx-post="{% url 'notes:bulk-set-importance' %}"
+         hx-vals='{"importance": "2"}'
+         hx-swap="none"><i class="icon-chevron-down importance-2"></i> Low</a>
+    </li>
+    <li>
+      <a class="dropdown-item"
+         href="#"
+         hx-post="{% url 'notes:bulk-set-importance' %}"
+         hx-vals='{"importance": "1"}'
+         hx-swap="none"><i class="icon-chevrons-down importance-1"></i> Lowest</a>
+    </li>
   </ul>
 </div>

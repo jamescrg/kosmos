@@ -1,5 +1,6 @@
 {% load phone_numbers %}
-<tr id="witness-{{ witness.id }}">
+<tr id="witness-{{ witness.id }}"
+    class="importance-{{ witness.importance }}">
   <td class="alignment dropdown-cell">{% include "case/witnesses/alignment-display.html" %}</td>
   <td class="name">
     <a href="#"

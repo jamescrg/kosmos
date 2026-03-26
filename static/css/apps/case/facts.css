@@ -48,7 +48,20 @@ Display
 }
 
 .facts-list .importance .dropdown-menu {
-  min-width: 2rem;
+  min-width: auto;
+  text-align: left;
+}
+
+.facts-list .importance .button-link {
+  color: var(--color-muted-more);
+}
+
+.facts-list tr.importance-5 > .importance .button-link {
+  color: var(--red-600);
+}
+
+.facts-list tr.importance-4 > .importance .button-link {
+  color: var(--violet-600);
 }
 
 .facts-list .citations {

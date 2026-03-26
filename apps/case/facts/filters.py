@@ -5,7 +5,13 @@ from django.db.models import Q
 from apps.case.models import Fact, Label
 from config.helpers import MultipleOrderingFilter
 
-IMPORTANCE_CHOICES = tuple((i, f"Importance {i}") for i in range(1, 11))
+IMPORTANCE_CHOICES = (
+    (5, "Highest"),
+    (4, "High"),
+    (3, "Normal"),
+    (2, "Low"),
+    (1, "Lowest"),
+)
 
 
 class FactsFilter(django_filters.FilterSet):
@@ -31,8 +37,8 @@ class FactsFilter(django_filters.FilterSet):
     importance = django_filters.ChoiceFilter(
         field_name="importance",
         choices=IMPORTANCE_CHOICES,
-        lookup_expr="lte",
-        label="Importance (≤)",
+        lookup_expr="gte",
+        label="Importance (≥)",
         empty_label="All",
     )
     order_by = MultipleOrderingFilter(
