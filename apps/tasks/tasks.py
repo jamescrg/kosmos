@@ -28,7 +28,7 @@ def get_list_data(request):
         filter_data = {
             **filter_data,
             "status": filter_data.get("status", "Pending"),
-            "order_by": filter_data.get("order_by", "priority"),
+            "order_by": filter_data.get("order_by", "-priority"),
         }
 
         filter = TasksFilter(filter_data)
@@ -49,7 +49,7 @@ def get_list_data(request):
         default_filter = {
             "status": "Pending",
             "matter": None,
-            "order_by": "priority",
+            "order_by": "-priority",
             "user": request.user.id,
         }
 

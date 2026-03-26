@@ -17,6 +17,10 @@
  Priority Colors
 ========================================================================== */
 
+td.priority .button-link {
+  color: var(--color-muted-more);
+}
+
 tr.priority-5 > td.priority .button-link,
 i.priority-5 {
   color: var(--red-600);
@@ -27,13 +31,7 @@ i.priority-4 {
   color: var(--violet-600);
 }
 
-tr.priority-3 > td.priority .button-link {
-  color: var(--color-muted-more);
-}
-
-tr.priority-2 > td.priority .button-link,
 i.priority-2,
-tr.priority-1 > td.priority .button-link,
 i.priority-1 {
   color: var(--color-muted-more);
 }

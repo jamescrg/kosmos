@@ -52,18 +52,10 @@ class TasksOrderingFilter(django_filters.OrderingFilter):
                     "description",
                     "id",
                 )
-            if ordering[0] == "priority":
+            if ordering[0] in ("priority", "-priority"):
                 return qs.order_by(
                     "-status",
-                    "-priority",
-                    "matter__name",
-                    "description",
-                    "id",
-                )
-            if ordering[0] == "-priority":
-                return qs.order_by(
-                    "-status",
-                    "priority",
+                    ordering[0],
                     "matter__name",
                     "description",
                     "id",
