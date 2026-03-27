@@ -403,6 +403,82 @@ def caselaw_viewer(request, caselaw_id):
 
 
 @login_required
+def caselaw_viewer_by_cluster(request, matter_id, cluster_id):
+    """Case law preview viewer — fetches from CourtListener without requiring a saved CaseLaw."""
+    from apps.case.courtlistener import fetch_cluster, fetch_opinion
+    from apps.case.views import get_matter_from_url
+
+    matter, _ = get_matter_from_url(request, matter_id)
+
+    # If already saved, redirect to the saved viewer
+    existing = CaseLaw.objects.filter(matter=matter, cluster_id=cluster_id).first()
+    if existing:
+        return redirect("case:caselaw-viewer", caselaw_id=existing.id)
+
+    # Fetch from CourtListener
+    opinion_html = ""
+    opinion_text = ""
+    fetch_error = ""
+    case_name = ""
+    citation = ""
+
+    cluster = fetch_cluster(cluster_id)
+    if cluster:
+        case_name = cluster.get("case_name", "")
+        citations = cluster.get("citations", [])
+        cite_parts = []
+        for c in citations:
+            v, r, p = c.get("volume", ""), c.get("reporter", ""), c.get("page", "")
+            if v and r and p:
+                cite_parts.append(f"{v} {r} {p}")
+        citation = ", ".join(cite_parts)
+
+        sub_opinions = cluster.get("sub_opinions", [])
+        if sub_opinions:
+            try:
+                oid = int(sub_opinions[0].rstrip("/").split("/")[-1])
+                opinion = fetch_opinion(oid)
+                if opinion.found:
+                    opinion_html = opinion.html_with_citations
+                    opinion_text = opinion.plain_text
+                else:
+                    fetch_error = "Could not retrieve case text from CourtListener."
+            except (ValueError, IndexError):
+                fetch_error = "Could not parse opinion ID."
+        else:
+            fetch_error = "No opinion text available on CourtListener."
+    else:
+        fetch_error = "Could not reach CourtListener."
+
+    # Build a lightweight object for the template
+    caselaw_preview = {
+        "case_name": case_name,
+        "citation": citation,
+        "courtlistener_url": f"https://www.courtlistener.com{cluster.get('absolute_url', '')}"
+        if cluster
+        else "",
+        "html": "",
+        "text": "",
+    }
+
+    return render(
+        request,
+        "case/caselaw-viewer.html",
+        {
+            "caselaw": caselaw_preview,
+            "matter": matter,
+            "highlights": [],
+            "highlights_json": "[]",
+            "initial_highlight": None,
+            "opinion_html": opinion_html,
+            "opinion_text": opinion_text,
+            "fetch_error": fetch_error,
+            "preview_mode": True,
+        },
+    )
+
+
+@login_required
 @require_POST
 def caselaw_set_ai(request, caselaw_id, state):
     """Set the ai_context state on a case law entry."""

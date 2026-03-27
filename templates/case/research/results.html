@@ -1,66 +1,89 @@
-<div class="research-results-container">
+<div class="research-results-container"
+     hx-trigger="researchResultsChanged from:body"
+     hx-get="{% url 'case:research-results' matter.id query.id %}{% if sort %}?sort={{ sort }}{% endif %}"
+     hx-target="#research-results"
+     hx-swap="innerHTML">
   <div class="research-results-header">
     <div>
       <h3>{{ query.query_text|truncatechars:80 }}</h3>
       <span class="research-results-meta">{{ query.jurisdiction_display }} &middot; {{ query.created_at|date:"M j, Y g:i A" }}</span>
     </div>
-    <form hx-post="{% url 'case:research-delete' matter.id query.id %}"
-          hx-confirm="Delete this query and its results?">
-      <button type="submit" class="btn btn-icon" title="Delete query">
-        <i class="icon-trash-2"></i>
-      </button>
-    </form>
-  </div>
-  {% if query.status == "refined" %}
-    <div class="research-search-card">
-      <p class="research-review-label">Review search parameters before proceeding:</p>
-      <form class="research-review-form"
-            hx-post="{% url 'case:research-confirm' matter.id query.id %}"
-            hx-target="#research-results"
-            hx-swap="innerHTML">
-        <input type="text"
-               name="structured_query"
-               class="research-review-input"
-               value="{{ query.structured_query }}">
-        <button type="submit" class="btn btn-success">Run</button>
+    <div class="research-results-actions">
+      <div class="research-sort" x-data="dropdown()">
+        <button type="button"
+                class="select-btn research-filter-btn"
+                x-ref="button"
+                @click="toggle()"
+                :aria-expanded="open">
+          <span>Sort:
+            {% if sort == "date" %}
+              Date
+            {% elif sort == "citations" %}
+              Most Cited
+            {% else %}
+              Relevance
+            {% endif %}
+          </span>
+          <small><i class="icon-chevron-down"></i></small>
+        </button>
+        <ul class="dropdown-menu" x-ref="menu" x-show="open" @click="close()">
+          <li>
+            <a class="dropdown-item {% if sort == 'relevance' %}active{% endif %}"
+               href="#"
+               hx-get="{% url 'case:research-results' matter.id query.id %}?sort=relevance"
+               hx-target="#research-results"
+               hx-swap="innerHTML">Relevance</a>
+          </li>
+          <li>
+            <a class="dropdown-item {% if sort == 'date' %}active{% endif %}"
+               href="#"
+               hx-get="{% url 'case:research-results' matter.id query.id %}?sort=date"
+               hx-target="#research-results"
+               hx-swap="innerHTML">Date</a>
+          </li>
+          <li>
+            <a class="dropdown-item {% if sort == 'citations' %}active{% endif %}"
+               href="#"
+               hx-get="{% url 'case:research-results' matter.id query.id %}?sort=citations"
+               hx-target="#research-results"
+               hx-swap="innerHTML">Most Cited</a>
+          </li>
+        </ul>
+      </div>
+      <form hx-post="{% url 'case:research-delete' matter.id query.id %}"
+            hx-confirm="Delete this query and its results?">
+        <button type="submit" class="btn btn-icon" title="Delete query">
+          <i class="icon-trash-2"></i>
+        </button>
       </form>
     </div>
-  {% elif query.structured_query and query.status != "refining" and query.status != "pending" %}
-    <div class="research-structured-query">
-      <code>{{ query.structured_query }}</code>
-    </div>
-  {% endif %}
+  </div>
   {% if query.status == "error" %}
     <div class="research-error">
       <i class="icon-alert-triangle"></i>
       {{ query.error_message }}
     </div>
+  {% elif query.status == "searching" %}
+    <div class="research-loading"
+         hx-get="{% url 'case:research-results' matter.id query.id %}{% if sort %}?sort={{ sort }}{% endif %}"
+         hx-trigger="load delay:2s"
+         hx-target="#research-results"
+         hx-swap="innerHTML">
+      <i class="icon-loader spin"></i>
+      <span>Searching CourtListener...</span>
+    </div>
   {% else %}
-    {% include "case/research/summary.html" %}
     {% if results %}
       <div class="research-cards">
         {% for result in results %}
           {% include "case/research/result-row.html" %}
         {% endfor %}
       </div>
-    {% endif %}
-    {% if query.status != "complete" and query.status != "refined" %}
-      <div class="research-loading"
-           hx-get="{% url 'case:research-query-status' query.id %}"
-           hx-trigger="load delay:2s"
-           hx-target="#research-results"
-           hx-swap="innerHTML">
-        <i class="icon-loader spin"></i>
-        <span>
-          {% if query.status == "pending" or query.status == "refining" %}
-            Refining query...
-          {% elif query.status == "searching" %}
-            Searching CourtListener...
-          {% else %}
-            Processing results...
-          {% endif %}
-        </span>
+      <div class="flex-start-space">
+        <div>{% include "pagination.html" %}</div>
       </div>
+    {% else %}
+      <div class="research-empty-state">No results found.</div>
     {% endif %}
   {% endif %}
 </div>

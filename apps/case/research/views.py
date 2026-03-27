@@ -23,6 +23,7 @@ from .tasks import (
     review_more_citations,
     review_result,
     sanitize_query,
+    summarize_result,
 )
 
 
@@ -161,6 +162,16 @@ def research_search(request, matter_id):
             '<div class="research-error">Please enter a search query.</div>'
         )
 
+    # Auto-expire queries older than 30 days
+    from datetime import timedelta
+
+    from django.utils import timezone
+
+    threshold = timezone.now() - timedelta(days=30)
+    ResearchQuery.objects.filter(
+        matter=matter, created_by=request.user, created_at__lt=threshold
+    ).delete()
+
     query = ResearchQuery.objects.create(
         matter=matter,
         query_text=query_text,
@@ -174,23 +185,48 @@ def research_search(request, matter_id):
 
     return render(
         request,
-        "case/research/results.html",
+        "case/research/refinement.html",
         {"query": query, "matter": matter},
     )
 
 
 @login_required
 def research_results(request, matter_id, query_id):
-    """View results for a specific query."""
+    """View results for a specific query with sorting and pagination."""
+    from apps.management.pagination import CustomPaginator
+
     matter, _ = get_matter_from_url(request, matter_id)
     query = get_object_or_404(
         ResearchQuery, pk=query_id, matter=matter, created_by=request.user
     )
-    results = query.results.all()
+
+    sort = request.GET.get("sort", "relevance")
+    sort_map = {
+        "relevance": "-score",
+        "date": "-date_filed",
+        "citations": "-forward_citation_count",
+    }
+    order_field = sort_map.get(sort, "-score")
+    results = query.results.all().order_by(order_field)
+
+    session_key = f"research_results_{query_id}"
+    pagination = CustomPaginator(
+        results, per_page=5, request=request, session_key=session_key
+    )
+    results = pagination.get_object_list()
+
     return render(
         request,
         "case/research/results.html",
-        {"query": query, "results": results, "matter": matter},
+        {
+            "query": query,
+            "results": results,
+            "matter": matter,
+            "sort": sort,
+            "pagination": pagination,
+            "session_key": session_key,
+            "trigger_key": "researchResultsChanged",
+        },
     )
 
 
@@ -240,12 +276,8 @@ def research_confirm(request, matter_id, query_id):
 
     process_research_query(query.id)
 
-    results = query.results.all()
-    return render(
-        request,
-        "case/research/results.html",
-        {"query": query, "results": results, "matter": matter},
-    )
+    context = {"query": query, "results": query.results.all(), "matter": matter}
+    return render(request, "case/research/refinement.html", context)
 
 
 @login_required
@@ -270,13 +302,12 @@ def research_delete(request, matter_id, query_id):
 
 @login_required
 def query_status(request, query_id):
-    """Poll for query processing status."""
+    """Poll for query processing status — used by refinement polling."""
     query = get_object_or_404(ResearchQuery, pk=query_id, created_by=request.user)
-    results = query.results.all()
     return render(
         request,
-        "case/research/results.html",
-        {"query": query, "results": results, "matter": query.matter},
+        "case/research/refinement.html",
+        {"query": query, "matter": query.matter},
     )
 
 
@@ -621,4 +652,25 @@ def research_delete_brief(request, brief_id):
         request,
         "case/research/list.html",
         {"matter": matter, "research_tab": "abstracts", "briefs": briefs},
+    )
+
+
+@login_required
+def research_summarize_result(request, result_id):
+    """POST: request AI summarization of a single result."""
+    if request.method != "POST":
+        return HttpResponse(status=405)
+
+    result = get_object_or_404(
+        ResearchResult, pk=result_id, query__created_by=request.user
+    )
+
+    summarize_result(result_id)
+
+    # Re-fetch to get the updated status
+    result.refresh_from_db()
+    return render(
+        request,
+        "case/research/result-row.html",
+        {"result": result, "matter": result.query.matter},
     )

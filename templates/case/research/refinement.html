@@ -1,0 +1,38 @@
+{% if query.status == "refined" %}
+  <div class="research-refinement-card">
+    <p class="research-review-label">Review search parameters before proceeding:</p>
+    <form class="research-review-form"
+          hx-post="{% url 'case:research-confirm' matter.id query.id %}"
+          hx-target="#research-refinement"
+          hx-swap="innerHTML">
+      <input type="text"
+             name="structured_query"
+             class="research-review-input"
+             value="{{ query.structured_query }}">
+      <button type="submit" class="btn btn-success">
+        <i class="icon-play"></i> Run
+      </button>
+    </form>
+  </div>
+{% elif query.status == "pending" or query.status == "refining" %}
+  <div class="research-refinement-card"
+       hx-get="{% url 'case:research-query-status' query.id %}"
+       hx-trigger="load delay:2s"
+       hx-target="#research-refinement"
+       hx-swap="innerHTML">
+    <div class="research-loading">
+      <i class="icon-loader spin"></i>
+      <span>Refining query...</span>
+    </div>
+  </div>
+{% elif query.structured_query %}
+  <div class="research-refinement-card"
+       hx-get="{% url 'case:research-results' matter.id query.id %}"
+       hx-trigger="load"
+       hx-target="#research-results"
+       hx-swap="innerHTML">
+    <div class="research-structured-query">
+      <code>{{ query.structured_query }}</code>
+    </div>
+  </div>
+{% endif %}

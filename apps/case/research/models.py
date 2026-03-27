@@ -13,6 +13,7 @@ STATUS_CHOICES = [
 ]
 
 RELEVANCE_CHOICES = [
+    ("none", "Not assessed"),
     ("pending", "Pending"),
     ("high", "High"),
     ("medium", "Medium"),
@@ -74,7 +75,7 @@ class ResearchResult(AuditMixin):
     courtlistener_url = models.URLField(max_length=500, blank=True, default="")
     opinion_text = models.TextField(blank=True, default="")
     relevance = models.CharField(
-        max_length=20, choices=RELEVANCE_CHOICES, default="pending"
+        max_length=20, choices=RELEVANCE_CHOICES, default="none"
     )
     gemini_summary = models.TextField(blank=True, default="")
     status_message = models.CharField(max_length=200, blank=True, default="")
