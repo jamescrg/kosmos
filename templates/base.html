@@ -97,6 +97,11 @@
       hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}'>
   {% include "modals.html" %}
   {% include "confirm-modal.html" %}
+  {% if env == 'dev' %}
+    <div class="dev-banner">
+      <span>DEVELOPMENT ENVIRONMENT</span>
+    </div>
+  {% endif %}
   {% include "sidebar.html" %}
   <div class="main-content" id="main-content">
     <button class="sidebar-mobile-trigger" id="sidebar-mobile-trigger">
