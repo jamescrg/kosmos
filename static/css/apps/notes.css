@@ -3,7 +3,6 @@ body.notes-page {
 }
 
 body.notes-page .content {
-  padding-top: 1.25rem;
 }
 
 /* =============================================================================
@@ -31,13 +30,6 @@ body.notes-page .content {
     flex: 1;
     min-width: 0;
   }
-}
-
-.notes-content {
-  background: var(--background-section);
-  border-radius: var(--radius-md);
-  box-shadow: 0 0.0625rem 0.2rem rgb(0 0 0 / 14%);
-  padding: 1.25rem 1rem 1.5rem;
 }
 
 /* =============================================================================

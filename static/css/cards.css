@@ -1,8 +1,21 @@
 
 .card {
-  background: var(--background-section);
+  background: var(--background-body);
+  border: solid 1px var(--border-medium);
   border-radius: var(--radius-md);
-  box-shadow: 0 0.0625rem 0.2rem rgb(0 0 0 / 14%);
   margin-bottom: 1.25rem;
   padding: 1.25rem 1rem 1.5rem;
+}
+
+.card .list-group {
+  margin: 0 -1rem -1.5rem;
+}
+
+.card .list-group .list-group-item {
+  padding-left: 1rem;
+  padding-right: 1rem;
+}
+
+.card .list-group .list-group-item:last-child {
+  border-bottom: none;
 }

@@ -10,7 +10,7 @@
 
   /* Border radius */
   --radius-sm: 0.25rem;
-  --radius-md: 0.5rem;
+  --radius-md: 0.25rem;
   --radius-lg: 0.75rem;
   --radius-full: 9999px;
 
@@ -27,19 +27,19 @@
      Links
      ========================================================================== */
   --link: var(--lime-800);
-  --link-hover: var(--lime-800);
+  --link-hover: var(--lime-600);
 
   /* ==========================================================================
      Backgrounds
      ========================================================================== */
   --background-nav: var(--stone-350);
-  --background-body: var(--stone-150);
-  --background-subnav: var(--stone-250);
+  --background-body: var(--stone-125);
+  --background-subnav: var(--stone-175);
   --background-subnav-contrast: var(--stone-225);
-  --background-control: var(--stone-200);
+  --background-control: var(--stone-175);
   --background-section: var(--stone-150);
-  --background-td: var(--stone-100);
-  --background-light: var(--stone-25);
+  --background-td: var(--stone-125);
+  --background-light: var(--stone-50);
 
   /* ==========================================================================
      Navigation
@@ -47,6 +47,15 @@
   --color-nav: var(--color-primary);
   --background-nav-tab-active: var(--background-body);
   --background-subnav-tab-active: var(--background-section);
+
+  /* ==========================================================================
+     Sidebar
+     ========================================================================== */
+  --sidebar-width: 15rem;
+  --sidebar-width-collapsed: 4.5rem;
+  --background-sidebar: var(--stone-175);
+  --background-sidebar-hover: var(--stone-215);
+  --background-sidebar-active: var(--stone-250);
 
   /* ==========================================================================
      Buttons
@@ -77,7 +86,7 @@
      ========================================================================== */
   --selected-background: var(--violet-100);
   --selected-color: var(--stone-700);
-  --selected-border: var(--stone-300);
+  --selected-border: var(--border-medium);
 
   /* ==========================================================================
      Status & Feedback

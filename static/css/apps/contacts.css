@@ -3,24 +3,24 @@
    ========================================================================== */
 
 body.contacts-page {
-  background-color: var(--background-subnav);
+  /* background-color: var(--background-subnav); */
 }
 
 body.contacts-page .content {
-  padding-top: 1.25rem;
-  padding-left: 1rem;
-  padding-right: 1rem;
+  /* padding-left: 1rem; */
+  /* padding-right: 1rem; */
 }
 
 /* Detail header/subnav need contrast against the darker page body */
 .contacts-page .detail-header,
 .contacts-page .subnav {
-  background: var(--background-subnav-contrast);
+  /* background: var(--background-subnav-contrast); */
 }
 
 
 .contacts-page .contacts-detail > .detail {
-  box-shadow: 0 0.0625rem 0.2rem rgb(0 0 0 / 14%);
+  /* box-shadow: 0 0.0625rem 0.2rem rgb(0 0 0 / 14%); */
+  border: solid 1px var(--border-medium);
   border-radius: var(--radius-md);
 }
 
@@ -379,12 +379,13 @@ body.contacts-page .content {
 
 /* Empty State */
 .contact-empty-state {
-  background-color: var(--background-light);
-  border: 1px dashed var(--border-medium);
-  border-radius: var(--radius-lg);
+  border: 1px solid var(--border-medium);
+  border-radius: var(--radius-md);
   color: var(--color-muted);
+  display: grid;
+  min-height: 100%;
   padding: 2.5rem 1.25rem;
-  text-align: center;
+  place-items: center;
 }
 
 .btn-delete-contacts {
