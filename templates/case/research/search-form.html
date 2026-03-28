@@ -3,14 +3,9 @@
      x-init=" {% for state in states %}if (stateId === '{{ state.id }}') stateLabel = '{{ state.name }}';{% endfor %} ">
   <form class="research-search-form"
         hx-post="{% url 'case:research-search' matter.id %}"
-        hx-target="#research-results"
+        hx-target="#research-refinement"
         hx-swap="innerHTML">
     <div class="research-search-row">
-      <input type="text"
-             name="query_text"
-             class="research-search-text"
-             placeholder="Enter your legal research query..."
-             required>
       <input type="hidden" name="state" :value="stateId">
       <div class="dropdown" x-data="dropdown()">
         <button type="button"
@@ -47,7 +42,7 @@
                 x-ref="button"
                 @click="toggle()"
                 :aria-expanded="open">
-          <span>Include Federal: <span x-text="federal ? 'Yes' : 'No'"></span></span>
+          <span>Federal: <span x-text="federal ? 'Yes' : 'No'"></span></span>
           <small><i class="icon-chevron-down"></i></small>
         </button>
         <ul class="dropdown-menu" x-ref="menu" x-show="open" @click="close()">
@@ -65,6 +60,11 @@
           </li>
         </ul>
       </div>
+      <input type="text"
+             name="query_text"
+             class="research-search-text"
+             placeholder="Enter your legal research query..."
+             required>
       <button type="submit" class="btn btn-success">
         <i class="icon-search"></i> Search
       </button>

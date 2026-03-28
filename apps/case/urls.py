@@ -662,6 +662,11 @@ urlpatterns = [
         name="caselaw-viewer",
     ),
     path(
+        "case/<int:matter_id>/viewer/cluster/<int:cluster_id>/",
+        caselaws.caselaw_viewer_by_cluster,
+        name="caselaw-viewer-cluster",
+    ),
+    path(
         "case/caselaws/<int:caselaw_id>/highlights/add/",
         caselaws.caselaw_add_highlight,
         name="caselaw-add-highlight",
@@ -973,6 +978,11 @@ urlpatterns = [
         "case/research/brief/<int:brief_id>/delete/",
         research.research_delete_brief,
         name="research-delete-brief",
+    ),
+    path(
+        "case/research/result/<int:result_id>/summarize/",
+        research.research_summarize_result,
+        name="research-summarize-result",
     ),
     # ==========================================================================
     # LEGACY ROUTES (redirect to new structure)

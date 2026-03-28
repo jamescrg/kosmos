@@ -1,6 +1,11 @@
 {% include "case/research/search-form.html" %}
-<div id="research-results">
+<div id="research-refinement">
   {% if active_query %}
+    {% include "case/research/refinement.html" with query=active_query %}
+  {% endif %}
+</div>
+<div id="research-results">
+  {% if active_query and active_query.status != "refined" and active_query.status != "pending" and active_query.status != "refining" %}
     {% include "case/research/results.html" with query=active_query %}
   {% endif %}
 </div>

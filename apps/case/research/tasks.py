@@ -167,20 +167,19 @@ def _refine_and_pause(query_id):
 
 
 def _process_query(query_id):
-    """Process a research query: search, evaluate, summarize (refinement already done)."""
+    """Process a research query: search CourtListener and store results."""
     try:
         query = ResearchQuery.objects.get(pk=query_id)
     except ResearchQuery.DoesNotExist:
         return
 
     try:
-        # Phase 1: Search CourtListener
         ResearchQuery.objects.filter(pk=query_id).update(status="searching")
 
         search_text = query.structured_query or query.query_text
         court = get_court_ids(query.state, query.include_federal)
 
-        results, status_code = search_opinions(search_text, court=court, limit=10)
+        results, status_code = search_opinions(search_text, court=court, limit=20)
 
         # If the structured query caused a server error, retry with raw query text
         if not results and status_code == 500 and query.structured_query:
@@ -188,7 +187,7 @@ def _process_query(query_id):
                 "Structured query failed for %s, retrying with raw text", query_id
             )
             results, status_code = search_opinions(
-                query.query_text, court=court, limit=10
+                query.query_text, court=court, limit=20
             )
 
         if not results:
@@ -244,44 +243,98 @@ def _process_query(query_id):
                 cluster_id=result.get("cluster_id"),
                 snippet=result.get("snippet", ""),
                 score=result.get("score"),
+                forward_citation_count=result.get("cite_count"),
                 courtlistener_url=result.get("courtlistener_url", ""),
             )
 
-        ResearchQuery.objects.filter(pk=query_id).update(status="processing")
-
-        # Phase 2: Process each result (in CL relevance order)
-        result_records = ResearchResult.objects.filter(query_id=query_id).order_by(
-            "position"
-        )
-
-        for result in result_records:
-            try:
-                _process_result(result, query.query_text)
-            except Exception:
-                logger.exception("Error processing result %s", result.id)
-                ResearchResult.objects.filter(pk=result.id).update(
-                    relevance="error", status_message="Error during processing"
-                )
-
-        # Phase 2.5: Reorder by assessed relevance — high first, medium after, low removed
-        ResearchResult.objects.filter(query_id=query_id, relevance="low").delete()
-
-        RELEVANCE_ORDER = {"high": 0, "medium": 1, "error": 2}
-        remaining = list(
-            ResearchResult.objects.filter(query_id=query_id).order_by("position")
-        )
-        remaining.sort(key=lambda r: (RELEVANCE_ORDER.get(r.relevance, 1), r.position))
-        for i, result in enumerate(remaining, 1):
-            if result.position != i:
-                ResearchResult.objects.filter(pk=result.id).update(position=i)
-
-        # Phase 3: Final summary
-        _generate_final_summary(query_id)
+        ResearchQuery.objects.filter(pk=query_id).update(status="complete")
 
     except Exception:
         logger.exception("Error processing research query %s", query_id)
         ResearchQuery.objects.filter(pk=query_id).update(
             status="error", error_message="An unexpected error occurred."
+        )
+
+
+def summarize_result(result_id):
+    """Run on-demand summarization of a single result in a background thread."""
+    thread = threading.Thread(target=_summarize_result, args=(result_id,), daemon=True)
+    thread.start()
+
+
+def _summarize_result(result_id):
+    """Fetch opinion and generate AI summary for a single result."""
+    try:
+        result = ResearchResult.objects.select_related("query").get(pk=result_id)
+    except ResearchResult.DoesNotExist:
+        return
+
+    ResearchResult.objects.filter(pk=result_id).update(
+        relevance="pending", status_message="Summarizing..."
+    )
+
+    try:
+        if not result.cluster_id:
+            ResearchResult.objects.filter(pk=result_id).update(
+                relevance="error", status_message="No cluster ID"
+            )
+            return
+
+        opinion_text = _get_opinion_text(result.cluster_id)
+        if not opinion_text:
+            ResearchResult.objects.filter(pk=result_id).update(
+                relevance="error", status_message="Could not fetch opinion text"
+            )
+            return
+
+        query_text = result.query.query_text if result.query_id else ""
+        truncated_text = opinion_text[:8000]
+
+        system_prompt = (
+            "You are a legal research assistant. Respond ONLY with valid JSON."
+        )
+        user_prompt = (
+            f"Evaluate the relevance of this case to the following legal research query.\n\n"
+            f"Research Query: {query_text}\n\n"
+            f"Case: {result.case_name}\n"
+            f"Court: {result.court}\n"
+            f"Date Filed: {result.date_filed}\n\n"
+            f"Opinion Text (excerpt):\n{truncated_text}\n\n"
+            f"Respond with JSON in this exact format:\n"
+            f'{{"relevance": "high" or "medium" or "low", "reason": "brief explanation", '
+            f'"summary": "100-word summary if relevance is high or medium, otherwise empty string"}}'
+        )
+
+        response_text, _, _ = send_to_gemini(
+            system_prompt, [{"role": "user", "content": user_prompt}]
+        )
+
+        cleaned = response_text.strip()
+        if cleaned.startswith("```"):
+            cleaned = cleaned.split("\n", 1)[-1].rsplit("```", 1)[0].strip()
+
+        parsed = json.loads(cleaned)
+        relevance = parsed.get("relevance", "medium")
+        if relevance not in ("high", "medium", "low"):
+            relevance = "medium"
+
+        summary = parsed.get("summary", "")
+
+        ResearchResult.objects.filter(pk=result_id).update(
+            relevance=relevance,
+            gemini_summary=summary,
+            status_message="Complete",
+        )
+
+    except (json.JSONDecodeError, KeyError):
+        logger.exception("Failed to parse Gemini response for result %s", result_id)
+        ResearchResult.objects.filter(pk=result_id).update(
+            relevance="medium", status_message="Complete"
+        )
+    except Exception:
+        logger.exception("Gemini error for result %s", result_id)
+        ResearchResult.objects.filter(pk=result_id).update(
+            relevance="error", status_message="AI evaluation failed"
         )
 
 

@@ -44,7 +44,9 @@
   padding: 0 5rem 1.25rem;
 }
 
-.research-search-form {
+.research-refinement-card {
+  border-bottom: 1px solid var(--border-medium);
+  padding: 1rem 5rem 1.25rem;
 }
 
 .research-search-row {
@@ -53,8 +55,10 @@
   gap: 1rem;
 }
 
-.research-search-row .btn {
+.research-search-row .btn,
+.research-refinement-card .btn {
   line-height: 1.25rem;
+  min-width: 7rem;
 }
 
 .research-search-text {
@@ -90,10 +94,6 @@
   padding: 1rem 5rem 0;
 }
 
-.research-results-container .research-search-card {
-  margin: 0 -5rem;
-}
-
 .research-history-list,
 .research-review-lookup,
 .research-reviewed-list,
@@ -107,6 +107,24 @@
   display: flex;
   justify-content: space-between;
   padding-bottom: 1rem;
+}
+
+.research-results-actions {
+  align-items: center;
+  display: flex;
+  gap: 0.5rem;
+}
+
+.research-pagination {
+  align-items: center;
+  display: flex;
+  gap: 1rem;
+  justify-content: center;
+  padding: 1rem 0;
+}
+
+.research-pagination-info {
+  color: var(--color-muted);
 }
 
 .research-results-header h3 {
@@ -124,11 +142,6 @@
    ========================================================================== */
 
 .research-structured-query {
-  background: var(--background-control);
-  border: 1px solid var(--border-light);
-  border-radius: var(--radius-sm);
-  margin-bottom: 1.25rem;
-  padding: 0.5rem 0.75rem;
 }
 
 .research-structured-query code {
@@ -139,10 +152,6 @@
 /* ==========================================================================
    Review / Confirm Query
    ========================================================================== */
-
-.research-review {
-  margin-bottom: 1.25rem;
-}
 
 .research-review-label {
   color: var(--color-secondary);
@@ -157,7 +166,6 @@
 
 .research-review-form .btn {
   flex-shrink: 0;
-  line-height: 1.25rem;
 }
 
 .research-review-input {

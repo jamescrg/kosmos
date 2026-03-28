@@ -109,6 +109,7 @@ def search_opinions(query, court="", limit=5):
         "type": "o",
         "order_by": "score desc",
         "page_size": limit,
+        "highlight": "on",
     }
     if court:
         params["court"] = court
@@ -134,6 +135,20 @@ def search_opinions(query, court="", limit=5):
 
         for item in data.get("results", [])[:limit]:
             cluster_id = item.get("cluster_id")
+
+            # Build snippet from opinion excerpts, falling back to syllabus
+            snippet = ""
+            opinions = item.get("opinions", [])
+            if opinions:
+                snippets = [
+                    op.get("snippet", "").strip()
+                    for op in opinions
+                    if op.get("snippet", "").strip()
+                ]
+                snippet = " … ".join(snippets)
+            if not snippet:
+                snippet = item.get("syllabus", "")
+
             results.append(
                 {
                     "case_name": item.get("caseName", ""),
@@ -141,8 +156,9 @@ def search_opinions(query, court="", limit=5):
                     "court": item.get("court", ""),
                     "date_filed": item.get("dateFiled", ""),
                     "cluster_id": cluster_id,
-                    "snippet": item.get("snippet", ""),
+                    "snippet": snippet,
                     "score": item.get("score"),
+                    "cite_count": item.get("citeCount", 0),
                     "courtlistener_url": (
                         f"{COURTLISTENER_BASE_URL}{item['absolute_url']}"
                         if item.get("absolute_url")

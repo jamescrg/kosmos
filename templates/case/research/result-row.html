@@ -1,10 +1,15 @@
 {% load markdown_extras %}
 <div class="research-card"
      id="result-{{ result.id }}"
-     {% if result.relevance == "pending" %} hx-get="{% url 'case:research-result-status' result.id %}" hx-trigger="load delay:2s" hx-target="#result-{{ result.id }}" hx-swap="outerHTML" {% endif %}>
+     {% if result.relevance == "pending" %}hx-get="{% url 'case:research-result-status' result.id %}" hx-trigger="load delay:2s" hx-target="#result-{{ result.id }}" hx-swap="outerHTML"{% endif %}>
   <div class="research-card-header">
     <div class="research-card-title">
-      {{ result.case_name }}
+      {% if result.cluster_id %}
+        <a href="{% url 'case:caselaw-viewer-cluster' result.query.matter.id result.cluster_id %}"
+           target="_blank">{{ result.case_name }}</a>
+      {% else %}
+        {{ result.case_name }}
+      {% endif %}
       {% if result.courtlistener_url %}
         <a href="{{ result.courtlistener_url }}"
            target="_blank"
@@ -13,98 +18,81 @@
            title="View on CourtListener"><i class="icon-external-link"></i></a>
       {% endif %}
     </div>
-    <div class="research-card-relevance">
-      {% if result.relevance == "pending" %}
-        <span class="app-badge app-badge-sm">Pending</span>
-      {% elif result.relevance == "high" %}
-        <span class="app-badge app-badge-sm badge-green">High</span>
-      {% elif result.relevance == "medium" %}
-        <span class="app-badge app-badge-sm badge-yellow">Medium</span>
-      {% elif result.relevance == "low" %}
-        <span class="app-badge app-badge-sm">Low</span>
-      {% elif result.relevance == "error" %}
-        <span class="app-badge app-badge-sm badge-red">Error</span>
-      {% endif %}
-    </div>
+    {% if result.relevance == "pending" %}
+      <span class="app-badge app-badge-sm"><i class="icon-loader spin"></i> Summarizing</span>
+    {% elif result.relevance == "high" %}
+      <span class="app-badge app-badge-sm badge-green">High</span>
+    {% elif result.relevance == "medium" %}
+      <span class="app-badge app-badge-sm badge-yellow">Medium</span>
+    {% elif result.relevance == "low" %}
+      <span class="app-badge app-badge-sm">Low</span>
+    {% elif result.relevance == "error" %}
+      <span class="app-badge app-badge-sm badge-red">Error</span>
+    {% endif %}
   </div>
   <div class="research-card-citation">
     {% if result.citation %}{{ result.citation }} &middot;{% endif %}
     {{ result.court }}
     {% if result.date_filed %}({{ result.date_filed }}){% endif %}
-    {% if result.forward_citation_count is not None %}
+    {% if result.forward_citation_count %}
       <span class="research-fwd-cite-count" title="Forward citations">
-        <i class="icon-arrow-right"></i> Cited {{ result.forward_citation_count }} time{{ result.forward_citation_count|pluralize }}
+        &middot; Cited {{ result.forward_citation_count }} time{{ result.forward_citation_count|pluralize }}
       </span>
     {% endif %}
   </div>
-  {% if result.relevance == "pending" %}
-    <div class="research-status-msg">
-      <i class="icon-loader spin"></i>
-      {{ result.status_message|default:"Waiting..." }}
-    </div>
-  {% elif result.relevance == "high" and result.gemini_summary %}
+  {% if result.gemini_summary %}
     <div class="research-summary">{{ result.gemini_summary|render_markdown }}</div>
+  {% elif result.snippet %}
+    <div class="research-snippet">{{ result.snippet|safe }}</div>
   {% endif %}
-  {% if result.snippet and result.relevance != "high" %}
-    <div class="research-snippet">{{ result.snippet|safe|truncatechars:200 }}</div>
-  {% endif %}
-  {% if result.relevance != "pending" %}
-    <div class="research-card-actions">
-      {% if saved_to_caselaws %}
-        <span class="research-saved-badge">
-          <i class="icon-check"></i> Saved to Case Law
-        </span>
-      {% elif save_error %}
-        <span class="research-save-error">{{ save_error }}</span>
-      {% elif result.cluster_id %}
-        <button class="btn"
-                hx-post="{% url 'case:research-save-caselaw' result.id %}"
-                hx-target="#result-{{ result.id }}"
-                hx-swap="outerHTML">
-          <i class="icon-plus"></i> Save to Case Law
-        </button>
-      {% endif %}
-      {% if brief_saved %}
-        <span class="research-saved-badge">
-          <i class="icon-check"></i> Brief Saved
-        </span>
-      {% elif brief_generating %}
-        <span class="research-status-msg"
-              hx-get="{% url 'case:research-brief-status' brief_id %}"
-              hx-trigger="load delay:3s"
-              hx-target="this"
+  <div class="research-card-actions">
+    {% if result.gemini_summary %}
+    {% elif result.relevance == "pending" %}
+      <span class="research-status-msg">
+        <i class="icon-loader spin"></i>
+        {{ result.status_message|default:"Summarizing..." }}
+      </span>
+    {% elif result.cluster_id %}
+      <button class="btn"
+              hx-post="{% url 'case:research-summarize-result' result.id %}"
+              hx-target="#result-{{ result.id }}"
               hx-swap="outerHTML">
-          <i class="icon-loader spin"></i> Generating Brief...
-        </span>
-      {% elif result.cluster_id %}
-        <button class="btn"
-                hx-post="{% url 'case:research-save-brief' result.id %}"
-                hx-target="#result-{{ result.id }}"
-                hx-swap="outerHTML">
-          <i class="icon-file-text"></i> Save Brief
-        </button>
-      {% endif %}
-      {% if result.verify_status == "none" and result.forward_citation_count %}
-        <form hx-post="{% url 'case:research-review' result.id %}"
-              hx-target="#research"
-              hx-swap="innerHTML">
-          <button type="submit" class="btn">
-            <i class="icon-check-circle"></i> Validate
-          </button>
-        </form>
-      {% elif result.verify_status == "verifying" %}
-        <span class="research-status-msg">
-          <i class="icon-loader spin"></i> Validating...
-        </span>
-      {% elif result.verify_status == "complete" %}
-        <a href="#"
-           hx-get="{% url 'case:research-review-tab' result.query.matter.id %}?result={{ result.id }}"
-           hx-target="#research"
-           hx-swap="innerHTML"
-           class="btn">
-          <i class="icon-check-circle"></i> View Validation
-        </a>
-      {% endif %}
-    </div>
-  {% endif %}
+        <i class="icon-sparkles"></i> Summarize
+      </button>
+    {% endif %}
+    {% if saved_to_caselaws %}
+      <span class="research-saved-badge">
+        <i class="icon-check"></i> Saved
+      </span>
+    {% elif save_error %}
+      <span class="research-save-error">{{ save_error }}</span>
+    {% elif result.cluster_id %}
+      <button class="btn"
+              hx-post="{% url 'case:research-save-caselaw' result.id %}"
+              hx-target="#result-{{ result.id }}"
+              hx-swap="outerHTML">
+        <i class="icon-plus"></i> Save to Case Law
+      </button>
+    {% endif %}
+    {% if brief_saved %}
+      <span class="research-saved-badge">
+        <i class="icon-check"></i> Brief Saved
+      </span>
+    {% elif brief_generating %}
+      <span class="research-status-msg"
+            hx-get="{% url 'case:research-brief-status' brief_id %}"
+            hx-trigger="load delay:3s"
+            hx-target="this"
+            hx-swap="outerHTML">
+        <i class="icon-loader spin"></i> Generating Brief...
+      </span>
+    {% elif result.cluster_id %}
+      <button class="btn"
+              hx-post="{% url 'case:research-save-brief' result.id %}"
+              hx-target="#result-{{ result.id }}"
+              hx-swap="outerHTML">
+        <i class="icon-file-text"></i> Save Brief
+      </button>
+    {% endif %}
+  </div>
 </div>
