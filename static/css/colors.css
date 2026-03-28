@@ -27,7 +27,7 @@
      Links
      ========================================================================== */
   --link: var(--lime-800);
-  --link-hover: var(--lime-800);
+  --link-hover: var(--lime-600);
 
   /* ==========================================================================
      Backgrounds
@@ -54,7 +54,7 @@
   --sidebar-width: 15rem;
   --sidebar-width-collapsed: 4.5rem;
   --background-sidebar: var(--stone-175);
-  --background-sidebar-hover: var(--stone-225);
+  --background-sidebar-hover: var(--stone-215);
   --background-sidebar-active: var(--stone-250);
 
   /* ==========================================================================
