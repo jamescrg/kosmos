@@ -67,10 +67,10 @@
 }
 
 .sidebar-nav-utils {
-  border-top: 1px solid var(--stone-375);
+  border-top: 1px solid var(--border-medium);
   list-style: none;
-  margin: 0 -0.5rem;
-  padding: 0.5rem 0.5rem;
+  margin: 0 -1rem;
+  padding: 0.5rem 1rem;
 }
 
 
@@ -181,7 +181,7 @@
 .sidebar-toggle {
   background: none;
   border: none;
-  border-top: 1px solid var(--stone-375);
+  border-top: 1px solid var(--border-medium);
   color: var(--color-muted);
   cursor: pointer;
   padding: 0.75rem;
