@@ -211,16 +211,20 @@
 
 /* Fix dropdown overflow clipping */
 .table-container:has(.ai-conversations-table) {
-  overflow: visible;
+  /* overflow: visible; */
 }
 
 .ai-conversations-table {
-  overflow: visible;
+  /* overflow: visible; */
   width: 100%;
 }
 
 .ai-conversations-table td {
   overflow: visible;
+}
+
+.ai-conversations-table td.title {
+  white-space: normal;
 }
 
 .ai-conversations-table th.messages,
