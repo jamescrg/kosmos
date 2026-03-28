@@ -3,23 +3,24 @@
    ========================================================================== */
 
 body.contacts-page {
-  background-color: var(--background-subnav);
+  /* background-color: var(--background-subnav); */
 }
 
 body.contacts-page .content {
-  padding-left: 1rem;
-  padding-right: 1rem;
+  /* padding-left: 1rem; */
+  /* padding-right: 1rem; */
 }
 
 /* Detail header/subnav need contrast against the darker page body */
 .contacts-page .detail-header,
 .contacts-page .subnav {
-  background: var(--background-subnav-contrast);
+  /* background: var(--background-subnav-contrast); */
 }
 
 
 .contacts-page .contacts-detail > .detail {
-  box-shadow: 0 0.0625rem 0.2rem rgb(0 0 0 / 14%);
+  /* box-shadow: 0 0.0625rem 0.2rem rgb(0 0 0 / 14%); */
+  border: solid 1px var(--border-medium);
   border-radius: var(--radius-md);
 }
 
