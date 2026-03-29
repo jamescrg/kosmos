@@ -61,6 +61,7 @@
   /* Stone (warm gray) */
   --stone-25: oklch(99.6% 0 none);
   --stone-50: oklch(98.5% 0 none);
+  --stone-75: oklch(97.5% 0 none);
   --stone-100: oklch(97% 0 none);
   --stone-125: oklch(95.4% 0 none);
   --stone-150: oklch(94.7% 0 none);
