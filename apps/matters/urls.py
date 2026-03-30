@@ -300,6 +300,11 @@ urlpatterns = [
         proceedings.delete,
         name="proceedings-delete",
     ),
+    path(
+        "matters/<int:id>/proceedings/<int:proceeding_id>/set-primary",
+        proceedings.set_primary,
+        name="proceedings-set-primary",
+    ),
     # Settlement
     path(
         "matters/<int:id>/settlement/",

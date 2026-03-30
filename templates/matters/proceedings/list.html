@@ -15,14 +15,28 @@
   <div class="table-container">
     <table class="table proceedings-list">
       <tr>
+        <th class="primary">Primary</th>
+        <th class="filed">Filed</th>
         <th class="nickname">Nickname</th>
         <th class="forum">County and Court</th>
         <th class="case-no">Case No</th>
         <th class="status">Status</th>
-        <th class="primary">Primary</th>
       </tr>
       {% for proceeding in proceedings %}
         <tr>
+          <td class="primary">
+            {% if proceeding.primary %}
+              <i class="icon-circle-check proceeding-primary-active"></i>
+            {% else %}
+              <button class="button-link"
+                      hx-post="/matters/{{ matter.id }}/proceedings/{{ proceeding.id }}/set-primary"
+                      hx-swap="none"
+                      title="Set as primary">
+                <i class="icon-circle proceeding-primary-inactive"></i>
+              </button>
+            {% endif %}
+          </td>
+          <td class="filed">{{ proceeding.date_filed|date:"Y-m-d"|default:"" }}</td>
           <td class="nickname">
             <a href="#"
                type="button"
@@ -46,17 +60,10 @@
             {{ proceeding.case_number }}
           </td>
           <td class="status">{{ proceeding.status }}</td>
-          <td class="center-data">
-            {% if proceeding.primary %}
-              <i class="icon-circle-check true-bool"></i>
-            {% else %}
-              <i class="icon-circle-x error false-bool"></i>
-            {% endif %}
-          </td>
         </tr>
       {% empty %}
         <tr>
-          <td colspan="5" class="empty-message">No proceedings found for this matter.</td>
+          <td colspan="6" class="empty-message">No proceedings found for this matter.</td>
         </tr>
       {% endfor %}
     </table>

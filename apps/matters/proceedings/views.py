@@ -44,8 +44,10 @@ def proceeding_index(request, id):
 def proceeding_list(request, id):
     matter = get_object_or_404(Matter, pk=id)
 
-    proceeding = Proceeding.objects.filter(matter=matter.id).order_by("-id").first()
-    proceedings = Proceeding.objects.filter(matter=matter.id).order_by("-id")
+    proceeding = (
+        Proceeding.objects.filter(matter=matter.id).order_by("date_filed").first()
+    )
+    proceedings = Proceeding.objects.filter(matter=matter.id).order_by("date_filed")
 
     context = {
         "app": "matters",
@@ -141,6 +143,15 @@ def edit(request, id, proceeding_id):
     }
 
     return render(request, "matters/proceedings/form.html", context)
+
+
+@login_required
+def set_primary(request, id, proceeding_id):
+    proceeding = get_object_or_404(Proceeding, pk=proceeding_id, matter_id=id)
+    proceeding.primary = True
+    proceeding.save()
+
+    return HttpResponse(status=204, headers={"HX-Trigger": "matterProceedingChanged"})
 
 
 @login_required

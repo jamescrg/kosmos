@@ -295,7 +295,9 @@ def _get_detail_tab_data(request, matter, tab):
     elif tab == "proceedings":
         return {
             "tab_template": "matters/proceedings/list.html",
-            "proceedings": Proceeding.objects.filter(matter=matter.id).order_by("-id"),
+            "proceedings": Proceeding.objects.filter(matter=matter.id).order_by(
+                "date_filed"
+            ),
         }
 
     elif tab == "settlement":

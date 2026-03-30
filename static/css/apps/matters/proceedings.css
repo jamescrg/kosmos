@@ -21,12 +21,25 @@ Display
   min-width: 18rem;
 }
 
+.proceedings-list .filed {
+  width: 9rem;
+}
+
 .proceedings-list .status {
   width: 8rem;
 }
 
 .proceedings-list .primary {
-  width: 8rem;
+  text-align: center;
+  width: 6rem;
+}
+
+.proceeding-primary-active {
+  color: var(--lime-700);
+}
+
+.proceeding-primary-inactive {
+  color: var(--color-muted-more);
 }
 
 .proceedings-list .copy-btn {
