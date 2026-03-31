@@ -344,7 +344,7 @@ urlpatterns = [
         name="timeline-delete",
     ),
     path("matters/<int:id>/timeline/print", timeline.print, name="timeline-print"),
-    path("matters/<int:pk>/timeline/pdf/", timeline.timeline_pdf, name="timeline-pdf"),
+    path("matters/<int:id>/timeline/pdf/", timeline.timeline_pdf, name="timeline-pdf"),
     path(
         "matters/<int:matter_id>/timeline/<int:fact_id>/edit-description",
         timeline.edit_fact_description,
@@ -378,7 +378,7 @@ urlpatterns = [
     # Ledger
     path("matters/<int:id>/ledger/", ledger.ledger_index, name="ledger"),
     path("matters/<int:id>/ledger/list/", ledger.ledger_list, name="ledger-list"),
-    path("matters/<int:pk>/ledger/pdf/", ledger.ledger_pdf, name="ledger-pdf"),
+    path("matters/<int:id>/ledger/pdf/", ledger.ledger_pdf, name="ledger-pdf"),
     path(
         "matters/<int:id>/activity-sort/",
         activity.activity_sort,

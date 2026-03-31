@@ -75,13 +75,12 @@ def ledger_list(request, id):
 
 
 @login_required
-def ledger_pdf(request, pk):
+@matter_access_required
+def ledger_pdf(request, id):
     forbidden = _check_financial_perm(request)
     if forbidden:
         return forbidden
-    matter = get_object_or_404(Matter, pk=pk)
-    if not request.user.has_matter_access(matter):
-        return HttpResponseForbidden()
+    matter = get_object_or_404(Matter, pk=id)
     file = generate_ledger(matter.id, request)
 
     current_date = datetime.now().strftime("%Y-%m-%d")

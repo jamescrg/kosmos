@@ -2,7 +2,6 @@ import os
 from datetime import date, datetime
 
 from django.contrib.auth.decorators import login_required
-from django.http import HttpResponseForbidden
 from django.http.response import HttpResponse
 from django.shortcuts import get_object_or_404, render
 
@@ -149,10 +148,9 @@ def print(request, id):
 
 
 @login_required
-def timeline_pdf(request, pk):
-    matter = get_object_or_404(Matter, pk=pk)
-    if not request.user.has_matter_access(matter):
-        return HttpResponseForbidden()
+@matter_access_required
+def timeline_pdf(request, id):
+    matter = get_object_or_404(Matter, pk=id)
     file = generate_facts_pdf(matter.id, request)
 
     current_date = datetime.now().strftime("%Y-%m-%d")
