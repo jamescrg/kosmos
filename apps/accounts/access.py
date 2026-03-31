@@ -1,6 +1,6 @@
 from functools import wraps
 
-from django.http import HttpResponseForbidden
+from django.core.exceptions import PermissionDenied
 from django.shortcuts import get_object_or_404
 
 from apps.matters.models import Matter
@@ -15,7 +15,7 @@ def matter_access_required(view_func):
         if matter_id:
             matter = get_object_or_404(Matter, pk=matter_id)
             if not request.user.has_matter_access(matter):
-                return HttpResponseForbidden()
+                raise PermissionDenied
         return view_func(request, *args, **kwargs)
 
     return wrapper
