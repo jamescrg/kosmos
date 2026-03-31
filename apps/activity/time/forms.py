@@ -39,6 +39,7 @@ class TimeEntryForm(forms.ModelForm):
                     "rows": "3",
                     "class": "span2",
                     "tabindex": "2",
+                    "autofocus": True,
                 }
             ),
             "comp": forms.Select(choices=COMP_CHOICES),

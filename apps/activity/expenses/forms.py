@@ -48,6 +48,7 @@ class ExpenseEntryForm(forms.ModelForm):
                     "onfocus": "moveFocusToEnd(this)",
                     "rows": "3",
                     "class": "span2",
+                    "autofocus": True,
                 }
             ),
             "comp": forms.Select(choices=COMP_CHOICES),
