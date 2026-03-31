@@ -1,10 +1,15 @@
+.ledger-summary {
+  display: flex;
+  gap: 1.25rem;
+  margin-bottom: 1.5rem;
+}
+
 .ledger-totals {
   border: solid 1px var(--border-medium);
   border-collapse: separate;
   border-radius: var(--radius-md);
   border-spacing: 0;
-  margin-bottom: 1.5rem;
-  width: 100%;
+  flex: 1;
 }
 
 .ledger-totals th,
@@ -21,12 +26,13 @@
 
 .ledger-totals tr.total th,
 .ledger-totals tr.total td {
+  background: var(--background-control);
   font-weight: 500;
 }
 
 .ledger-totals td {
   border-right: none;
-  width: 25rem;
+  width: 10rem;
 }
 
 .ledger-totals tr:last-child th,

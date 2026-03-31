@@ -43,11 +43,11 @@
         {% endfor %}
       {% endif %}
       {% if contacts %}
-        <tr>
-          <td class="total">Total</td>
+        <tr class="total">
+          <th>Total</th>
           <td></td>
-          <td class="numeric total">${{ pending_account_balance|intcomma }}</td>
-          <td class="numeric total">${{ confirmed_account_balance|intcomma }}</td>
+          <td class="numeric">${{ pending_account_balance|intcomma }}</td>
+          <td class="numeric">${{ confirmed_account_balance|intcomma }}</td>
         </tr>
       {% endif %}
     </table>

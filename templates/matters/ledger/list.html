@@ -12,42 +12,50 @@
          class="btn-icon">Download PDF</a>
     </div>
   </div>
-  <table class="ledger-totals">
-    <tr>
-      <th>Total Invoices</th>
-      <td class="numeric">${{ matter.value.invoices.billed|floatformat:2|intcomma }}</td>
-    </tr>
-    <tr>
-      <th>Total Payments</th>
-      <td class="numeric">${{ matter.value.invoices.payment_sum|floatformat:2|intcomma }}</td>
-    </tr>
-    <tr>
-      <th>Total Credits</th>
-      <td class="numeric">${{ total_credits|floatformat:2|intcomma }}</td>
-    </tr>
-    <tr class="total">
-      <th>Balance Due</th>
-      <td class="numeric">${{ balance_due|floatformat:2|intcomma }}</td>
-    </tr>
-    <tr>
-      <th>Unbilled Activity</th>
-      <td class="numeric">${{ matter.value.unbilled.net_fees_and_expenses|floatformat:2|intcomma }}</td>
-    </tr>
-    <tr>
-      <th>Total Cost to Date</th>
-      <td class="numeric">${{ total_cost|floatformat:2|intcomma }}</td>
-    </tr>
-    <tr>
-      <th>Clent Trust Balance (Confirmed)</th>
-      <td class="numeric">
-        {% if matter.client %}
-          <a href="{% url 'trust:client-index' id=matter.client.id %}">${{ client_trust_balance|floatformat:2|intcomma }}</a>
-        {% else %}
-          ${{ client_trust_balance|floatformat:2|intcomma }}
-        {% endif %}
-      </td>
-    </tr>
-  </table>
+  <div class="ledger-summary">
+    <table class="ledger-totals">
+      <tr>
+        <th>Total Invoices</th>
+        <td class="numeric">${{ matter.value.invoices.billed|floatformat:2|intcomma }}</td>
+      </tr>
+      <tr>
+        <th>Total Payments</th>
+        <td class="numeric">${{ matter.value.invoices.payment_sum|floatformat:2|intcomma }}</td>
+      </tr>
+      <tr>
+        <th>Total Credits</th>
+        <td class="numeric">${{ total_credits|floatformat:2|intcomma }}</td>
+      </tr>
+      <tr class="total">
+        <th>Balance Due</th>
+        <td class="numeric">${{ balance_due|floatformat:2|intcomma }}</td>
+      </tr>
+    </table>
+    <table class="ledger-totals">
+      <tr>
+        <th>Unbilled Activity</th>
+        <td class="numeric">${{ matter.value.unbilled.net_fees_and_expenses|floatformat:2|intcomma }}</td>
+      </tr>
+      <tr class="total">
+        <th>Total Cost to Date</th>
+        <td class="numeric">${{ total_cost|floatformat:2|intcomma }}</td>
+      </tr>
+      <tr>
+        <th>Client Trust Balance</th>
+        <td class="numeric">
+          {% if matter.client %}
+            <a href="{% url 'trust:client-index' id=matter.client.id %}">${{ client_trust_balance|floatformat:2|intcomma }}</a>
+          {% else %}
+            ${{ client_trust_balance|floatformat:2|intcomma }}
+          {% endif %}
+        </td>
+      </tr>
+      <tr>
+        <th>Trust Clearance</th>
+        <td class="numeric">${{ client_trust_balance|sub:balance_due|floatformat:2|intcomma }}</td>
+      </tr>
+    </table>
+  </div>
   {% if transactions %}
     <div class="table-container">
       <table class="table ledger">

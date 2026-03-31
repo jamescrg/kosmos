@@ -119,8 +119,11 @@ th.numeric,
   text-align: right;
 }
 
-.total {
+.total,
+tr.total th,
+tr.total td {
   font-weight: 500;
+  background: var(--background-control);
 }
 
 
