@@ -114,22 +114,22 @@
   table-layout: fixed;
 }
 
-.dashboard-table.tasks .matter {
-  width: 11.875rem;
+.dashboard-table.tasks col.matter {
+  width: 12rem;
 }
 
-.dashboard-table.tasks .description {
+.dashboard-table.tasks col.user {
+  width: 7rem;
+}
+
+.dashboard-table.tasks col.date {
+  width: 7.5rem;
+}
+
+.dashboard-table.tasks td {
   overflow: hidden;
   text-overflow: ellipsis;
-}
-
-.dashboard-table.tasks .user {
-  width: 6.25rem;
-}
-
-.dashboard-table.tasks .date {
   white-space: nowrap;
-  width: 7.5rem;
 }
 
 .unbilled-table th:nth-child(1),
