@@ -1,0 +1,56 @@
+<div class="dropdown" x-data="dropdown()">
+  <button class="button-link"
+          type="button"
+          x-ref="button"
+          @click="toggle()"
+          :aria-expanded="open">
+    {% if intake.importance == 5 %}
+      <i class="icon-chevrons-up"></i>
+    {% elif intake.importance == 4 %}
+      <i class="icon-chevron-up"></i>
+    {% elif intake.importance == 3 %}
+      <i class="icon-equal"></i>
+    {% elif intake.importance == 2 %}
+      <i class="icon-chevron-down"></i>
+    {% else %}
+      <i class="icon-chevrons-down"></i>
+    {% endif %}
+  </button>
+  <ul class="dropdown-menu dropdown-menu-end" x-ref="menu" x-show="open">
+    <li>
+      <a class="dropdown-item"
+         href="#"
+         hx-post="{% url 'intakes:edit-importance' intake.id 5 %}"
+         hx-target="closest td"
+         hx-swap="innerHTML"><i class="icon-chevrons-up importance-5"></i> Highest</a>
+    </li>
+    <li>
+      <a class="dropdown-item"
+         href="#"
+         hx-post="{% url 'intakes:edit-importance' intake.id 4 %}"
+         hx-target="closest td"
+         hx-swap="innerHTML"><i class="icon-chevron-up importance-4"></i> High</a>
+    </li>
+    <li>
+      <a class="dropdown-item"
+         href="#"
+         hx-post="{% url 'intakes:edit-importance' intake.id 3 %}"
+         hx-target="closest td"
+         hx-swap="innerHTML"><i class="icon-equal"></i> Normal</a>
+    </li>
+    <li>
+      <a class="dropdown-item"
+         href="#"
+         hx-post="{% url 'intakes:edit-importance' intake.id 2 %}"
+         hx-target="closest td"
+         hx-swap="innerHTML"><i class="icon-chevron-down importance-2"></i> Low</a>
+    </li>
+    <li>
+      <a class="dropdown-item"
+         href="#"
+         hx-post="{% url 'intakes:edit-importance' intake.id 1 %}"
+         hx-target="closest td"
+         hx-swap="innerHTML"><i class="icon-chevrons-down importance-1"></i> Lowest</a>
+    </li>
+  </ul>
+</div>

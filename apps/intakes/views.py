@@ -310,6 +310,14 @@ def intake_edit_status(request, pk, status):
 
 
 @login_required
+def intake_edit_importance(request, pk, importance):
+    intake = get_object_or_404(Intake, pk=pk)
+    intake.importance = importance
+    intake.save(update_fields=["importance"])
+    return render(request, "intakes/intake-importance.html", {"intake": intake})
+
+
+@login_required
 def intake_edit_practice_area(request, pk, practice_area_id):
     intake = get_object_or_404(Intake, pk=pk)
     practice_area = get_object_or_404(PracticeArea, pk=practice_area_id)

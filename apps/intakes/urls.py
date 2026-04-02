@@ -10,6 +10,7 @@ from apps.intakes.views import (
     detail_index,
     edit,
     edit_note,
+    intake_edit_importance,
     intake_edit_practice_area,
     intake_edit_status,
     intake_filter,
@@ -48,6 +49,11 @@ urlpatterns = [
         "intakes/edit-status/<int:pk>/<str:status>",
         intake_edit_status,
         name="edit-status",
+    ),
+    path(
+        "intakes/edit-importance/<int:pk>/<int:importance>",
+        intake_edit_importance,
+        name="edit-importance",
     ),
     path(
         "intakes/edit-practice-area/<int:pk>/<int:practice_area_id>",

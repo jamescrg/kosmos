@@ -36,6 +36,13 @@
   <div class="table-container">
     <table class="table intake-list">
       <tr>
+        <th class="intake-importance">
+          <button class="btn-sort {% if current_order == 'importance' %}active{% endif %}"
+                  hx-post="{% url 'intakes:order-by' '-importance' %}"
+                  title="Sort by importance">
+            <i class="icon-flag"></i>
+          </button>
+        </th>
         <th class="intake-date">
           Date
           <button class="btn-sort {% if current_order == 'date' %}active{% endif %}"
@@ -56,7 +63,8 @@
         <th class="intake-status">Status</th>
       </tr>
       {% for intake in intakes %}
-        <tr>
+        <tr class="importance-{{ intake.importance }}">
+          <td class="intake-importance dropdown-cell importance">{% include "intakes/intake-importance.html" %}</td>
           <td class="intake-date">{{ intake.date|date:"Y-m-d" }}</td>
           <td class="intake-name">
             <a href={% url 'intakes:detail-index' id=intake.id %}>{{ intake.name }}</a>
@@ -69,7 +77,7 @@
         </tr>
       {% empty %}
         <tr>
-          <td colspan="6" class="empty-message">No intakes found.</td>
+          <td colspan="7" class="empty-message">No intakes found.</td>
         </tr>
       {% endfor %}
     </table>

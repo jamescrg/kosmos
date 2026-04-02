@@ -1,3 +1,4 @@
+from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 from django.utils import timezone
 from simple_history.models import HistoricalRecords
@@ -10,6 +11,9 @@ class Intake(AuditMixin, models.Model):
     id = models.BigAutoField(primary_key=True)
     name = models.CharField(max_length=100)
     date = models.DateField(null=True)
+    importance = models.PositiveIntegerField(
+        default=3, validators=[MinValueValidator(1), MaxValueValidator(5)]
+    )
     address = models.CharField(max_length=255, blank=True, null=True)
     disputed_property = models.CharField(max_length=255, blank=True, null=True)
     value = models.IntegerField(blank=True, null=True)
