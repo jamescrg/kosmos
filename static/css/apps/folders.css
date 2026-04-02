@@ -64,10 +64,11 @@
 /* Expand/collapse caret */
 .folder-caret {
   cursor: pointer;
-  width: 1rem;
-  flex-shrink: 0;
   display: inline-flex;
   align-items: center;
+  flex-shrink: 0;
+  margin-left: 0.25rem;
+  width: 1rem;
 }
 
 .folder-caret-placeholder {

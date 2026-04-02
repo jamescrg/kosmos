@@ -19,13 +19,18 @@ body.contacts-page .content {
 
 
 .contacts-page .contacts-detail > .detail {
-  /* box-shadow: 0 0.0625rem 0.2rem rgb(0 0 0 / 14%); */
+  background: var(--background-body);
   border: solid 1px var(--border-medium);
   border-radius: var(--radius-md);
 }
 
 .contacts-page .detail-header {
+  background: var(--background-section);
   border-radius: var(--radius-md) var(--radius-md) 0 0;
+}
+
+.contacts-page .subnav {
+  background: var(--background-section);
 }
 
 /* ==========================================================================
