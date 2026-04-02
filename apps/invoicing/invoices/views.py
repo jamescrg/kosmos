@@ -58,7 +58,7 @@ def invoices_list(request):
 def _get_invoice_time_context(request, invoice):
     """Build context for the invoice time entries tab."""
     session_key = f"invoice_{invoice.pk}_time_pagination"
-    entries = TimeEntry.objects.filter(invoice=invoice).order_by("date")
+    entries = TimeEntry.objects.filter(invoice=invoice).order_by("date", "id")
     summary = calculate_time_summary(entries)
     pagination = CustomPaginator(
         entries, per_page=10, request=request, session_key=session_key
@@ -116,7 +116,7 @@ def invoice_tab_content(request, pk, tab):
 
     if tab == "time":
         time_key = f"invoice_{pk}_time_pagination"
-        entries = TimeEntry.objects.filter(invoice=invoice).order_by("date")
+        entries = TimeEntry.objects.filter(invoice=invoice).order_by("date", "id")
         summary = calculate_time_summary(entries)
         pagination = CustomPaginator(
             entries, per_page=10, request=request, session_key=time_key
@@ -132,7 +132,7 @@ def invoice_tab_content(request, pk, tab):
         )
     elif tab == "expenses":
         expenses_key = f"invoice_{pk}_expenses_pagination"
-        expenses = ExpenseEntry.objects.filter(invoice=invoice).order_by("date")
+        expenses = ExpenseEntry.objects.filter(invoice=invoice).order_by("date", "id")
         summary = calculate_expense_summary(expenses)
         pagination = CustomPaginator(
             expenses,
@@ -206,7 +206,7 @@ def invoice_time_entries_index(request, pk):
     invoice = get_object_or_404(Invoice, pk=pk)
     session_key = f"invoice_{pk}_time_pagination"
 
-    entries = TimeEntry.objects.filter(invoice=invoice).order_by("date")
+    entries = TimeEntry.objects.filter(invoice=invoice).order_by("date", "id")
     summary = calculate_time_summary(entries)
 
     pagination = CustomPaginator(
@@ -233,7 +233,7 @@ def invoice_time_entries(request, pk):
     invoice = get_object_or_404(Invoice, pk=pk)
     session_key = f"invoice_{pk}_time_pagination"
 
-    entries = TimeEntry.objects.filter(invoice=invoice).order_by("date")
+    entries = TimeEntry.objects.filter(invoice=invoice).order_by("date", "id")
     summary = calculate_time_summary(entries)
 
     pagination = CustomPaginator(
@@ -260,7 +260,7 @@ def invoice_expense_entries_index(request, pk):
     invoice = get_object_or_404(Invoice, pk=pk)
     session_key = f"invoice_{pk}_expenses_pagination"
 
-    expenses = ExpenseEntry.objects.filter(invoice=invoice).order_by("date")
+    expenses = ExpenseEntry.objects.filter(invoice=invoice).order_by("date", "id")
     summary = calculate_expense_summary(expenses)
 
     pagination = CustomPaginator(
@@ -290,7 +290,7 @@ def invoice_expense_entries(request, pk):
     invoice = get_object_or_404(Invoice, pk=pk)
     session_key = f"invoice_{pk}_expenses_pagination"
 
-    expenses = ExpenseEntry.objects.filter(invoice=invoice).order_by("date")
+    expenses = ExpenseEntry.objects.filter(invoice=invoice).order_by("date", "id")
     summary = calculate_expense_summary(expenses)
 
     pagination = CustomPaginator(
