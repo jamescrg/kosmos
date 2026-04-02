@@ -51,6 +51,10 @@ Detail Layout (header / subnav / body)
   border: none;
 }
 
+.subnav-back {
+  padding-left: 0;
+  margin-right: 0;
+}
 
 /* Subnav - tab navigation */
 .subnav {
