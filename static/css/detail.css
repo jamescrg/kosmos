@@ -51,8 +51,8 @@ Detail Layout (header / subnav / body)
   border: none;
 }
 
-.subnav-back {
-  padding-left: 0;
+.subnav .subnav-back {
+  padding-left: 0.5rem;
   margin-right: 0;
 }
 
