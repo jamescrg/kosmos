@@ -19,7 +19,7 @@ Documents and Case Law have a three-state ai_context field:
 - "auto": Included by intelligent selector based on relevance to user's question
 - "never": Completely excluded from context
 
-Time entries are excluded per user request.
+Time entries are included as administrative data with invoice relationships.
 """
 
 import logging
@@ -30,6 +30,7 @@ from pathlib import Path
 
 from django.conf import settings
 
+from apps.activity.time.models import TimeEntry
 from apps.calendar.models import Event
 from apps.case.models import CaseLaw, Document, Fact, Highlight
 from apps.matters.models import Relationship
@@ -384,6 +385,9 @@ Items marked [REFERENCE] are background information.
 ### Upcoming Events
 {events}
 
+### Time Entries & Billing
+{time_entries}
+
 ### Settlement Information
 {settlement}
 """
@@ -462,6 +466,9 @@ def assemble_matter_context(matter, user=None, conversation=None) -> str:
     # Events
     sections["events"] = format_events(matter)
 
+    # Time Entries
+    sections["time_entries"] = format_time_entries(matter)
+
     # Settlement
     sections["settlement"] = format_settlement(matter)
 
@@ -535,6 +542,7 @@ def assemble_matter_context_with_selection(
 
     sections["tasks"] = format_tasks(matter)
     sections["events"] = format_events(matter)
+    sections["time_entries"] = format_time_entries(matter)
     sections["settlement"] = format_settlement(matter)
 
     # Collect "always" items (Documents/CaseLaw with ai_context="always",
@@ -587,6 +595,7 @@ def assemble_matter_context_with_selection(
         + always_reference
         + sections["tasks"]
         + sections["events"]
+        + sections["time_entries"]
         + sections["settlement"]
     )
     fixed_tokens = estimate_tokens(fixed_content)
@@ -756,6 +765,32 @@ def format_events(matter) -> str:
             line += f" with {event.party}"
         if event.location:
             line += f" ({event.location})"
+        lines.append(line)
+
+    return "\n".join(lines)
+
+
+def format_time_entries(matter) -> str:
+    """Format time entries with invoice relationships."""
+    entries = (
+        TimeEntry.objects.filter(matter=matter)
+        .select_related("user", "invoice")
+        .order_by("-date")
+    )
+
+    if not entries:
+        return "No time entries."
+
+    lines = []
+    for entry in entries:
+        user_name = entry.user.get_full_name() if entry.user else "Unknown"
+        fee = entry.hours * entry.rate if entry.rate else 0
+        line = f"- [{entry.date}] {entry.actions} — {entry.hours}h @ ${entry.rate}/hr (${fee:,.2f})"
+        line += f" by {user_name}"
+        if entry.comp:
+            line += " [COMP]"
+        if entry.invoice:
+            line += f" [Invoice #{entry.invoice.id}, {entry.invoice.status}]"
         lines.append(line)
 
     return "\n".join(lines)
