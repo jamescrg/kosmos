@@ -239,17 +239,17 @@ class Matter(AuditMixin, models.Model):
         # Invoice totals - aggregate from time/expense entries on all invoices except DRAFT/APPROVED
         invoice_fees, invoice_comp_fees = aggregate_fees(
             TimeEntry.objects.filter(matter=self, invoice__isnull=False).exclude(
-                invoice__status__in=["DRAFT", "APPROVED"]
+                invoice__status__in=["DRAFT", "APPROVED", "VOID"]
             )
         )
         invoice_expenses, invoice_comp_expenses = aggregate_expenses(
             ExpenseEntry.objects.filter(matter=self, invoice__isnull=False).exclude(
-                invoice__status__in=["DRAFT", "APPROVED"]
+                invoice__status__in=["DRAFT", "APPROVED", "VOID"]
             )
         )
         invoice_discount = (
             Invoice.objects.filter(matter=self)
-            .exclude(status__in=["DRAFT", "APPROVED"])
+            .exclude(status__in=["DRAFT", "APPROVED", "VOID"])
             .aggregate(total_discount=Sum("discount"))["total_discount"]
             or 0
         )

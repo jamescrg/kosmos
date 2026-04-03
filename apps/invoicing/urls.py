@@ -32,6 +32,8 @@ from apps.invoicing.invoices.views import (
     invoices_list,
     invoices_pdf,
     invoices_pdf_download,
+    invoices_void,
+    invoices_void_confirm,
     order_by_invoices,
     pdf_preview,
     pdf_preview_index,
@@ -130,6 +132,12 @@ urlpatterns = [
     ),
     path(
         "invoicing/invoices-delete/<int:pk>/", invoices_delete, name="invoices-delete"
+    ),
+    path("invoicing/invoices-void/<int:pk>/", invoices_void, name="invoices-void"),
+    path(
+        "invoicing/invoices-void-confirm/<int:pk>/",
+        invoices_void_confirm,
+        name="invoices-void-confirm",
     ),
     path("invoicing/invoices-pdf/<int:pk>/", invoices_pdf, name="invoices-pdf"),
     path(

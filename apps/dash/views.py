@@ -204,7 +204,7 @@ def dash_index(request):
     # Subquery for total billed (all invoices except DRAFT/APPROVED)
     billed_subquery = (
         invoices_with_totals.filter(matter=OuterRef("pk"))
-        .exclude(status__in=["DRAFT", "APPROVED"])
+        .exclude(status__in=["DRAFT", "APPROVED", "VOID"])
         .values("matter")
         .annotate(total=Sum("final_total"))
         .values("total")

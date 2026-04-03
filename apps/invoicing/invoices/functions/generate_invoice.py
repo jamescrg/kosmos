@@ -1,5 +1,7 @@
+import os
 from tempfile import NamedTemporaryFile
 
+from django.core.files.base import ContentFile
 from django.core.handlers.wsgi import WSGIRequest
 from django.template.loader import render_to_string
 from weasyprint import HTML
@@ -55,3 +57,21 @@ def generate_invoice(invoice: Invoice, request: WSGIRequest) -> NamedTemporaryFi
         pdf_file.seek(0)
 
     return pdf_file
+
+
+def store_invoice_pdf(invoice: Invoice, request: WSGIRequest) -> None:
+    """Generate PDF and store it in the invoice's pdf_file field."""
+    pdf_file = generate_invoice(invoice, request)
+
+    with open(pdf_file.name, "rb") as f:
+        pdf_content = f.read()
+
+    os.unlink(pdf_file.name)
+
+    filename = f"invoice_{invoice.id}.pdf"
+
+    if invoice.pdf_file:
+        invoice.pdf_file.delete(save=False)
+
+    invoice.pdf_file.save(filename, ContentFile(pdf_content), save=False)
+    Invoice.objects.filter(pk=invoice.pk).update(pdf_file=invoice.pdf_file)

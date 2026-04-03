@@ -9,7 +9,7 @@ General
   background-size: cover;
 }
 
-.invoice-body-canceled {
+.invoice-body-void {
   background-image: url("/static/images/canceled.png");
   background-position: center;
   background-repeat: repeat-y;

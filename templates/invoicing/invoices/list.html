@@ -40,6 +40,10 @@
            href="#"
            class="btn-icon {% if selected_status == "PAID" %}toggle-active{% endif %}"
            hx-post="{% url 'invoicing:invoices-filter-status' "PAID" %}">Paid</a>
+        <a type="button"
+           href="#"
+           class="btn-icon {% if selected_status == "VOID" %}toggle-active{% endif %}"
+           hx-post="{% url 'invoicing:invoices-filter-status' "VOID" %}">Void</a>
       </div>
     </div>
   </div>

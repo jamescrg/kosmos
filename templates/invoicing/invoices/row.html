@@ -1,5 +1,6 @@
 {% load humanize %}
-<tr id="invoice-{{ invoice.id }}">
+<tr id="invoice-{{ invoice.id }}"
+    {% if invoice.status == 'VOID' %}class="muted"{% endif %}>
   <td class="number">
     <a href="{% url 'invoicing:invoices-detail-index' invoice.id %}">{{ invoice.id }}</a>
   </td>
@@ -34,11 +35,13 @@
              target="_blank"
              href="{% url 'invoicing:invoices-pdf-download' invoice.id %}"><i class="icon-file-down"></i> Download PDF</a>
         </li>
-        <li>
-          <a class="dropdown-item"
-             target="_blank"
-             href="{% url 'invoicing:invoice-ledes' invoice.id %}"><i class="icon-file-text"></i> Download Ledes</a>
-        </li>
+        {% if invoice.status != 'VOID' %}
+          <li>
+            <a class="dropdown-item"
+               target="_blank"
+               href="{% url 'invoicing:invoice-ledes' invoice.id %}"><i class="icon-file-text"></i> Download Ledes</a>
+          </li>
+        {% endif %}
       </ul>
     </div>
   </td>

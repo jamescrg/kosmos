@@ -18,7 +18,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Noto+Serif:ital,wght@0,100..900;1,100..900&display=swap"
           rel="stylesheet" />
   </head>
-  <body class="{% if invoice.status == 'DRAFT' %}invoice-body-draft{% elif invoice.status == 'CANCELED' %}invoice-body-canceled{% endif %}">
+  <body class="{% if invoice.status == 'DRAFT' %}invoice-body-draft{% elif invoice.status == 'VOID' %}invoice-body-void{% endif %}">
     <div class="template">
       <div class="header">
         {% include "components/pdf_header.html" %}

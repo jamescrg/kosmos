@@ -30,6 +30,16 @@
             <i class="icon-pencil"></i>
           </button>
         {% endif %}
+        {% if invoice.status != 'VOID' and invoice.status != 'DRAFT' and invoice.status != 'APPROVED' %}
+          <button type="button"
+                  class="btn-icon"
+                  hx-get="{% url 'invoicing:invoices-void-confirm' invoice.id %}"
+                  hx-target="#htmx-modal-container"
+                  data-bs-toggle="modal"
+                  data-bs-target="#htmx-modal-container">
+            <i class="icon-ban"></i>
+          </button>
+        {% endif %}
         <div class="dropdown" x-data="dropdown()">
           <button class="button-link"
                   type="button"
@@ -44,11 +54,13 @@
                  target="_blank"
                  href="{% url 'invoicing:invoices-pdf-download' invoice.id %}"><i class="icon-file-pdf"></i> Download PDF</a>
             </li>
-            <li>
-              <a class="dropdown-item"
-                 target="_blank"
-                 href="{% url 'invoicing:invoice-ledes' invoice.id %}"><i class="icon-file-text"></i> Download Ledes</a>
-            </li>
+            {% if invoice.status != 'VOID' %}
+              <li>
+                <a class="dropdown-item"
+                   target="_blank"
+                   href="{% url 'invoicing:invoice-ledes' invoice.id %}"><i class="icon-file-text"></i> Download Ledes</a>
+              </li>
+            {% endif %}
           </ul>
         </div>
       </div>

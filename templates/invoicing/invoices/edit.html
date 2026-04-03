@@ -20,12 +20,14 @@
       </form>
     </div>
     <div class="modal-footer">
-      <button type="button"
-              class="btn btn-danger confirm"
-              data-href="{% url 'invoicing:invoices-delete' invoice.id %}"
-              data-confirm-title="Delete Invoice"
-              data-confirm-message="Are you sure you want to delete this invoice?"
-              data-confirm-text="Delete">Delete</button>
+      {% if invoice.status == 'DRAFT' or invoice.status == 'APPROVED' %}
+        <button type="button"
+                class="btn btn-danger confirm"
+                data-href="{% url 'invoicing:invoices-delete' invoice.id %}"
+                data-confirm-title="Delete Invoice"
+                data-confirm-message="Are you sure you want to delete this invoice?"
+                data-confirm-text="Delete">Delete</button>
+      {% endif %}
       <button type="submit" form="invoice-edit-form" class="btn btn-success">Submit</button>
     </div>
   </div>

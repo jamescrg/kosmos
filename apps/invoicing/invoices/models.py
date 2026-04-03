@@ -4,6 +4,11 @@ from simple_history.models import HistoricalRecords
 from apps.matters.models import Matter
 from utils.models import AuditMixin
 
+
+def invoice_upload_path(instance, filename):
+    return f"invoices/{instance.matter_id}/{instance.pk}.pdf"
+
+
 INVOICE_STATUS = (
     ("DRAFT", "Draft"),
     ("APPROVED", "Approved"),
@@ -11,6 +16,7 @@ INVOICE_STATUS = (
     ("DEFERRED", "Deferred"),
     ("PAID", "Paid"),
     ("UNCOLLECTIBLE", "Uncollectible"),
+    ("VOID", "Void"),
 )
 
 
@@ -23,7 +29,7 @@ class Invoice(AuditMixin, models.Model):
     show_comp = models.BooleanField(default=False)
     discount = models.DecimalField(max_digits=7, decimal_places=2, default=0)
     status = models.CharField(max_length=20, choices=INVOICE_STATUS, default="DRAFT")
-    pdf_file = models.FileField(upload_to="invoices/", null=True, blank=True)
+    pdf_file = models.FileField(upload_to=invoice_upload_path, null=True, blank=True)
     history = HistoricalRecords()
 
     def __str__(self):
@@ -39,21 +45,36 @@ class Invoice(AuditMixin, models.Model):
 
         invoice = super().save(*args, **kwargs)
 
-        TimeEntry.objects.filter(
-            matter=self.matter,
-            date__lte=self.date_limit,
-            invoice__isnull=True,
-            entered=False,
-        ).update(invoice_id=self.id)
+        if self.status == "DRAFT":
+            TimeEntry.objects.filter(
+                matter=self.matter,
+                date__lte=self.date_limit,
+                invoice__isnull=True,
+                entered=False,
+            ).update(invoice_id=self.id)
 
-        ExpenseEntry.objects.filter(
-            matter=self.matter,
-            date__lte=self.date_limit,
-            invoice__isnull=True,
-            entered=False,
-        ).update(invoice_id=self.id)
+            ExpenseEntry.objects.filter(
+                matter=self.matter,
+                date__lte=self.date_limit,
+                invoice__isnull=True,
+                entered=False,
+            ).update(invoice_id=self.id)
 
         return invoice
+
+    def void(self):
+        """Void this invoice: release entries, remove applications, set status."""
+        from apps.activity.expenses.models import ExpenseEntry
+        from apps.activity.time.models import TimeEntry
+
+        TimeEntry.objects.filter(invoice=self).update(invoice=None)
+        ExpenseEntry.objects.filter(invoice=self).update(invoice=None)
+
+        self.applications.all().delete()
+        self.credit_applications.all().delete()
+
+        Invoice.objects.filter(pk=self.pk).update(status="VOID")
+        self.status = "VOID"
 
     @property
     def status_display(self):
@@ -65,9 +86,13 @@ class Invoice(AuditMixin, models.Model):
         Calculate the amount still owed on this invoice after allocations.
 
         Hybrid approach for backward compatibility:
+        - If status is "VOID", return 0 (entries released, no balance)
         - If status is "PAID" and no allocations exist, return 0 (legacy invoices)
         - Otherwise, calculate based on allocations (new allocation system)
         """
+        if self.status == "VOID":
+            return 0
+
         total = self.value["final_total"]
         payment_allocated = (
             self.applications.aggregate(models.Sum("amount_applied"))[

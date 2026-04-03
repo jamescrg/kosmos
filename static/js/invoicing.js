@@ -5,7 +5,7 @@ function updateText() {
 
 function checkSubmitButton(input) {
     const submitButton = document.querySelector('.submit');
-    if (input === 'CANCEL') {
+    if (input === 'VOID') {
         submitButton.removeAttribute('disabled');
         submitButton.classList.remove('disabled-btn');
     } else {

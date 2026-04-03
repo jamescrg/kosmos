@@ -1,45 +1,49 @@
-<div id="status-dropdown-{{ invoice.id }}"
-     class="dropdown"
-     x-data="dropdown()">
-  <button type="button"
-          id="status-button"
-          class="button-link"
-          x-ref="button"
-          @click="toggle()"
-          :aria-expanded="open">{{ invoice.status_display }}</button>
-  <ul class="dropdown-menu"
-      x-ref="menu"
-      x-show="open"
-      hx-target="#status-dropdown-{{ invoice.id }}"
-      hx-swap="outerHTML">
-    <li>
-      <a class="dropdown-item {% if invoice.status == "DRAFT" %}toggle-active{% endif %}"
-         href="#"
-         hx-post="{% url 'invoicing:invoices-edit-status' pk=invoice.id status='DRAFT' view=view %}">Draft</a>
-    </li>
-    <li>
-      <a class="dropdown-item {% if invoice.status == "APPROVED" %}toggle-active{% endif %}"
-         href="#"
-         hx-target="#status-dropdown-{{ invoice.id }}"
-         hx-post="{% url 'invoicing:invoices-edit-status' pk=invoice.id status='APPROVED' view=view %}">Approved</a>
-    </li>
-    <li>
-      <a class="dropdown-item {% if invoice.status == "SENT" %}toggle-active{% endif %}"
-         href="#"
-         hx-target="#status-dropdown-{{ invoice.id }}"
-         hx-post="{% url 'invoicing:invoices-edit-status' pk=invoice.id status='SENT' view=view %}">Sent</a>
-    </li>
-    <li>
-      <a class="dropdown-item {% if invoice.status == "DEFERRED" %}toggle-active{% endif %}"
-         href="#"
-         hx-target="#status-dropdown-{{ invoice.id }}"
-         hx-post="{% url 'invoicing:invoices-edit-status' pk=invoice.id status='DEFERRED' view=view %}">Deferred</a>
-    </li>
-    <li>
-      <a class="dropdown-item {% if invoice.status == "UNCOLLECTIBLE" %}toggle-active{% endif %}"
-         href="#"
-         hx-target="#status-dropdown-{{ invoice.id }}"
-         hx-post="{% url 'invoicing:invoices-edit-status' pk=invoice.id status='UNCOLLECTIBLE' view=view %}">Uncollectible</a>
-    </li>
-  </ul>
-</div>
+{% if invoice.status == 'VOID' %}
+  <span id="status-dropdown-{{ invoice.id }}">Void</span>
+{% else %}
+  <div id="status-dropdown-{{ invoice.id }}"
+       class="dropdown"
+       x-data="dropdown()">
+    <button type="button"
+            id="status-button"
+            class="button-link"
+            x-ref="button"
+            @click="toggle()"
+            :aria-expanded="open">{{ invoice.status_display }}</button>
+    <ul class="dropdown-menu"
+        x-ref="menu"
+        x-show="open"
+        hx-target="#status-dropdown-{{ invoice.id }}"
+        hx-swap="outerHTML">
+      <li>
+        <a class="dropdown-item {% if invoice.status == "DRAFT" %}toggle-active{% endif %}"
+           href="#"
+           hx-post="{% url 'invoicing:invoices-edit-status' pk=invoice.id status='DRAFT' view=view %}">Draft</a>
+      </li>
+      <li>
+        <a class="dropdown-item {% if invoice.status == "APPROVED" %}toggle-active{% endif %}"
+           href="#"
+           hx-target="#status-dropdown-{{ invoice.id }}"
+           hx-post="{% url 'invoicing:invoices-edit-status' pk=invoice.id status='APPROVED' view=view %}">Approved</a>
+      </li>
+      <li>
+        <a class="dropdown-item {% if invoice.status == "SENT" %}toggle-active{% endif %}"
+           href="#"
+           hx-target="#status-dropdown-{{ invoice.id }}"
+           hx-post="{% url 'invoicing:invoices-edit-status' pk=invoice.id status='SENT' view=view %}">Sent</a>
+      </li>
+      <li>
+        <a class="dropdown-item {% if invoice.status == "DEFERRED" %}toggle-active{% endif %}"
+           href="#"
+           hx-target="#status-dropdown-{{ invoice.id }}"
+           hx-post="{% url 'invoicing:invoices-edit-status' pk=invoice.id status='DEFERRED' view=view %}">Deferred</a>
+      </li>
+      <li>
+        <a class="dropdown-item {% if invoice.status == "UNCOLLECTIBLE" %}toggle-active{% endif %}"
+           href="#"
+           hx-target="#status-dropdown-{{ invoice.id }}"
+           hx-post="{% url 'invoicing:invoices-edit-status' pk=invoice.id status='UNCOLLECTIBLE' view=view %}">Uncollectible</a>
+      </li>
+    </ul>
+  </div>
+{% endif %}

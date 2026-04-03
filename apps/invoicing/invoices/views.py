@@ -24,6 +24,7 @@ from apps.trust.models import Transaction
 from .filters import InvoiceFilter
 from .forms import EditInvoiceForm, InvoiceForm
 from .functions import generate_invoice
+from .functions.generate_invoice import store_invoice_pdf
 from .models import Invoice
 
 
@@ -376,6 +377,7 @@ def invoices_add(request):
             invoice = form.save(commit=False)
             invoice.created_by = request.user
             invoice.save()
+            store_invoice_pdf(invoice, request)
 
             filter_data = request.session.get("invoices_filter", {})
             filter_data["status"] = "DRAFT"
@@ -426,12 +428,17 @@ def invoices_add(request):
 @login_required
 def invoices_edit(request, pk):
     invoice = get_object_or_404(Invoice, pk=pk)
+
+    if invoice.status == "VOID":
+        return HttpResponse(status=403)
+
     if request.method == "POST":
         form = EditInvoiceForm(
             request.POST, instance=invoice, use_required_attribute=False
         )
         if form.is_valid():
             invoice.save()
+            store_invoice_pdf(invoice, request)
 
             return HttpResponse(
                 status=204, headers={"HX-Trigger": "invoiceDetailChanged"}
@@ -448,21 +455,53 @@ def invoices_edit(request, pk):
 @login_required
 def invoices_delete(request, pk):
     invoice = get_object_or_404(Invoice, pk=pk)
+
+    if invoice.status not in ["DRAFT", "APPROVED"]:
+        return HttpResponse(status=403)
+
     invoice.delete()
 
     return redirect("invoicing:invoices-index")
 
 
 @login_required
+def invoices_void_confirm(request, pk):
+    invoice = get_object_or_404(Invoice, pk=pk)
+    return render(request, "invoicing/invoices/confirm-void.html", {"invoice": invoice})
+
+
+@login_required
+def invoices_void(request, pk):
+    invoice = get_object_or_404(Invoice, pk=pk)
+
+    if invoice.status in ["DRAFT", "APPROVED"]:
+        return HttpResponse(status=400)
+
+    invoice.void()
+
+    return HttpResponse(
+        status=204,
+        headers={"HX-Trigger": "invoicesChanged, invoiceDetailChanged"},
+    )
+
+
+@login_required
 def invoices_pdf(request, pk):
     invoice = get_object_or_404(Invoice, pk=pk)
-    file = generate_invoice(invoice, request)
 
     notation = "DRAFT - " if invoice.status == "DRAFT" else ""
+    notation = "VOID - " if invoice.status == "VOID" else notation
+    filename = f'filename="{notation}Invoice {invoice.id} - {invoice.matter} - {invoice.date_issued}.pdf"'
+
+    if invoice.pdf_file and invoice.status != "DRAFT":
+        response = HttpResponse(invoice.pdf_file.read(), content_type="application/pdf")
+        response["Content-Disposition"] = filename
+        return response
+
+    file = generate_invoice(invoice, request)
 
     with open(file.name, "rb") as pdf:
         response = HttpResponse(pdf.read(), content_type="application/pdf")
-        filename = f'filename="{notation}Invoice {invoice.id} - {invoice.matter} - {invoice.date_issued}.pdf"'
         response["Content-Disposition"] = filename
 
     os.unlink(file.name)
@@ -473,13 +512,20 @@ def invoices_pdf(request, pk):
 @login_required
 def invoices_pdf_download(request, pk):
     invoice = get_object_or_404(Invoice, pk=pk)
-    file = generate_invoice(invoice, request)
 
     notation = "DRAFT - " if invoice.status == "DRAFT" else ""
+    notation = "VOID - " if invoice.status == "VOID" else notation
+    filename = f'filename="{notation}Invoice {invoice.id} - {invoice.matter} - {invoice.date_issued}.pdf"'
+
+    if invoice.pdf_file and invoice.status != "DRAFT":
+        response = HttpResponse(invoice.pdf_file.read(), content_type="application/pdf")
+        response["Content-Disposition"] = f"attachment; {filename}"
+        return response
+
+    file = generate_invoice(invoice, request)
 
     with open(file.name, "rb") as pdf:
         response = HttpResponse(pdf.read(), content_type="application/pdf")
-        filename = f'filename="{notation}Invoice {invoice.id} - {invoice.matter} - {invoice.date_issued}.pdf"'
         response["Content-Disposition"] = f"attachment; {filename}"
 
     os.unlink(file.name)
@@ -490,6 +536,9 @@ def invoices_pdf_download(request, pk):
 @login_required
 def invoice_ledes_98b(request, pk):
     invoice = get_object_or_404(Invoice, pk=pk)
+
+    if invoice.status == "VOID":
+        return HttpResponse(status=400)
 
     ledes_file = generate_ledes_98b(invoice)
 
@@ -560,11 +609,17 @@ def order_by_invoices(request, order):
 
 
 @login_required
-def invoices_edit_status(_, pk, status, view):
+def invoices_edit_status(request, pk, status, view):
     invoice = get_object_or_404(Invoice, pk=pk)
+
+    if invoice.status == "VOID":
+        return HttpResponse(status=400)
 
     invoice.status = status
     invoice.save()
+
+    if status in ["APPROVED", "SENT"]:
+        store_invoice_pdf(invoice, request)
 
     trigger = "invoicesChanged" if view == "list" else "invoiceDetailChanged"
 

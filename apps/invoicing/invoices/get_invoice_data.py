@@ -96,6 +96,7 @@ def get_annotated_invoice_queryset():
             # Calculate amount_remaining = final_total - payments - credits
             # Legacy PAID invoices without allocations are considered fully paid (0)
             annotated_amount_remaining=Case(
+                When(status="VOID", then=Value(Decimal("0"))),
                 When(
                     status="PAID",
                     annotated_payments=Decimal("0"),
@@ -147,7 +148,9 @@ def get_invoice_data(request):
             - invoice.discount
         )
         paid = invoice.annotated_payments + invoice.annotated_credits
-        # Legacy support: PAID invoices without allocations are fully paid
+        # VOID invoices have no balance; legacy PAID without allocations are fully paid
+        if invoice.status == "VOID":
+            continue
         if invoice.status == "PAID" and paid == 0:
             continue
         total_amount_due += final_total - paid

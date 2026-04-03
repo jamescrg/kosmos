@@ -1,0 +1,30 @@
+<div class="modal-dialog modal-md">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h1 class="modal-title">Are you sure you want to void this invoice?</h1>
+      <div>
+        <button type="button" @click="$dispatch('close-modal')">
+          <i class="icon-x"></i>
+        </button>
+      </div>
+    </div>
+    <div class="modal-body">
+      <p>
+        This will release all time and expense entries and remove any payment applications. This action cannot be undone.
+      </p>
+      <form id="void-invoice-form"
+            hx-post="{% url 'invoicing:invoices-void' invoice.id %}"
+            hx-swap="none">
+        {% csrf_token %}
+        <label for="userInput">Type 'VOID' to confirm:</label>
+        <input type="text" id="userInput" oninput="updateText()">
+      </form>
+    </div>
+    <div class="modal-footer">
+      <button type="submit"
+              form="void-invoice-form"
+              class="submit disabled-btn"
+              disabled>Submit</button>
+    </div>
+  </div>
+</div>
