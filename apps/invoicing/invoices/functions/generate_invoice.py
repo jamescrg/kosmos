@@ -13,9 +13,13 @@ from apps.settings.models import Company
 from apps.trust.trust import get_confirmed_client_balance
 
 
-def generate_invoice(invoice: Invoice, request: WSGIRequest) -> NamedTemporaryFile:
+def generate_invoice(
+    invoice: Invoice, request: WSGIRequest = None, *, base_url: str = ""
+) -> NamedTemporaryFile:
     """
-    Generate a PDF invoice for the given invoice instance
+    Generate a PDF invoice for the given invoice instance.
+
+    Either request or base_url must be provided for resolving static file paths.
     """
 
     if invoice.show_comp:
@@ -49,7 +53,8 @@ def generate_invoice(invoice: Invoice, request: WSGIRequest) -> NamedTemporaryFi
     }
 
     html_string = render_to_string("invoicing/invoices/invoice.html", context)
-    base_url = request.build_absolute_uri("/").rstrip("/")
+    if not base_url and request:
+        base_url = request.build_absolute_uri("/").rstrip("/")
     html = HTML(string=html_string, base_url=base_url)
 
     with NamedTemporaryFile(suffix=".pdf", delete=False) as pdf_file:
@@ -59,9 +64,11 @@ def generate_invoice(invoice: Invoice, request: WSGIRequest) -> NamedTemporaryFi
     return pdf_file
 
 
-def store_invoice_pdf(invoice: Invoice, request: WSGIRequest) -> None:
+def store_invoice_pdf(
+    invoice: Invoice, request: WSGIRequest = None, *, base_url: str = ""
+) -> None:
     """Generate PDF and store it in the invoice's pdf_file field."""
-    pdf_file = generate_invoice(invoice, request)
+    pdf_file = generate_invoice(invoice, request, base_url=base_url)
 
     with open(pdf_file.name, "rb") as f:
         pdf_content = f.read()
