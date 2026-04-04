@@ -1,7 +1,7 @@
 <div class="modal-dialog modal-md">
   <div class="modal-content">
     <div class="modal-header">
-      <h1 class="modal-title">Are you sure you want to void this invoice?</h1>
+      <h1 class="modal-title">Void Invoice</h1>
       <div>
         <button type="button" @click="$dispatch('close-modal')">
           <i class="icon-x"></i>
@@ -9,8 +9,9 @@
       </div>
     </div>
     <div class="modal-body">
+      <p>Are you sure you want to void this invoice?</p>
       <p>
-        This will release all time and expense entries and remove any payment applications. This action cannot be undone.
+        Voiding this invoice will release all time and expense entries back to unbilled status and remove any payment or credit applications. The invoice record and PDF will be preserved for audit purposes, but the invoice will no longer affect the account balance. This action cannot be undone.
       </p>
       <form id="void-invoice-form"
             hx-post="{% url 'invoicing:invoices-void' invoice.id %}"
@@ -20,11 +21,19 @@
         <input type="text" id="userInput" oninput="updateText()">
       </form>
     </div>
-    <div class="modal-footer">
-      <button type="submit"
-              form="void-invoice-form"
-              class="submit disabled-btn"
-              disabled>Submit</button>
+    <div class="modal-footer modal-footer-3col">
+      <div class="modal-footer-left">
+        <button type="button"
+                class="btn btn-secondary"
+                @click="$dispatch('close-modal')">Cancel</button>
+      </div>
+      <div class="modal-footer-center"></div>
+      <div class="modal-footer-right">
+        <button type="submit"
+                form="void-invoice-form"
+                class="btn btn-success disabled-btn"
+                disabled>Submit</button>
+      </div>
     </div>
   </div>
 </div>

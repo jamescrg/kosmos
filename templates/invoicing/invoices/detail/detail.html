@@ -40,6 +40,16 @@
             <i class="icon-ban"></i>
           </button>
         {% endif %}
+        {% if invoice.status == 'VOID' and request.user.is_admin %}
+          <button type="button"
+                  class="btn-icon confirm"
+                  data-href="{% url 'invoicing:invoices-delete' invoice.id %}"
+                  data-confirm-title="Delete Voided Invoice"
+                  data-confirm-message="Voided invoices are normally kept for audit trail purposes. Only delete if the invoice was created in error. This cannot be undone."
+                  data-confirm-text="Delete">
+            <i class="icon-trash-2"></i>
+          </button>
+        {% endif %}
         <div class="dropdown" x-data="dropdown()">
           <button class="button-link"
                   type="button"

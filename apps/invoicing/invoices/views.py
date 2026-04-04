@@ -456,12 +456,15 @@ def invoices_edit(request, pk):
 def invoices_delete(request, pk):
     invoice = get_object_or_404(Invoice, pk=pk)
 
-    if invoice.status not in ["DRAFT", "APPROVED"]:
-        return HttpResponse(status=403)
+    if invoice.status in ["DRAFT", "APPROVED"]:
+        invoice.delete()
+        return redirect("invoicing:invoices-index")
 
-    invoice.delete()
+    if invoice.status == "VOID" and request.user.is_admin:
+        invoice.delete()
+        return redirect("invoicing:invoices-index")
 
-    return redirect("invoicing:invoices-index")
+    return HttpResponse(status=403)
 
 
 @login_required
@@ -476,6 +479,9 @@ def invoices_void(request, pk):
 
     if invoice.status in ["DRAFT", "APPROVED"]:
         return HttpResponse(status=400)
+
+    if not invoice.pdf_file:
+        store_invoice_pdf(invoice, request)
 
     invoice.void()
 

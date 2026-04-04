@@ -4,7 +4,8 @@ function updateText() {
 }
 
 function checkSubmitButton(input) {
-    const submitButton = document.querySelector('.submit');
+    const submitButton = document.querySelector('button[form="void-invoice-form"]');
+    if (!submitButton) return;
     if (input === 'VOID') {
         submitButton.removeAttribute('disabled');
         submitButton.classList.remove('disabled-btn');

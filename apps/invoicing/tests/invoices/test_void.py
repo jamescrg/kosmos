@@ -1,8 +1,10 @@
 from decimal import Decimal
 
 import pytest
+from django.test.client import Client as TestClient
 from django.urls import reverse
 
+from apps.accounts.models import CustomUser
 from apps.activity.expenses.models import ExpenseEntry
 from apps.activity.time.models import TimeEntry
 from apps.invoicing.applications.models import CreditApplication, PaymentApplication
@@ -11,6 +13,24 @@ from apps.invoicing.invoices.models import Invoice
 from apps.invoicing.payments.models import Payment
 
 pytestmark = pytest.mark.django_db
+
+
+@pytest.fixture
+def admin_user():
+    user = CustomUser.objects.create(
+        username="Admin", email="admin@gmail.com", user_rate=100, role="ADMIN"
+    )
+    user.set_password("clawboy")
+    user.save()
+    return user
+
+
+@pytest.fixture
+def admin_client(admin_user):
+    client = TestClient()
+    client.login(username="Admin", password="clawboy")
+    client.get("/dash/")
+    return client
 
 
 # -----------------------------------------------------
@@ -413,3 +433,30 @@ def test_ledes_void_invoice_blocked(client, sent_invoice):
         reverse("invoicing:invoice-ledes", kwargs={"pk": sent_invoice.pk})
     )
     assert response.status_code == 400
+
+
+# -----------------------------------------------------
+# Admin delete of VOID invoices
+# -----------------------------------------------------
+
+
+def test_delete_void_allowed_for_admin(admin_client, sent_invoice):
+    """Admin users can delete VOID invoices."""
+    sent_invoice.void()
+
+    response = admin_client.post(
+        reverse("invoicing:invoices-delete", kwargs={"pk": sent_invoice.pk})
+    )
+    assert response.status_code == 302
+    assert not Invoice.objects.filter(pk=sent_invoice.pk).exists()
+
+
+def test_delete_void_forbidden_for_non_admin(client, sent_invoice):
+    """Non-admin users cannot delete VOID invoices."""
+    sent_invoice.void()
+
+    response = client.post(
+        reverse("invoicing:invoices-delete", kwargs={"pk": sent_invoice.pk})
+    )
+    assert response.status_code == 403
+    assert Invoice.objects.filter(pk=sent_invoice.pk).exists()
