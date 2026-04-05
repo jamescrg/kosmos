@@ -1,9 +1,25 @@
 # Law-Admin
 
-A web-based law practice management application. Manage matters, contacts,
-deadlines, time entries, expenses, trust accounting, and intakes. Supports
-multiple users / time-keepers. Emphasis on a clean, simple UI and the
-efficient execution of core functionality.
+A web-based law practice management application with integrated case
+building and AI-powered legal analysis.
+
+**Practice Management** — Manage matters, contacts, deadlines, time entries,
+expenses, invoicing, trust accounting, and intakes. Supports multiple
+users and time-keepers.
+
+**Case Building** — Organize case materials including documents with OCR
+text extraction, highlights and citations, chronological fact timelines,
+case law research via CourtListener integration, witness tracking, and
+categorized labels.
+
+**AI Integration** — Per-matter AI chat with an intelligent context system
+that assembles relevant case materials into the conversation. An automated
+selector evaluates which documents, case law, and prior conversations are
+relevant to each question, staying within the model's context budget.
+Supports Claude and Gemini models.
+
+Emphasis on a clean, simple UI and the efficient execution of core
+functionality.
 
 ## Table of Contents
 
