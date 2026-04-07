@@ -4,14 +4,14 @@ Development Environment Styles
 
 /* Dev environment banner */
 .dev-banner {
-  background-color: var(--stone-250);
-  border-bottom: 2px solid var(--stone-400);
+  background-color: var(--hl-red);
+  border-bottom: 1px solid var(--stone-300);
   color: var(--orange-700);
   font-size: 0.75rem;
   font-weight: 600;
   left: 0;
   letter-spacing: 0.25rem;
-  padding: 0.5rem 0;
+  padding: 0.25rem 0;
   position: fixed;
   right: 0;
   text-align: center;
@@ -20,9 +20,9 @@ Development Environment Styles
 }
 
 .env-dev .sidebar {
-  top: 2.25rem;
+  top: 0.75rem;
 }
 
 .env-dev .main-content {
-  padding-top: 2.25rem;
+  padding-top: 1.75rem;
 }
