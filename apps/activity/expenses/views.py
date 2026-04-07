@@ -1,4 +1,4 @@
-from datetime import date, datetime
+from datetime import date, datetime, timedelta
 
 from django.contrib.auth.decorators import login_required
 from django.http import HttpResponse, HttpResponseForbidden
@@ -80,26 +80,46 @@ def expenses_filter(request):
 
 @login_required
 def expenses_filter_quick(request, quick_filter):
+    today = date.today()
+    monday = today - timedelta(days=today.weekday())
+    month_start = today.replace(day=1)
+
+    base = {
+        "date_min": "",
+        "date_max": "",
+        "matter": None,
+        "keyword": "",
+        "comp": None,
+        "entered": None,
+        "invoice": None,
+    }
+
     quick_filters = {
-        "unbilled": {
-            "date_min": "",
-            "date_max": "",
-            "matter": None,
-            "keyword": "",
-            "comp": None,
-            "entered": 0,
-            "invoice": 0,
-            "filter_label": "unbilled",
-        },
+        "all": {**base, "filter_label": "all"},
+        "unbilled": {**base, "entered": 0, "invoice": 0, "filter_label": "unbilled"},
         "today": {
-            "date_min": date.today().strftime("%Y-%m-%d"),
-            "date_max": date.today().strftime("%Y-%m-%d"),
-            "matter": None,
-            "keyword": "",
-            "comp": None,
-            "entered": None,
-            "invoice": None,
+            **base,
+            "date_min": str(today),
+            "date_max": str(today),
             "filter_label": "today",
+        },
+        "yesterday": {
+            **base,
+            "date_min": str(today - timedelta(days=1)),
+            "date_max": str(today - timedelta(days=1)),
+            "filter_label": "yesterday",
+        },
+        "this_week": {
+            **base,
+            "date_min": str(monday),
+            "date_max": str(today),
+            "filter_label": "this_week",
+        },
+        "this_month": {
+            **base,
+            "date_min": str(month_start),
+            "date_max": str(today),
+            "filter_label": "this_month",
         },
     }
 

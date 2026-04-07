@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timedelta
 
 from apps.accounts.models import CustomUser
 from apps.activity.expenses.filter import ExpenseFilter
@@ -39,18 +39,21 @@ def get_expenses_data(request):
         current_date = datetime.now().date()
         filter_label = filter.data.get("filter_label", None)
 
-        min_date = filter.data.get("date_min", None)
-        max_date = filter.data.get("date_max", None)
-
-        # If the label is 'today' make sure the dates match the current date
-        if min_date and max_date:
-            if (
-                filter_label == "today"
-                and min_date != current_date
-                and max_date != current_date
-            ):
-                filter.data["date_min"] = str(current_date)
-                filter.data["date_max"] = str(current_date)
+        # Recalculate dates for relative quick filters
+        if filter_label == "today":
+            filter.data["date_min"] = str(current_date)
+            filter.data["date_max"] = str(current_date)
+        elif filter_label == "yesterday":
+            yesterday = current_date - timedelta(days=1)
+            filter.data["date_min"] = str(yesterday)
+            filter.data["date_max"] = str(yesterday)
+        elif filter_label == "this_week":
+            monday = current_date - timedelta(days=current_date.weekday())
+            filter.data["date_min"] = str(monday)
+            filter.data["date_max"] = str(current_date)
+        elif filter_label == "this_month":
+            filter.data["date_min"] = str(current_date.replace(day=1))
+            filter.data["date_max"] = str(current_date)
 
         expenses = filter.qs
         user_id = filter_data.get("user")
