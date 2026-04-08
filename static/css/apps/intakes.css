@@ -112,11 +112,8 @@ Detail View - Left Panel
 
 .intake-list td.intake-name {
   display: flex;
+  justify-content: space-between;
   min-width: 18rem;
-}
-
-.intake-list td.intake-name .note-badge-icon {
-  margin-left: auto;
 }
 
 .intake-phone {
