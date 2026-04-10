@@ -5,7 +5,8 @@
      hx-swap="innerHTML">
   <div class="research-results-header">
     <div>
-      <h3>{{ query.query_text|truncatechars:80 }}</h3>
+      <h3>{{ query.query_text }}</h3>
+      {% if query.structured_query %}<div class="research-results-structured">{{ query.structured_query }}</div>{% endif %}
       <span class="research-results-meta">{{ query.jurisdiction_display }} &middot; {{ query.created_at|date:"M j, Y g:i A" }}</span>
     </div>
     <div class="research-results-actions">
@@ -89,6 +90,7 @@
       </div>
     {% endif %}
   {% else %}
+    {% include "case/research/summary.html" %}
     {% if results %}
       <div class="research-cards">
         {% for result in results %}
@@ -101,6 +103,5 @@
     {% else %}
       <div class="research-empty-state">No results found.</div>
     {% endif %}
-    {% include "case/research/summary.html" %}
   {% endif %}
 </div>

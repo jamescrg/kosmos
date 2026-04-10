@@ -134,6 +134,11 @@
   margin: 0;
 }
 
+.research-results-structured {
+  color: var(--color-muted);
+  margin-top: 0.25rem;
+}
+
 .research-results-meta {
   color: var(--color-muted);
 }
