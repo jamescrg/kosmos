@@ -1,11 +1,24 @@
-{% load markdown_extras %}
 {% if briefs %}
   <div class="research-briefs-list">
     {% for brief in briefs %}
-      <div class="research-card" id="brief-{{ brief.id }}">
-        <div class="research-card-header">
-          <div class="research-card-title">{{ brief.case_name }}</div>
-          <div class="research-card-actions">
+      <div class="research-history-row">
+        <a href="#"
+           class="research-history-row-link"
+           hx-get="{% url 'case:research-brief-detail' brief.id %}"
+           hx-target="#research"
+           hx-swap="innerHTML">
+          <div class="research-history-row-query">{{ brief.case_name }}</div>
+          <div class="research-history-row-meta">
+            {% if brief.citation %}
+              <span>{{ brief.citation }}</span>
+              <span>&middot;</span>
+            {% endif %}
+            <span>{{ brief.court }}</span>
+            {% if brief.date_filed %}
+              <span>&middot;</span>
+              <span>{{ brief.date_filed }}</span>
+            {% endif %}
+            <span>&middot;</span>
             {% if brief.status == "generating" or brief.status == "pending" %}
               <span class="app-badge app-badge-sm"
                     hx-get="{% url 'case:research-abstracts-tab' matter.id %}"
@@ -16,23 +29,20 @@
               </span>
             {% elif brief.status == "error" %}
               <span class="app-badge app-badge-sm badge-red">Error</span>
+            {% elif brief.status == "complete" %}
+              <span class="app-badge app-badge-sm badge-green">Complete</span>
             {% endif %}
-            <form hx-post="{% url 'case:research-delete-brief' brief.id %}"
-                  hx-target="#research"
-                  hx-swap="innerHTML"
-                  hx-confirm="Delete this case brief?">
-              <button type="submit" class="btn btn-icon" title="Delete brief">
-                <i class="icon-trash-2"></i>
-              </button>
-            </form>
           </div>
-        </div>
-        <div class="research-card-citation">
-          {% if brief.citation %}{{ brief.citation }} &middot;{% endif %}
-          {{ brief.court }}
-          {% if brief.date_filed %}({{ brief.date_filed }}){% endif %}
-        </div>
-        {% if brief.brief %}<div class="research-brief-content">{{ brief.brief|render_markdown }}</div>{% endif %}
+        </a>
+        <form hx-post="{% url 'case:research-delete-brief' brief.id %}"
+              hx-target="#research"
+              hx-swap="innerHTML"
+              hx-confirm="Delete this case brief?"
+              class="research-history-row-delete">
+          <button type="submit" class="btn btn-icon" title="Delete brief">
+            <i class="icon-trash-2"></i>
+          </button>
+        </form>
       </div>
     {% endfor %}
   </div>

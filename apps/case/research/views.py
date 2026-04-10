@@ -87,10 +87,17 @@ def research_search_tab(request, matter_id):
     """HTMX partial for the Search sub-tab content."""
     matter, _ = get_matter_from_url(request, matter_id)
 
+    active_query = (
+        ResearchQuery.objects.filter(matter=matter, created_by=request.user)
+        .order_by("-created_at")
+        .first()
+    )
+
     context = {
         "matter": matter,
         "research_tab": "search",
         "states": STATES,
+        "active_query": active_query,
     }
 
     return render(request, "case/research/list.html", context)
@@ -291,6 +298,16 @@ def research_delete(request, matter_id, query_id):
         ResearchQuery, pk=query_id, matter=matter, created_by=request.user
     )
     query.delete()
+
+    if request.headers.get("HX-Target") == "research":
+        queries = ResearchQuery.objects.filter(matter=matter, created_by=request.user)[
+            :50
+        ]
+        return render(
+            request,
+            "case/research/list.html",
+            {"matter": matter, "research_tab": "history", "queries": queries},
+        )
 
     response = HttpResponse(status=200)
     response["HX-Redirect"] = reverse("case:research-index", args=[matter_id])
@@ -577,6 +594,17 @@ def research_abstracts_tab(request, matter_id):
 
 
 @login_required
+def research_brief_detail(request, brief_id):
+    """HTMX partial for viewing a single case brief."""
+    brief = get_object_or_404(CaseBrief, pk=brief_id, created_by=request.user)
+    return render(
+        request,
+        "case/research/brief-detail.html",
+        {"brief": brief, "matter": brief.matter},
+    )
+
+
+@login_required
 def research_save_brief(request, result_id):
     """POST: generate a case brief from a research result."""
     if request.method != "POST":
@@ -596,7 +624,12 @@ def research_save_brief(request, result_id):
             return render(
                 request,
                 "case/research/result-row.html",
-                {"result": result, "matter": matter, "brief_saved": True},
+                {
+                    "result": result,
+                    "matter": matter,
+                    "brief_saved": True,
+                    "brief_id": existing.id,
+                },
             )
 
     brief = CaseBrief.objects.create(
