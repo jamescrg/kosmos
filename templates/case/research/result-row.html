@@ -18,6 +18,12 @@
            title="View on CourtListener"><i class="icon-external-link"></i></a>
       {% endif %}
     </div>
+    {% if result.has_negative_history %}
+      <span class="app-badge app-badge-sm badge-red"
+            title="Negative treatment detected in citing cases">
+        <i class="icon-alert-triangle"></i> Negative History
+      </span>
+    {% endif %}
     {% if result.relevance == "pending" %}
       <span class="app-badge app-badge-sm"><i class="icon-loader spin"></i> Summarizing</span>
     {% elif result.relevance == "high" %}
@@ -60,24 +66,31 @@
         <i class="icon-sparkles"></i> Summarize
       </button>
     {% endif %}
-    {% if saved_to_caselaws %}
-      <span class="research-saved-badge">
-        <i class="icon-check"></i> Saved
-      </span>
-    {% elif save_error %}
+    {% if save_error %}
       <span class="research-save-error">{{ save_error }}</span>
     {% elif result.cluster_id %}
-      <button class="btn"
-              hx-post="{% url 'case:research-save-caselaw' result.id %}"
-              hx-target="#result-{{ result.id }}"
-              hx-swap="outerHTML">
-        <i class="icon-plus"></i> Save to Case Law
+      <button class="btn{% if saved_to_caselaws or result.is_bookmarked %} research-bookmark-active{% endif %}"
+              title="{% if saved_to_caselaws or result.is_bookmarked %}Bookmarked{% else %}Bookmark Case{% endif %}"
+              {% if not saved_to_caselaws and not result.is_bookmarked %} hx-post="{% url 'case:research-save-caselaw' result.id %}" hx-target="#result-{{ result.id }}" hx-swap="outerHTML" {% endif %}>
+        <i class="icon-bookmark"></i>
       </button>
     {% endif %}
     {% if brief_saved %}
-      <span class="research-saved-badge">
-        <i class="icon-check"></i> Brief Saved
-      </span>
+      <a href="#"
+         class="btn"
+         hx-get="{% url 'case:research-brief-detail' brief_id %}"
+         hx-target="#research"
+         hx-swap="innerHTML">
+        <i class="icon-file-text"></i> View Brief
+      </a>
+    {% elif result.existing_brief_id %}
+      <a href="#"
+         class="btn"
+         hx-get="{% url 'case:research-brief-detail' result.existing_brief_id %}"
+         hx-target="#research"
+         hx-swap="innerHTML">
+        <i class="icon-file-text"></i> View Brief
+      </a>
     {% elif brief_generating %}
       <span class="research-status-msg"
             hx-get="{% url 'case:research-brief-status' brief_id %}"
@@ -92,6 +105,14 @@
               hx-target="#result-{{ result.id }}"
               hx-swap="outerHTML">
         <i class="icon-file-text"></i> Save Brief
+      </button>
+    {% endif %}
+    {% if result.cluster_id and not brief_generating %}
+      <button class="btn"
+              hx-post="{% url 'case:research-review' result.id %}"
+              hx-target="#research"
+              hx-swap="innerHTML">
+        <i class="icon-check-circle"></i> Validate
       </button>
     {% endif %}
   </div>

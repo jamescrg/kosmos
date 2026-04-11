@@ -87,10 +87,17 @@ def research_search_tab(request, matter_id):
     """HTMX partial for the Search sub-tab content."""
     matter, _ = get_matter_from_url(request, matter_id)
 
+    active_query = (
+        ResearchQuery.objects.filter(matter=matter, created_by=request.user)
+        .order_by("-created_at")
+        .first()
+    )
+
     context = {
         "matter": matter,
         "research_tab": "search",
         "states": STATES,
+        "active_query": active_query,
     }
 
     return render(request, "case/research/list.html", context)
@@ -202,7 +209,7 @@ def research_results(request, matter_id, query_id):
 
     sort = request.GET.get("sort", "relevance")
     sort_map = {
-        "relevance": "-score",
+        "relevance": "position",
         "date": "-date_filed",
         "citations": "-forward_citation_count",
     }
@@ -214,6 +221,24 @@ def research_results(request, matter_id, query_id):
         results, per_page=5, request=request, session_key=session_key
     )
     results = pagination.get_object_list()
+
+    cluster_ids = [r.cluster_id for r in results if r.cluster_id]
+    brief_map = {}
+    bookmarked_clusters = set()
+    if cluster_ids:
+        brief_map = dict(
+            CaseBrief.objects.filter(
+                matter=matter, cluster_id__in=cluster_ids
+            ).values_list("cluster_id", "id")
+        )
+        bookmarked_clusters = set(
+            CaseLaw.objects.filter(
+                matter=matter, cluster_id__in=cluster_ids
+            ).values_list("cluster_id", flat=True)
+        )
+    for r in results:
+        r.existing_brief_id = brief_map.get(r.cluster_id)
+        r.is_bookmarked = r.cluster_id in bookmarked_clusters
 
     return render(
         request,
@@ -291,6 +316,16 @@ def research_delete(request, matter_id, query_id):
         ResearchQuery, pk=query_id, matter=matter, created_by=request.user
     )
     query.delete()
+
+    if request.headers.get("HX-Target") == "research":
+        queries = ResearchQuery.objects.filter(matter=matter, created_by=request.user)[
+            :50
+        ]
+        return render(
+            request,
+            "case/research/list.html",
+            {"matter": matter, "research_tab": "history", "queries": queries},
+        )
 
     response = HttpResponse(status=200)
     response["HX-Redirect"] = reverse("case:research-index", args=[matter_id])
@@ -577,6 +612,17 @@ def research_abstracts_tab(request, matter_id):
 
 
 @login_required
+def research_brief_detail(request, brief_id):
+    """HTMX partial for viewing a single case brief."""
+    brief = get_object_or_404(CaseBrief, pk=brief_id, created_by=request.user)
+    return render(
+        request,
+        "case/research/brief-detail.html",
+        {"brief": brief, "matter": brief.matter},
+    )
+
+
+@login_required
 def research_save_brief(request, result_id):
     """POST: generate a case brief from a research result."""
     if request.method != "POST":
@@ -596,7 +642,12 @@ def research_save_brief(request, result_id):
             return render(
                 request,
                 "case/research/result-row.html",
-                {"result": result, "matter": matter, "brief_saved": True},
+                {
+                    "result": result,
+                    "matter": matter,
+                    "brief_saved": True,
+                    "brief_id": existing.id,
+                },
             )
 
     brief = CaseBrief.objects.create(

@@ -1,0 +1,50 @@
+{% load markdown_extras %}
+<div class="research-subtabs">
+  <nav class="research-internal-nav">
+    <a href="#"
+       class="research-internal-tab"
+       hx-get="{% url 'case:research-abstracts-tab' matter.id %}"
+       hx-target="#research"
+       hx-swap="innerHTML">Case Briefs</a>
+    <span class="research-internal-tab active">{{ brief.case_name|truncatechars:60 }}</span>
+  </nav>
+</div>
+<div id="research-tab-content">
+  <div class="research-card">
+    <div class="research-card-header">
+      <div class="research-card-title">{{ brief.case_name }}</div>
+      <div class="research-card-actions">
+        <form hx-post="{% url 'case:research-delete-brief' brief.id %}"
+              hx-target="#research"
+              hx-swap="innerHTML"
+              hx-confirm="Delete this case brief?">
+          <button type="submit" class="btn btn-icon" title="Delete brief">
+            <i class="icon-trash-2"></i>
+          </button>
+        </form>
+      </div>
+    </div>
+    <div class="research-card-citation">
+      {% if brief.citation %}{{ brief.citation }} &middot;{% endif %}
+      {{ brief.court }}
+      {% if brief.date_filed %}({{ brief.date_filed }}){% endif %}
+    </div>
+    {% if brief.brief %}
+      <div class="research-brief-content">{{ brief.brief|render_markdown }}</div>
+    {% elif brief.status == "generating" or brief.status == "pending" %}
+      <div class="research-loading"
+           hx-get="{% url 'case:research-brief-detail' brief.id %}"
+           hx-trigger="load delay:3s"
+           hx-target="#research"
+           hx-swap="innerHTML">
+        <i class="icon-loader spin"></i>
+        <span>Generating brief...</span>
+      </div>
+    {% elif brief.status == "error" %}
+      <div class="research-error">
+        <i class="icon-alert-triangle"></i>
+        Brief generation failed.
+      </div>
+    {% endif %}
+  </div>
+</div>

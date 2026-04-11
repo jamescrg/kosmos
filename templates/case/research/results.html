@@ -5,7 +5,8 @@
      hx-swap="innerHTML">
   <div class="research-results-header">
     <div>
-      <h3>{{ query.query_text|truncatechars:80 }}</h3>
+      <h3>{{ query.query_text }}</h3>
+      {% if query.structured_query %}<div class="research-results-structured">{{ query.structured_query }}</div>{% endif %}
       <span class="research-results-meta">{{ query.jurisdiction_display }} &middot; {{ query.created_at|date:"M j, Y g:i A" }}</span>
     </div>
     <div class="research-results-actions">
@@ -52,7 +53,7 @@
       </div>
       <form hx-post="{% url 'case:research-delete' matter.id query.id %}"
             hx-confirm="Delete this query and its results?">
-        <button type="submit" class="btn btn-icon" title="Delete query">
+        <button type="submit" class="btn" title="Delete query">
           <i class="icon-trash-2"></i>
         </button>
       </form>
@@ -72,7 +73,24 @@
       <i class="icon-loader spin"></i>
       <span>Searching CourtListener...</span>
     </div>
+  {% elif query.status == "processing" %}
+    <div class="research-processing-banner"
+         hx-get="{% url 'case:research-results' matter.id query.id %}{% if sort %}?sort={{ sort }}{% endif %}"
+         hx-trigger="load delay:3s"
+         hx-target="#research-results"
+         hx-swap="innerHTML">
+      <i class="icon-loader spin"></i>
+      <span>Evaluating relevance...</span>
+    </div>
+    {% if results %}
+      <div class="research-cards">
+        {% for result in results %}
+          {% include "case/research/result-row.html" %}
+        {% endfor %}
+      </div>
+    {% endif %}
   {% else %}
+    {% include "case/research/summary.html" %}
     {% if results %}
       <div class="research-cards">
         {% for result in results %}

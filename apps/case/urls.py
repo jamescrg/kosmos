@@ -970,6 +970,11 @@ urlpatterns = [
         name="research-save-brief",
     ),
     path(
+        "case/research/brief/<int:brief_id>/",
+        research.research_brief_detail,
+        name="research-brief-detail",
+    ),
+    path(
         "case/research/brief/<int:brief_id>/status/",
         research.research_brief_status,
         name="research-brief-status",

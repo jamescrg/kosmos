@@ -1,7 +1,11 @@
 {% if brief.status == "complete" %}
-  <span class="research-saved-badge">
-    <i class="icon-check"></i> Brief Saved
-  </span>
+  <a href="#"
+     class="btn"
+     hx-get="{% url 'case:research-brief-detail' brief.id %}"
+     hx-target="#research"
+     hx-swap="innerHTML">
+    <i class="icon-file-text"></i> View Brief
+  </a>
 {% elif brief.status == "error" %}
   <span class="research-save-error">
     <i class="icon-alert-triangle"></i> Brief generation failed

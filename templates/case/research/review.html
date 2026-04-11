@@ -19,11 +19,16 @@
   </div>
 {% endif %}
 {% if result %}
-  <div id="review-detail">{% include "case/research/review-content.html" %}</div>
+  <div class="research-card">
+    <div id="review-detail">{% include "case/research/review-content.html" %}</div>
+  </div>
 {% elif reviewed_results %}
   <div class="research-reviewed-list">
     {% for r in reviewed_results %}
-      <a href="{% url 'case:research-review-tab' matter.id %}?result={{ r.id }}"
+      <a href="#"
+         hx-get="{% url 'case:research-review-tab' matter.id %}?result={{ r.id }}"
+         hx-target="#research"
+         hx-swap="innerHTML"
          class="research-review-summary-row">
         <div class="research-review-summary-case">{{ r.case_name }}</div>
         <div class="research-review-summary-meta">
