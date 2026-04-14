@@ -181,9 +181,9 @@ def time_filter_quick(request, quick_filter):
         },
     }
 
-    filter_data = {}
-    for key, val in quick_filters[quick_filter].items():
-        filter_data[key] = val
+    existing = request.session.get("time_filter", {})
+    filter_data = quick_filters[quick_filter]
+    filter_data["user"] = existing.get("user")
 
     request.session["time_filter"] = filter_data
     request.session.modified = True
