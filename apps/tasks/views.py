@@ -314,43 +314,40 @@ def tasks_filter(request, user=None):
 def tasks_filter_quick(request, quick_filter):
     end_of_week = date.today() + timedelta(days=7)
     end_of_week = end_of_week.strftime("%Y-%m-%d")
-    filter_data = request.session.get("tasks_filter", {})
+
     quick_filters = {
         "all": {
             "filter_label": "all",
             "status": "Pending",
-            "matter": filter_data.get("matter"),
-            "user": filter_data.get("user"),
-            "order_by": filter_data.get("order_by"),
+            "date_due_min": "",
+            "date_due_max": "",
+            "has_due_date": "",
         },
         "unscheduled": {
             "filter_label": "unscheduled",
             "status": "Pending",
             "has_due_date": "false",
-            "matter": filter_data.get("matter"),
-            "user": filter_data.get("user"),
-            "order_by": filter_data.get("order_by"),
+            "date_due_min": "",
+            "date_due_max": "",
         },
         "today": {
             "filter_label": "today",
             "status": "Pending",
             "date_due_max": date.today().strftime("%Y-%m-%d"),
-            "matter": filter_data.get("matter"),
-            "user": filter_data.get("user"),
-            "order_by": filter_data.get("order_by"),
+            "date_due_min": "",
+            "has_due_date": "",
         },
         "week": {
             "filter_label": "week",
             "status": "Pending",
             "date_due_max": end_of_week,
-            "matter": filter_data.get("matter"),
-            "user": filter_data.get("user"),
-            "order_by": filter_data.get("order_by"),
+            "date_due_min": "",
+            "has_due_date": "",
         },
     }
-    filter_data = {}
-    for key, val in quick_filters[quick_filter].items():
-        filter_data[key] = val
+
+    filter_data = request.session.get("tasks_filter", {})
+    filter_data.update(quick_filters[quick_filter])
     request.session["tasks_filter"] = filter_data
     request.session.modified = True
 

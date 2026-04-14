@@ -169,6 +169,14 @@ def get_list_data(request):
         "selected_user": selected_user.username.capitalize() if selected_user else "",
         "selected_priority": f"Priority {priority_value}" if priority_value else "",
         "filter_label": filter_data.get("filter_label", None) if filter_data else None,
+        "custom_filter_active": filter_data
+        and any(
+            [
+                filter_data.get("status") == "Complete",
+                filter_data.get("date_completed_min") not in (None, ""),
+                filter_data.get("date_completed_max") not in (None, ""),
+            ]
+        ),
         "current_order": current_order,
         "selected_tasks": selected_tasks,
         "all_selected": all_selected,

@@ -30,7 +30,7 @@
       </button>
       <div class="filter-tools">
         <button type="button"
-                class="btn-icon"
+                class="btn-icon {% if custom_filter_active %}toggle-active{% endif %}"
                 hx-get="{% url 'tasks:filter' %}"
                 hx-target="#htmx-modal-container"
                 hx-trigger="click"

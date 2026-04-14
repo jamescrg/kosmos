@@ -10,7 +10,7 @@
         </button>
         <button hx-get="/matters/filter"
                 hx-target="#htmx-modal-container"
-                class="{% if filter_label == "custom" %}toggle-active{% endif %}"
+                class="{% if custom_filter_active %}toggle-active{% endif %}"
                 data-bs-toggle="modal"
                 data-bs-target="#htmx-modal-container">
           <i class="icon-list-filter with-text"></i>Filter

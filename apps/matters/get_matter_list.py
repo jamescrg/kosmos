@@ -58,6 +58,13 @@ def get_matter_list(request):
     list_data["filter_label"] = (
         filter_data.get("filter_label", None) if filter_data else None
     )
+    list_data["custom_filter_active"] = filter_data and any(
+        [
+            filter_data.get("practice_area") not in (None, ""),
+            filter_data.get("date_start") not in (None, ""),
+            filter_data.get("date_end") not in (None, ""),
+        ]
+    )
     list_data["current_order"] = current_order
 
     return list_data

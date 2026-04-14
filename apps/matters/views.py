@@ -99,17 +99,12 @@ def filter_quick(request, quick_filter):
     quick_filters = {
         "open": {
             "status": "Open",
-            "practice_area": "",
-            "date_start": "",
-            "date_end": "",
-            "order_by": "name",
             "filter_label": "open",
         },
     }
 
-    filter_data = {}
-    for key, val in quick_filters[quick_filter].items():
-        filter_data[key] = val
+    filter_data = request.session.get("matter_filter", {})
+    filter_data.update(quick_filters[quick_filter])
 
     request.session["matter_filter"] = filter_data
     request.session.modified = True
