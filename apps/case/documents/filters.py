@@ -7,9 +7,9 @@ from apps.matters.proceedings.models import Proceeding
 
 IMPORTANCE_CHOICES = (
     (5, "Highest"),
-    (4, "High"),
+    (4, "Higher"),
     (3, "Normal"),
-    (2, "Low"),
+    (2, "Lower"),
     (1, "Lowest"),
 )
 

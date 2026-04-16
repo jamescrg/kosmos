@@ -27,7 +27,7 @@
       <a class="dropdown-item"
          href="#"
          hx-get="{% url 'tasks:task-priority' task_id=task.id priority=4 %}"
-         hx-target="#tasks"><i class="icon-chevron-up priority-4"></i> High</a>
+         hx-target="#tasks"><i class="icon-chevron-up priority-4"></i> Higher</a>
     </li>
     <li>
       <a class="dropdown-item"
@@ -39,7 +39,7 @@
       <a class="dropdown-item"
          href="#"
          hx-get="{% url 'tasks:task-priority' task_id=task.id priority=2 %}"
-         hx-target="#tasks"><i class="icon-chevron-down priority-2"></i> Low</a>
+         hx-target="#tasks"><i class="icon-chevron-down priority-2"></i> Lower</a>
     </li>
     <li>
       <a class="dropdown-item"

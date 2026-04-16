@@ -173,7 +173,7 @@ def get_matter_tasks_data(request, matter_id):
         "priorities": list(range(5, 0, -1)),
         "priority_value": priority_value,
         "selected_priority": (
-            {5: "Highest", 4: "High", 3: "Normal", 2: "Low", 1: "Lowest"}.get(
+            {5: "Highest", 4: "Higher", 3: "Normal", 2: "Lower", 1: "Lowest"}.get(
                 priority_value, ""
             )
             if priority_value

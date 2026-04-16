@@ -193,7 +193,7 @@ def get_notes_data(request):
         "importances": list(range(5, 0, -1)),
         "importance_value": importance_value,
         "selected_importance": (
-            {5: "Highest", 4: "High", 3: "Normal", 2: "Low", 1: "Lowest"}.get(
+            {5: "Highest", 4: "Higher", 3: "Normal", 2: "Lower", 1: "Lowest"}.get(
                 importance_value, ""
             )
             if importance_value

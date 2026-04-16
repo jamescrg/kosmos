@@ -26,11 +26,11 @@
         {% if importance_value == 5 %}
           Highest
         {% elif importance_value == 4 %}
-          High
+          Higher
         {% elif importance_value == 3 %}
           Normal
         {% elif importance_value == 2 %}
-          Low
+          Lower
         {% elif importance_value == 1 %}
           Lowest
         {% else %}
@@ -52,7 +52,7 @@
         <a class="dropdown-item {% if importance_value == 4 %}active{% endif %}"
            href="#"
            hx-get="{% url 'case:witnesses-filter-importance' matter.id 4 %}"
-           hx-target="#witnesses"><i class="icon-chevron-up importance-4"></i> High</a>
+           hx-target="#witnesses"><i class="icon-chevron-up importance-4"></i> Higher</a>
       </li>
       <li>
         <a class="dropdown-item {% if importance_value == 3 %}active{% endif %}"
@@ -64,7 +64,7 @@
         <a class="dropdown-item {% if importance_value == 2 %}active{% endif %}"
            href="#"
            hx-get="{% url 'case:witnesses-filter-importance' matter.id 2 %}"
-           hx-target="#witnesses"><i class="icon-chevron-down importance-2"></i> Low</a>
+           hx-target="#witnesses"><i class="icon-chevron-down importance-2"></i> Lower</a>
       </li>
       <li>
         <a class="dropdown-item {% if not importance_value %}active{% endif %}"

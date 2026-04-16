@@ -48,11 +48,11 @@
           {% if priority_value == 5 %}
             Highest
           {% elif priority_value == 4 %}
-            High
+            Higher
           {% elif priority_value == 3 %}
             Normal
           {% elif priority_value == 2 %}
-            Low
+            Lower
           {% elif priority_value == 1 %}
             Lowest
           {% else %}
@@ -80,7 +80,7 @@
              href="#"
              hx-post="{% url 'tasks:filter-priority' 4 %}"
              hx-target="#tasks"
-             hx-swap="#outerHTML"><i class="icon-chevron-up priority-4"></i> High</a>
+             hx-swap="#outerHTML"><i class="icon-chevron-up priority-4"></i> Higher</a>
         </li>
         <li>
           <a class="dropdown-item {% if priority_value == 3 %}active{% endif %}"
@@ -94,7 +94,7 @@
              href="#"
              hx-post="{% url 'tasks:filter-priority' 2 %}"
              hx-target="#tasks"
-             hx-swap="#outerHTML"><i class="icon-chevron-down priority-2"></i> Low</a>
+             hx-swap="#outerHTML"><i class="icon-chevron-down priority-2"></i> Lower</a>
         </li>
         <li>
           <a class="dropdown-item {% if not priority_value %}active{% endif %}"

@@ -33,9 +33,9 @@ class TaskForm(forms.ModelForm):
 
         PRIORITIES = (
             (5, "Highest"),
-            (4, "High"),
+            (4, "Higher"),
             (3, "Normal"),
-            (2, "Low"),
+            (2, "Lower"),
             (1, "Lowest"),
         )
 
@@ -96,7 +96,7 @@ class BulkTasksForm(forms.Form):
     PRIORITY_CHOICES = [
         ("", "— No change —"),
         ("5", "Highest"),
-        ("4", "High"),
+        ("4", "Higher"),
         ("3", "Normal"),
         ("2", "Low"),
         ("1", "Lowest"),

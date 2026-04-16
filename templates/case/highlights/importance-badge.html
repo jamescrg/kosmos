@@ -31,7 +31,7 @@
          href="#"
          hx-post="{% url 'case:highlight-importance' highlight.id 4 %}"
          hx-target="#highlight-importance-{{ highlight.id }}"
-         hx-swap="outerHTML"><i class="icon-chevron-up importance-4"></i> High</a>
+         hx-swap="outerHTML"><i class="icon-chevron-up importance-4"></i> Higher</a>
     </li>
     <li>
       <a class="dropdown-item {% if highlight.importance == 3 %}active{% endif %}"
@@ -45,7 +45,7 @@
          href="#"
          hx-post="{% url 'case:highlight-importance' highlight.id 2 %}"
          hx-target="#highlight-importance-{{ highlight.id }}"
-         hx-swap="outerHTML"><i class="icon-chevron-down importance-2"></i> Low</a>
+         hx-swap="outerHTML"><i class="icon-chevron-down importance-2"></i> Lower</a>
     </li>
     <li>
       <a class="dropdown-item {% if highlight.importance == 1 %}active{% endif %}"
