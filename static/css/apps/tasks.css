@@ -35,14 +35,17 @@ i.importance-5 {
   color: var(--violet-400);
 }
 
+tr.importance-3 > td.importance .button-link,
 i.importance-3 {
   color: var(--slate-400);
 }
 
+tr.importance-2 > td.importance .button-link,
 i.importance-2 {
   color: var(--slate-500);
 }
 
+tr.importance-1 > td.importance .button-link,
 i.importance-1 {
   color: var(--slate-600);
 }
