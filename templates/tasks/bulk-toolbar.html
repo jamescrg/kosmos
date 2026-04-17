@@ -7,12 +7,12 @@
     <i class="icon-flag with-text"></i> Priority
   </button>
   <ul class="dropdown-menu" x-ref="menu" x-show="open" @click="close()">
-    {% for p in priorities %}
+    {% for p in importances %}
       <li>
         <a class="dropdown-item"
            href="#"
-           hx-post="{% url 'tasks:bulk-set-priority' %}"
-           hx-vals='{"priority": "{{ p }}"}'
+           hx-post="{% url 'tasks:bulk-set-importance' %}"
+           hx-vals='{"importance": "{{ p }}"}'
            hx-swap="none"><i class="icon-flag"></i> {{ p }}</a>
       </li>
     {% endfor %}
