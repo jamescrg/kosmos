@@ -4,7 +4,8 @@
           x-ref="button"
           @click="toggle()"
           :aria-expanded="open">
-    <i class="icon-flag with-text"></i> Importance
+    <span><i class="icon-flag with-text"></i> Importance</span>
+    <small><i class="icon-chevron-down"></i></small>
   </button>
   <ul class="dropdown-menu" x-ref="menu" x-show="open" @click="close()">
     <li>
