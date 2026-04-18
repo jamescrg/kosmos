@@ -175,9 +175,8 @@ tr > td.importance.complete .button-link {
 }
 
 .tasks-toolbar .filter-tools .filter-dropdown-button {
-  max-width: 9rem;
+  max-width: 10rem;
   min-width: 4.5rem;
-  width: 9rem;
   padding-left: 0.5rem;
   padding-right: 0.5rem;
 }
