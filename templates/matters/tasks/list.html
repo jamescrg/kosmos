@@ -41,7 +41,7 @@
         <div class="dropdown" x-data="dropdown()">
           <button type="button"
                   id="tasks-importance-filter"
-                  class="select-btn filter-dropdown-button priority-dropdown {% if importance_value %}toggle-active{% endif %}"
+                  class="select-btn filter-dropdown-button importance-dropdown {% if importance_value %}toggle-active{% endif %}"
                   x-ref="button"
                   @click="toggle()"
                   :aria-expanded="open">
@@ -65,17 +65,17 @@
           x-show="open"
           hx-target="#tasks-importance-filter"
           hx-swap="outerHTML">
-        {% for priority in importances %}
+        {% for level in importances %}
           <li>
-          <a class="dropdown-item {% if priority == importance_value %}active{% endif %}"
+          <a class="dropdown-item {% if level == importance_value %}active{% endif %}"
              href="#"
-             hx-post="{% url 'matters:tasks-filter-importance' matter.id priority %}"
+             hx-post="{% url 'matters:tasks-filter-importance' matter.id level %}"
              hx-target="#matterTasks"
              hx-swap="#outerHTML"><i class="icon-flag"></i>
-          {% if priority == 1 %}
+          {% if level == 1 %}
             1 only
           {% else %}
-            {{ priority }} and above
+            {{ level }} and above
           {% endif %}
         </a>
       </li>
@@ -202,7 +202,7 @@
             {% include "selection/checkbox.html" with toggle_url=toggle_url obj_id=task.id selected_ids=selected_tasks %}
           </td>
           <td class="importance dropdown-cell {% if task.status == 'Complete' %}complete{% endif %}"
-              data-label="Priority">{% include "matters/tasks/priority.html" %}</td>
+              data-label="Importance">{% include "matters/tasks/importance.html" %}</td>
           <td class="matter {% if task.status == 'Complete' %}complete{% endif %}"
               data-label="Matter">{% include "matters/tasks/matter.html" %}</td>
           <td class="description {% if task.status == 'Complete' %}complete{% endif %}"

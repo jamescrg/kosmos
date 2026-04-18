@@ -40,7 +40,7 @@
         <div class="dropdown" x-data="dropdown()">
           <button type="button"
                   id="tasks-importance-filter"
-                  class="select-btn filter-dropdown-button priority-dropdown {% if importance_value %}toggle-active{% endif %}"
+                  class="select-btn filter-dropdown-button importance-dropdown {% if importance_value %}toggle-active{% endif %}"
                   x-ref="button"
                   @click="toggle()"
                   :aria-expanded="open">
@@ -291,7 +291,7 @@
             {% include "selection/checkbox.html" with toggle_url=toggle_url obj_id=task.id selected_ids=selected_tasks %}
           </td>
           <td class="importance dropdown-cell {% if task.status == 'Complete' %}complete{% endif %}"
-              data-label="Priority">{% include "tasks/priority.html" %}</td>
+              data-label="Importance">{% include "tasks/importance.html" %}</td>
           <td class="matter {% if task.status == 'Complete' %}complete{% endif %}"
               data-label="Matter">{% include "tasks/matter.html" %}</td>
           <td class="description {% if task.status == 'Complete' %}complete{% endif %}"
