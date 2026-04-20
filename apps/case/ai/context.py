@@ -356,7 +356,7 @@ MATTER_CONTEXT_TEMPLATE = """
 
 ## Court Proceedings
 {proceedings}
-{chat_attachments}
+
 ## Critical Evidence & Information
 Items marked [CRITICAL] are the most important to the case.
 
@@ -423,13 +423,12 @@ def assemble_matter_context(matter, user=None, conversation=None) -> str:
     Args:
         matter: The Matter object to assemble context for
         user: The requesting user (for request info section)
-        conversation: Optional Conversation object to include chat attachments
+        conversation: Optional Conversation object (excluded from reference conversations)
 
     Structure:
     1. Matter overview, contacts, proceedings (always included)
-    2. Chat attachments (if provided)
-    3. Items organized by importance tier (CRITICAL, HIGH, MEDIUM, REFERENCE)
-    4. Administrative info (tasks, events, settlement)
+    2. Items organized by importance tier (CRITICAL, HIGH, MEDIUM, REFERENCE)
+    3. Administrative info (tasks, events, settlement)
     """
     sections = {}
 
@@ -441,12 +440,6 @@ def assemble_matter_context(matter, user=None, conversation=None) -> str:
 
     # Proceedings
     sections["proceedings"] = format_proceedings(matter)
-
-    # Chat attachments (if conversation provided)
-    if conversation:
-        sections["chat_attachments"] = format_chat_attachments(conversation)
-    else:
-        sections["chat_attachments"] = ""
 
     # Collect all importance-rated items and format by tier
     all_items = collect_context_items(matter, current_conversation=conversation)
@@ -520,7 +513,7 @@ def assemble_matter_context_with_selection(
         user_message: The user's question (used by the selector)
         llm: The LLM key (for token budget)
         user: The requesting user
-        conversation: Optional Conversation for chat attachments
+        conversation: Optional Conversation (excluded from reference conversations)
     """
     from .selector import (
         MODEL_CONTEXT_LIMITS,
@@ -534,11 +527,6 @@ def assemble_matter_context_with_selection(
     sections["matter_overview"] = format_matter_overview(matter)
     sections["contacts"] = format_contacts(matter)
     sections["proceedings"] = format_proceedings(matter)
-
-    if conversation:
-        sections["chat_attachments"] = format_chat_attachments(conversation)
-    else:
-        sections["chat_attachments"] = ""
 
     sections["tasks"] = format_tasks(matter)
     sections["events"] = format_events(matter)
@@ -588,7 +576,6 @@ def assemble_matter_context_with_selection(
         + sections["matter_overview"]
         + sections["contacts"]
         + sections["proceedings"]
-        + sections["chat_attachments"]
         + always_critical
         + always_high
         + always_medium
@@ -809,30 +796,5 @@ def format_settlement(matter) -> str:
         if entry.notes:
             line += f" - {entry.notes}"
         lines.append(line)
-
-    return "\n".join(lines)
-
-
-def format_chat_attachments(conversation) -> str:
-    """Format chat attachment content for AI context."""
-    attachments = conversation.attachments.filter(ocr_status="completed")
-
-    if not attachments:
-        return ""
-
-    lines = [
-        "\n## Chat Attachments",
-        "\nThe following files were uploaded to this conversation:\n",
-    ]
-
-    for attachment in attachments:
-        lines.append(f"\n### {attachment.filename}\n")
-
-        # Include OCR text content (limit per attachment)
-        if attachment.ocr_text:
-            content = attachment.ocr_text[:3000]
-            if len(attachment.ocr_text) > 3000:
-                content += "\n... (content truncated)"
-            lines.append(content)
 
     return "\n".join(lines)

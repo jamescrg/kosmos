@@ -100,32 +100,3 @@ class Message(AuditMixin, models.Model):
 
     def __str__(self):
         return f"{self.role}: {self.content[:50]}..."
-
-
-class ChatAttachment(AuditMixin, models.Model):
-    """File attachment for a chat conversation (temporary context, not saved to documents)."""
-
-    OCR_STATUS_CHOICES = [
-        ("pending", "Pending"),
-        ("processing", "Processing"),
-        ("completed", "Completed"),
-        ("failed", "Failed"),
-    ]
-
-    conversation = models.ForeignKey(
-        Conversation, on_delete=models.CASCADE, related_name="attachments"
-    )
-    file = models.FileField(upload_to="chat_attachments/")
-    filename = models.CharField(max_length=255)
-    ocr_text = models.TextField(blank=True)
-    ocr_status = models.CharField(
-        max_length=20, choices=OCR_STATUS_CHOICES, default="pending"
-    )
-    history = HistoricalRecords()
-
-    class Meta:
-        ordering = ["created_at"]
-        db_table = "matters_chat_attachment"
-
-    def __str__(self):
-        return f"{self.filename} ({self.ocr_status})"

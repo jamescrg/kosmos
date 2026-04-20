@@ -3,14 +3,9 @@ Background tasks for AI chat processing.
 """
 
 import logging
-import os
-import tempfile
 import time
-from io import BytesIO
 
 from django.core.cache import cache
-from django.core.files.storage import default_storage
-from pypdf import PdfReader
 
 from .anthropic_client import send_to_claude
 from .citations import citations_to_dict, verify_all_citations
@@ -230,139 +225,6 @@ def process_ai_request(
                 },
                 timeout=600,
             )
-
-
-# Minimum characters to consider a PDF as having a sufficient text layer
-TEXT_THRESHOLD = 500
-
-
-def extract_existing_text(pdf_content):
-    """
-    Extract text from existing PDF text layer using pypdf.
-
-    Args:
-        pdf_content: bytes of the PDF file
-
-    Returns:
-        tuple: (extracted_text, page_count)
-    """
-    reader = PdfReader(BytesIO(pdf_content))
-    text_parts = []
-
-    for page_num, page in enumerate(reader.pages, start=1):
-        text = page.extract_text() or ""
-        text_parts.append(f"--- Page {page_num} ---\n{text}")
-
-    return "\n\n".join(text_parts), len(reader.pages)
-
-
-def run_ocrmypdf_simple(input_content):
-    """
-    Run ocrmypdf on PDF content to create a searchable PDF.
-
-    Args:
-        input_content: bytes of the original PDF
-
-    Returns:
-        bytes of the OCR'd PDF with embedded text layer
-    """
-    import ocrmypdf
-
-    with tempfile.NamedTemporaryFile(suffix=".pdf", delete=False) as input_file:
-        input_file.write(input_content)
-        input_path = input_file.name
-
-    with tempfile.NamedTemporaryFile(suffix=".pdf", delete=False) as output_file:
-        output_path = output_file.name
-
-    try:
-        ocrmypdf.ocr(
-            input_path,
-            output_path,
-            language=["eng"],
-            force_ocr=True,
-            deskew=True,
-            optimize=1,
-            output_type="pdf",
-        )
-
-        with open(output_path, "rb") as f:
-            return f.read()
-    finally:
-        os.unlink(input_path)
-        os.unlink(output_path)
-
-
-def process_chat_attachment_ocr(attachment_id):
-    """
-    Background task to process a chat attachment PDF for text extraction/OCR.
-
-    Args:
-        attachment_id: ID of the ChatAttachment to process
-    """
-    from .models import ChatAttachment
-
-    try:
-        attachment = ChatAttachment.objects.get(id=attachment_id)
-    except ChatAttachment.DoesNotExist:
-        logger.error(f"ChatAttachment {attachment_id} not found for OCR processing")
-        return
-
-    # Check if file is a PDF
-    file_extension = attachment.filename.split(".")[-1].lower()
-    if file_extension != "pdf":
-        attachment.ocr_status = "failed"
-        attachment.ocr_text = "(Not a PDF file)"
-        attachment.save(update_fields=["ocr_status", "ocr_text"])
-        return
-
-    # Update status to processing
-    attachment.ocr_status = "processing"
-    attachment.save(update_fields=["ocr_status"])
-
-    try:
-        # Read file from storage
-        with default_storage.open(attachment.file.name, "rb") as f:
-            original_content = f.read()
-
-        # Try to extract text from existing text layer
-        existing_text, page_count = extract_existing_text(original_content)
-
-        if len(existing_text.strip()) > TEXT_THRESHOLD:
-            # PDF already has a good text layer - just store the text
-            logger.info(
-                f"ChatAttachment {attachment_id} has existing text layer "
-                f"({len(existing_text)} chars), skipping OCR"
-            )
-            attachment.ocr_text = existing_text
-            attachment.ocr_status = "completed"
-            attachment.save(update_fields=["ocr_text", "ocr_status"])
-        else:
-            # Need to OCR
-            logger.info(
-                f"ChatAttachment {attachment_id} needs OCR "
-                f"(only {len(existing_text.strip())} chars found)"
-            )
-
-            ocr_pdf_content = run_ocrmypdf_simple(original_content)
-
-            # Extract text from the OCR'd PDF
-            final_text, _ = extract_existing_text(ocr_pdf_content)
-
-            attachment.ocr_text = final_text
-            attachment.ocr_status = "completed"
-            attachment.save(update_fields=["ocr_text", "ocr_status"])
-
-            logger.info(
-                f"OCR completed for ChatAttachment {attachment_id}: "
-                f"{len(final_text)} chars"
-            )
-
-    except Exception as e:
-        logger.exception(f"OCR failed for ChatAttachment {attachment_id}")
-        attachment.ocr_status = "failed"
-        attachment.ocr_text = f"(OCR failed: {str(e)})"
-        attachment.save(update_fields=["ocr_status", "ocr_text"])
 
 
 # ── Conversation Summary ─────────────────────────────────────────────────────

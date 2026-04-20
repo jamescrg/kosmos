@@ -33,8 +33,8 @@ from .context import (
     load_legal_prompt,
 )
 from .filters import ConversationFilter
-from .models import ChatAttachment, Conversation, Message
-from .tasks import process_ai_request, process_chat_attachment_ocr
+from .models import Conversation, Message
+from .tasks import process_ai_request
 
 logger = logging.getLogger(__name__)
 
@@ -277,9 +277,14 @@ def message_list(request, matter_id):
     matter, _ = get_matter_from_url(request, matter_id)
     conversation_id = request.GET.get("conversation_id")
 
-    if conversation_id:
+    try:
+        conv_pk = int(conversation_id) if conversation_id else None
+    except (TypeError, ValueError):
+        conv_pk = None
+
+    if conv_pk:
         conversation = get_object_or_404(
-            Conversation, pk=conversation_id, matter__in=get_accessible_matters()
+            Conversation, pk=conv_pk, matter__in=get_accessible_matters()
         )
     else:
         conversation = Conversation.objects.filter(matter=matter).first()
@@ -940,100 +945,6 @@ def create_prompt(request, matter_id):
     }
 
     return render(request, "case/ai/prompt.html", context)
-
-
-@login_required
-def chat_upload(request, conv_id):
-    """Handle file upload to chat conversation."""
-    conversation = get_object_or_404(
-        Conversation, pk=conv_id, matter__in=get_accessible_matters()
-    )
-
-    if request.method != "POST":
-        return HttpResponse(status=405)
-
-    uploaded_file = request.FILES.get("file")
-    if not uploaded_file:
-        return HttpResponse(status=400)
-
-    # Validate file extension (PDFs only)
-    filename = uploaded_file.name
-    if not filename.lower().endswith(".pdf"):
-        return render(
-            request,
-            "case/ai/attachments.html",
-            {
-                "conversation": conversation,
-                "error": "Only PDF files are allowed",
-            },
-        )
-
-    # Create the attachment
-    attachment = ChatAttachment.objects.create(
-        conversation=conversation,
-        file=uploaded_file,
-        filename=filename,
-        ocr_status="pending",
-    )
-
-    # Start background OCR processing
-    thread = threading.Thread(
-        target=process_chat_attachment_ocr,
-        args=(attachment.id,),
-        daemon=True,
-    )
-    thread.start()
-
-    # Return updated attachments list
-    return render(
-        request,
-        "case/ai/attachments.html",
-        {
-            "conversation": conversation,
-            "attachments": conversation.attachments.all(),
-        },
-    )
-
-
-@login_required
-def chat_attachment_status(request, conv_id):
-    """Return current attachment status for polling."""
-    conversation = get_object_or_404(
-        Conversation, pk=conv_id, matter__in=get_accessible_matters()
-    )
-
-    return render(
-        request,
-        "case/ai/attachments.html",
-        {
-            "conversation": conversation,
-            "attachments": conversation.attachments.all(),
-        },
-    )
-
-
-@login_required
-def delete_attachment(request, attachment_id):
-    """Delete a chat attachment."""
-    attachment = get_object_or_404(
-        ChatAttachment,
-        pk=attachment_id,
-        conversation__matter__in=get_accessible_matters(),
-    )
-
-    conversation = attachment.conversation
-    attachment.file.delete()  # Delete the file from storage
-    attachment.delete()
-
-    # Return updated attachments list
-    return render(
-        request,
-        "case/ai/attachments.html",
-        {
-            "conversation": conversation,
-            "attachments": conversation.attachments.all(),
-        },
-    )
 
 
 def _importance_label(importance):

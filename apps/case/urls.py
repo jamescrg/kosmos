@@ -913,21 +913,6 @@ urlpatterns = [
         ai.rename_form,
         name="ai-rename-form",
     ),
-    path(
-        "case/ai/conversations/<int:conv_id>/upload/",
-        ai.chat_upload,
-        name="ai-chat-upload",
-    ),
-    path(
-        "case/ai/conversations/<int:conv_id>/attachments/",
-        ai.chat_attachment_status,
-        name="ai-attachment-status",
-    ),
-    path(
-        "case/ai/attachments/<int:attachment_id>/delete/",
-        ai.delete_attachment,
-        name="ai-delete-attachment",
-    ),
     # Research operations (object-specific)
     path(
         "case/research/query/<int:query_id>/status/",

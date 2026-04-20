@@ -75,28 +75,13 @@
         {% endif %}
         <div id="messageContainer"
              class="ai-messages"
-             hx-get="{% url 'case:ai-messages' matter.id %}?conversation_id={{ conversation.id }}"
+             hx-get="{% url 'case:ai-messages' matter.id %}"
+             hx-vals='js:{conversation_id: document.getElementById("conversationId").value}'
              hx-trigger="messagesUpdated from:body"
              hx-swap="innerHTML">{% include "case/ai/messages.html" %}</div>
       </div>
       <div class="ai-input-container">
-        <div id="attachmentsList">
-          {% if not is_new %}
-            {% include "case/ai/attachments.html" with attachments=conversation.attachments.all %}
-          {% endif %}
-        </div>
         <div class="ai-input-row">
-          <input type="file"
-                 id="fileInput"
-                 accept=".pdf"
-                 class="hidden-file-input"
-                 onchange="uploadFile(this)">
-          <button type="button"
-                  class="btn-icon ai-upload-btn"
-                  onclick="document.getElementById('fileInput').click()"
-                  title="Attach PDF">
-            <i class="icon-paperclip"></i>
-          </button>
           <form id="chatForm"
                 hx-post="{% url 'case:ai-send' matter.id %}"
                 hx-target="#messageContainer"
@@ -245,42 +230,6 @@
       } else {
         icon.className = 'icon-chevron-left';
       }
-    }
-
-    function uploadFile(input) {
-      const file = input.files[0];
-      if (!file) return;
-
-      // Check if conversation exists
-      const convId = document.getElementById('conversationId').value;
-      if (!convId) {
-        alert('Please send a message first to start the conversation before uploading files.');
-        input.value = '';
-        return;
-      }
-
-      const formData = new FormData();
-      formData.append('file', file);
-
-      fetch('/case/ai/conversations/' + convId + '/upload/', {
-        method: 'POST',
-        headers: {
-          'X-CSRFToken': '{{ csrf_token }}'
-        },
-        body: formData
-      })
-      .then(response => response.text())
-      .then(html => {
-        document.getElementById('attachmentsList').innerHTML = html;
-        htmx.process(document.getElementById('attachmentsList'));
-      })
-      .catch(error => {
-        console.error('Upload failed:', error);
-        alert('Failed to upload file. Please try again.');
-      });
-
-      // Clear the input so the same file can be selected again
-      input.value = '';
     }
 
     // Tooltip positioning for sidebar items
