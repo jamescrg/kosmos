@@ -138,6 +138,7 @@ def process_ai_request(
                 model=model,
                 on_thought=on_thought,
                 is_cancelled=is_cancelled,
+                conversation_id=conversation_id,
             )
         else:
             # Claude - show elapsed time updates
