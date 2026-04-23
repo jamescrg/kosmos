@@ -1446,8 +1446,8 @@
 }
 
 .citation-vetting a,
-.citation-vetting span,
-.citation-vetting > i {
+.citation-vetting.citation-vetted-pending,
+.citation-vetting.citation-vetted-failed {
   align-items: center;
   border: 1px solid var(--border-medium);
   border-radius: var(--radius-sm);
