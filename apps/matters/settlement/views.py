@@ -15,7 +15,7 @@ from apps.matters.settlement.models import SettlementEntry
 def settlement_index(request, id):
     matter = get_object_or_404(Matter, pk=id)
 
-    entries = SettlementEntry.objects.filter(matter=matter.id).order_by("date")
+    entries = SettlementEntry.objects.filter(matter=matter.id).order_by("date", "id")
 
     context = {
         "app": "matters",
@@ -32,7 +32,7 @@ def settlement_index(request, id):
 def settlement_list(request, id):
     matter = get_object_or_404(Matter, pk=id)
 
-    entries = SettlementEntry.objects.filter(matter=matter.id).order_by("date")
+    entries = SettlementEntry.objects.filter(matter=matter.id).order_by("date", "id")
 
     context = {
         "app": "matters",
