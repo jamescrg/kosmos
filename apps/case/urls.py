@@ -199,6 +199,41 @@ urlpatterns = [
         highlights.highlights_filter_default,
         name="highlights-filter-default",
     ),
+    path(
+        "case/<int:matter_id>/highlights/clear-selection/",
+        highlights.clear_highlight_selection,
+        name="highlights-clear-selection",
+    ),
+    path(
+        "case/<int:matter_id>/highlights/select-all/",
+        highlights.select_all_highlights,
+        name="highlights-select-all",
+    ),
+    path(
+        "case/<int:matter_id>/highlights/toggle-select/<int:highlight_id>/",
+        highlights.toggle_highlight_select,
+        name="highlights-toggle-select",
+    ),
+    path(
+        "case/<int:matter_id>/highlights/bulk-delete/",
+        highlights.bulk_highlights_delete,
+        name="highlights-bulk-delete",
+    ),
+    path(
+        "case/<int:matter_id>/highlights/bulk-importance/",
+        highlights.bulk_highlights_importance,
+        name="highlights-bulk-importance",
+    ),
+    path(
+        "case/<int:matter_id>/highlights/bulk-labels/",
+        highlights.bulk_highlights_labels_modal,
+        name="highlights-bulk-labels",
+    ),
+    path(
+        "case/<int:matter_id>/highlights/bulk-label-action/",
+        highlights.bulk_highlights_label_action,
+        name="highlights-bulk-label-action",
+    ),
     # Facts (matter-scoped)
     path("case/<int:matter_id>/facts/", facts.facts_index, name="facts-index"),
     path("case/<int:matter_id>/facts/list/", facts.facts_list, name="facts-list"),

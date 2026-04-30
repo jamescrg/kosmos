@@ -1,5 +1,9 @@
 <tr id="highlight-{{ highlight.id }}"
     class="importance-{{ highlight.importance }}">
+  <td class="col-select">
+    {% url 'case:highlights-toggle-select' matter.id highlight.id as toggle_url %}
+    {% include "selection/checkbox.html" with toggle_url=toggle_url obj_id=highlight.id selected_ids=selected_highlights %}
+  </td>
   <td class="created">
     <span>{{ highlight.created_at|date:'Y-m-d' }}</span>
   </td>

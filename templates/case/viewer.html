@@ -426,6 +426,47 @@
       document.getElementById('highlights-count').textContent = count;
     }
 
+    function importanceIconHTML(importance) {
+      const i = parseInt(importance);
+      if (i === 7) return '<i class="icon-chevrons-up importance-7"></i>';
+      if (i === 6) return '<i class="icon-chevron-up importance-6"></i>';
+      if (i === 5) return '<i class="icon-chevron-up importance-5"></i>';
+      if (i === 4) return '<i class="icon-equal"></i>';
+      if (i === 3) return '<i class="icon-chevron-down importance-3"></i>';
+      if (i === 2) return '<i class="icon-chevron-down importance-2"></i>';
+      return '<i class="icon-chevrons-down importance-1"></i>';
+    }
+
+    function importanceMenuItem(highlightId, level, label, iconClass, modifier) {
+      const url = `/case/highlights/${highlightId}/importance/${level}/?context=viewer`;
+      return `
+        <li>
+          <a class="dropdown-item" href="#" hx-get="${url}" hx-target="#importance-${highlightId}" hx-swap="outerHTML"><i class="${iconClass} ${modifier}"></i> ${label}</a>
+        </li>`;
+    }
+
+    function importanceDropdownHTML(highlightId, importance) {
+      const items = [
+        [7, 'Highest', 'icon-chevrons-up', 'importance-7'],
+        [6, 'Higher',  'icon-chevron-up',  'importance-6'],
+        [5, 'High',    'icon-chevron-up',  'importance-5'],
+        [4, 'Normal',  'icon-equal',       ''],
+        [3, 'Low',     'icon-chevron-down','importance-3'],
+        [2, 'Lower',   'icon-chevron-down','importance-2'],
+        [1, 'Lowest',  'icon-chevrons-down','importance-1'],
+      ].map(args => importanceMenuItem(highlightId, ...args)).join('');
+
+      return `
+        <span id="importance-${highlightId}" class="highlight-importance dropdown" x-data="dropdown()">
+          <a href="#" class="highlight-importance-btn" x-ref="button" @click.prevent="toggle()" :aria-expanded="open" title="Set importance">
+            ${importanceIconHTML(importance)}
+          </a>
+          <ul class="dropdown-menu" x-ref="menu" x-show="open" @click="close()">
+            ${items}
+          </ul>
+        </span>`;
+    }
+
     function addHighlightToSidebar(highlight) {
       const list = document.getElementById('highlights-list');
       const noHighlights = list.querySelector('.no-highlights');
@@ -445,7 +486,7 @@
             <div class="highlight-slug">${escapeHtml(highlight.slug)}</div>
             <div class="highlight-citation">${escapeHtml(highlight.citation || '')}</div>
           </div>
-          <div class="highlight-importance"><i class="icon-flag"></i> ${highlight.importance}</div>
+          ${importanceDropdownHTML(highlight.id, highlight.importance)}
           <a href="#" class="highlight-edit-btn edit-highlight" data-highlight-id="${highlight.id}">
             <i class="icon-pencil"></i>
           </a>
@@ -491,7 +532,7 @@
     // Sidebar click handlers
     document.getElementById('highlights-list').addEventListener('click', function(e) {
       const item = e.target.closest('.highlight-item');
-      if (item && !e.target.closest('.delete-highlight') && !e.target.closest('.edit-highlight') && !e.target.closest('.highlight-labels-area') && !e.target.closest('.dropdown-menu')) {
+      if (item && !e.target.closest('.delete-highlight') && !e.target.closest('.edit-highlight') && !e.target.closest('.highlight-labels-area') && !e.target.closest('.highlight-importance') && !e.target.closest('.dropdown-menu')) {
         const highlightId = parseInt(item.dataset.highlightId);
         const page = parseInt(item.dataset.page);
 
@@ -685,10 +726,14 @@
         citationEl.textContent = data.citation || '';
       }
 
-      // Update importance
+      // Update importance — replace the whole dropdown wrapper so Alpine re-binds
       const impEl = item.querySelector('.highlight-importance');
       if (impEl) {
-        impEl.innerHTML = `<i class="icon-flag"></i> ${data.importance}`;
+        impEl.outerHTML = importanceDropdownHTML(highlightId, data.importance);
+        if (window.htmx) {
+          const fresh = item.querySelector('.highlight-importance');
+          if (fresh) htmx.process(fresh);
+        }
       }
     }
     </script>

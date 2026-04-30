@@ -8,9 +8,7 @@
       <div class="highlight-slug">{{ highlight.slug }}</div>
       <div class="highlight-citation">{{ highlight.citation }}</div>
     </div>
-    <div class="highlight-importance">
-      <i class="icon-flag"></i> {{ highlight.importance }}
-    </div>
+    {% include "case/highlights/_viewer_importance.html" %}
     <a href="#"
        class="highlight-edit-btn edit-highlight"
        data-highlight-id="{{ highlight.id }}">

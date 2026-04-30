@@ -285,10 +285,13 @@ def add_label_to(request, object_type, object_id):
         "matter": matter,
     }
 
-    # Add selected_caselaws for caselaw row template
+    # Add selection state for row templates that include a checkbox
     if object_type == "caselaw" and matter:
         selected_session_key = get_session_key("selected_caselaws", matter.id)
         context["selected_caselaws"] = request.session.get(selected_session_key, [])
+    elif object_type == "highlight" and matter:
+        selected_session_key = get_session_key("selected_highlights", matter.id)
+        context["selected_highlights"] = request.session.get(selected_session_key, [])
 
     return render(request, row_template, context)
 
@@ -317,10 +320,13 @@ def remove_label_from(request, object_type, object_id):
         "matter": matter,
     }
 
-    # Add selected_caselaws for caselaw row template
+    # Add selection state for row templates that include a checkbox
     if object_type == "caselaw" and matter:
         selected_session_key = get_session_key("selected_caselaws", matter.id)
         context["selected_caselaws"] = request.session.get(selected_session_key, [])
+    elif object_type == "highlight" and matter:
+        selected_session_key = get_session_key("selected_highlights", matter.id)
+        context["selected_highlights"] = request.session.get(selected_session_key, [])
 
     return render(request, row_template, context)
 
@@ -348,9 +354,12 @@ def labels_create_and_apply(request, object_type, object_id):
         "matter": matter,
     }
 
-    # Add selected_caselaws for caselaw row template
+    # Add selection state for row templates that include a checkbox
     if object_type == "caselaw" and matter:
         selected_session_key = get_session_key("selected_caselaws", matter.id)
         context["selected_caselaws"] = request.session.get(selected_session_key, [])
+    elif object_type == "highlight" and matter:
+        selected_session_key = get_session_key("selected_highlights", matter.id)
+        context["selected_highlights"] = request.session.get(selected_session_key, [])
 
     return render(request, row_template, context)

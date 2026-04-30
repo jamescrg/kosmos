@@ -63,6 +63,52 @@ Label assignment modal
 }
 
 /* ------------------------------------------------
+Bulk-labels modal: horizontal labels with +/- toggle
+------------------------------------------------ */
+
+.bulk-labels-section + .bulk-labels-section {
+  margin-top: 1.25rem;
+}
+
+.bulk-labels-section-header {
+  color: var(--color-muted);
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+}
+
+.bulk-labels-empty {
+  color: var(--color-muted);
+  font-style: italic;
+}
+
+.bulk-label-action {
+  align-items: center;
+  cursor: pointer;
+  display: inline-flex;
+  gap: 0.25rem;
+}
+
+.bulk-label-action.state-some {
+  border-style: dashed;
+}
+
+.bulk-label-some-tag {
+  color: var(--color-muted);
+  font-style: italic;
+  margin-left: 0.25rem;
+}
+
+.bulk-label-toggle {
+  margin-left: 0.25rem;
+  margin-right: 0;
+  opacity: 0.7;
+}
+
+.bulk-label-action:hover .bulk-label-toggle {
+  opacity: 1;
+}
+
+/* ------------------------------------------------
 Labels cards layout (Labels tab)
 ------------------------------------------------ */
 

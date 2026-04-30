@@ -1,13 +1,22 @@
 import json
 
 from django.contrib.auth.decorators import login_required
+from django.db.models import Q
 from django.http import HttpResponse, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.views.decorators.http import require_POST
 
-from apps.case.models import Document, Highlight
+from apps.case.models import Document, Highlight, Label
 from apps.case.views import get_matter_from_url, get_session_key, set_last_tab
 from apps.management.pagination import CustomPaginator
+from apps.management.selection import (
+    all_visible_selected,
+    clear_selected_ids,
+    get_selected_ids,
+    select_all_ids,
+    selection_response,
+    toggle_id,
+)
 
 from .filters import HighlightsFilter
 from .forms import HighlightForm
@@ -35,8 +44,6 @@ def get_highlights_data(request, matter, matter_id):
 
     if matter:
         # Include both document and case law highlights
-        from django.db.models import Q
-
         highlights = Highlight.objects.filter(
             Q(document__matter=matter) | Q(caselaw__matter=matter)
         ).select_related("document", "document__matter", "caselaw", "created_by")
@@ -88,6 +95,12 @@ def get_highlights_data(request, matter, matter_id):
     )
     highlights = pagination.get_object_list()
 
+    # Selection state
+    selected_session_key = get_session_key("selected_highlights", matter_id)
+    selected_highlights = get_selected_ids(request, selected_session_key)
+    visible_ids = [h.id for h in highlights]
+    all_selected = all_visible_selected(selected_highlights, visible_ids)
+
     return {
         "highlights": highlights,
         "pagination": pagination,
@@ -101,6 +114,8 @@ def get_highlights_data(request, matter, matter_id):
         "importance_choices": range(7, 0, -1),
         "importances": list(range(7, 0, -1)),
         "importance_value": importance_value,
+        "selected_highlights": selected_highlights,
+        "all_selected": all_selected,
         "selected_importance": (
             {
                 7: "Highest",
@@ -255,8 +270,6 @@ def highlights_filter(request, matter_id):
     # GET - show filter modal
     filter_data = request.session.get(filter_session_key, {})
 
-    from django.db.models import Q
-
     queryset = (
         Highlight.objects.filter(Q(document__matter=matter) | Q(caselaw__matter=matter))
         if matter
@@ -313,7 +326,14 @@ def highlight_importance(request, highlight_id, importance):
     highlight = get_object_or_404(Highlight, id=highlight_id)
     highlight.importance = importance
     highlight.save()
-    # Get matter_id from either document or caselaw
+
+    if request.GET.get("context") == "viewer":
+        return render(
+            request,
+            "case/highlights/_viewer_importance.html",
+            {"highlight": highlight},
+        )
+
     matter_id = (
         highlight.document.matter_id
         if highlight.document
@@ -466,3 +486,175 @@ def highlight_link(request, highlight_id):
 
     # Fallback (shouldn't happen due to constraint)
     return redirect("case:highlights-index")
+
+
+def _highlight_in_matter(matter, highlight_id):
+    """True if the highlight belongs to a document or caselaw under matter."""
+    return Highlight.objects.filter(
+        Q(document__matter=matter) | Q(caselaw__matter=matter), id=highlight_id
+    ).exists()
+
+
+def _selected_highlights_qs(matter, selected_ids):
+    """Return highlights restricted to the given matter and selection."""
+    return Highlight.objects.filter(
+        Q(document__matter=matter) | Q(caselaw__matter=matter), id__in=selected_ids
+    )
+
+
+@login_required
+@require_POST
+def toggle_highlight_select(request, matter_id, highlight_id):
+    matter, _ = get_matter_from_url(request, matter_id)
+    if not _highlight_in_matter(matter, highlight_id):
+        return HttpResponse(status=404)
+
+    key = get_session_key("selected_highlights", matter_id)
+    toggle_id(request, key, highlight_id)
+
+    return selection_response("highlightsChanged")
+
+
+@login_required
+@require_POST
+def select_all_highlights(request, matter_id):
+    """Toggle select-all for highlights on the visible page."""
+    matter, _ = get_matter_from_url(request, matter_id)
+    key = get_session_key("selected_highlights", matter_id)
+
+    visible_ids = [
+        h.id for h in get_highlights_data(request, matter, matter_id)["highlights"]
+    ]
+    select_all_ids(request, key, visible_ids)
+
+    return selection_response("highlightsChanged")
+
+
+@login_required
+@require_POST
+def clear_highlight_selection(request, matter_id):
+    clear_selected_ids(request, get_session_key("selected_highlights", matter_id))
+
+    return selection_response("highlightsChanged")
+
+
+@login_required
+@require_POST
+def bulk_highlights_delete(request, matter_id):
+    matter, _ = get_matter_from_url(request, matter_id)
+    key = get_session_key("selected_highlights", matter_id)
+    selected = get_selected_ids(request, key)
+
+    if not selected:
+        return HttpResponse(status=400, content="No highlights selected.")
+
+    _selected_highlights_qs(matter, selected).delete()
+    clear_selected_ids(request, key)
+
+    return selection_response("highlightsChanged")
+
+
+@login_required
+@require_POST
+def bulk_highlights_importance(request, matter_id):
+    matter, _ = get_matter_from_url(request, matter_id)
+    key = get_session_key("selected_highlights", matter_id)
+    selected = get_selected_ids(request, key)
+
+    if not selected:
+        return HttpResponse(status=400, content="No highlights selected.")
+
+    importance = request.POST.get("importance")
+    if importance:
+        _selected_highlights_qs(matter, selected).update(importance=int(importance))
+
+    clear_selected_ids(request, key)
+    return selection_response("highlightsChanged")
+
+
+def _render_bulk_labels_modal(request, matter, matter_id, extra_headers=None):
+    """Render the bulk-labels modal for the highlights currently selected."""
+    key = get_session_key("selected_highlights", matter_id)
+    selected = get_selected_ids(request, key)
+
+    if not selected:
+        return HttpResponse(status=400, content="No highlights selected.")
+
+    labels = Label.objects.filter(Q(matter=None) | Q(matter=matter)).order_by(
+        "matter", "name"
+    )
+    highlights = _selected_highlights_qs(matter, selected)
+    selected_count = highlights.count()
+
+    applied_labels = []
+    available_labels = []
+    for label in labels:
+        with_label = highlights.filter(labels=label).count()
+        if with_label == 0:
+            state = "none"
+        elif with_label == selected_count:
+            state = "all"
+        else:
+            state = "some"
+        item = {
+            "id": label.id,
+            "name": label.name,
+            "color": label.color,
+            "state": state,
+        }
+        if state == "all":
+            applied_labels.append(item)
+        else:
+            available_labels.append(item)
+
+    response = render(
+        request,
+        "case/highlights/bulk_labels_modal.html",
+        {
+            "matter": matter,
+            "applied_labels": applied_labels,
+            "available_labels": available_labels,
+            "has_labels": labels.exists(),
+            "selected_count": selected_count,
+        },
+    )
+    if extra_headers:
+        for header, value in extra_headers.items():
+            response[header] = value
+    return response
+
+
+@login_required
+def bulk_highlights_labels_modal(request, matter_id):
+    """Open the bulk-labels modal."""
+    matter, _ = get_matter_from_url(request, matter_id)
+    return _render_bulk_labels_modal(request, matter, matter_id)
+
+
+@login_required
+@require_POST
+def bulk_highlights_label_action(request, matter_id):
+    """Add or remove a single label from all selected highlights."""
+    matter, _ = get_matter_from_url(request, matter_id)
+    key = get_session_key("selected_highlights", matter_id)
+    selected = get_selected_ids(request, key)
+
+    if not selected:
+        return HttpResponse(status=400, content="No highlights selected.")
+
+    label = get_object_or_404(Label, id=request.POST.get("label_id"))
+    action = request.POST.get("action")
+    highlights = _selected_highlights_qs(matter, selected)
+
+    if action == "add":
+        for highlight in highlights:
+            highlight.labels.add(label)
+    elif action == "remove":
+        for highlight in highlights:
+            highlight.labels.remove(label)
+    else:
+        return HttpResponse(status=400, content="Invalid action.")
+
+    return _render_bulk_labels_modal(
+        request, matter, matter_id, extra_headers={"HX-Trigger": "highlightsChanged"}
+    )

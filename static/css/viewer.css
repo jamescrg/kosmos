@@ -187,11 +187,19 @@ body {
 }
 
 .highlight-importance {
-  bottom: 0;
+  flex-shrink: 0;
+}
+
+.highlight-importance-btn {
   color: var(--stone-400);
+  display: inline-flex;
   font-size: 1rem;
-  position: absolute;
-  right: 0;
+  padding: 0 0.25rem;
+  text-decoration: none;
+}
+
+.highlight-importance-btn:hover {
+  color: var(--stone-700);
 }
 
 .highlight-edit-btn {

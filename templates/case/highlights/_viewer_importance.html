@@ -1,0 +1,77 @@
+<span id="importance-{{ highlight.id }}"
+      class="highlight-importance dropdown"
+      x-data="dropdown()">
+  <a href="#"
+     class="highlight-importance-btn"
+     x-ref="button"
+     @click.prevent="toggle()"
+     :aria-expanded="open"
+     title="Set importance">
+    {% if highlight.importance == 7 %}
+      <i class="icon-chevrons-up importance-7"></i>
+    {% elif highlight.importance == 6 %}
+      <i class="icon-chevron-up importance-6"></i>
+    {% elif highlight.importance == 5 %}
+      <i class="icon-chevron-up importance-5"></i>
+    {% elif highlight.importance == 4 %}
+      <i class="icon-equal"></i>
+    {% elif highlight.importance == 3 %}
+      <i class="icon-chevron-down importance-3"></i>
+    {% elif highlight.importance == 2 %}
+      <i class="icon-chevron-down importance-2"></i>
+    {% else %}
+      <i class="icon-chevrons-down importance-1"></i>
+    {% endif %}
+  </a>
+  <ul class="dropdown-menu" x-ref="menu" x-show="open" @click="close()">
+    <li>
+      <a class="dropdown-item"
+         href="#"
+         hx-get="{% url 'case:highlight-importance' highlight.id 7 %}?context=viewer"
+         hx-target="#importance-{{ highlight.id }}"
+         hx-swap="outerHTML"><i class="icon-chevrons-up importance-7"></i> Highest</a>
+    </li>
+    <li>
+      <a class="dropdown-item"
+         href="#"
+         hx-get="{% url 'case:highlight-importance' highlight.id 6 %}?context=viewer"
+         hx-target="#importance-{{ highlight.id }}"
+         hx-swap="outerHTML"><i class="icon-chevron-up importance-6"></i> Higher</a>
+    </li>
+    <li>
+      <a class="dropdown-item"
+         href="#"
+         hx-get="{% url 'case:highlight-importance' highlight.id 5 %}?context=viewer"
+         hx-target="#importance-{{ highlight.id }}"
+         hx-swap="outerHTML"><i class="icon-chevron-up importance-5"></i> High</a>
+    </li>
+    <li>
+      <a class="dropdown-item"
+         href="#"
+         hx-get="{% url 'case:highlight-importance' highlight.id 4 %}?context=viewer"
+         hx-target="#importance-{{ highlight.id }}"
+         hx-swap="outerHTML"><i class="icon-equal"></i> Normal</a>
+    </li>
+    <li>
+      <a class="dropdown-item"
+         href="#"
+         hx-get="{% url 'case:highlight-importance' highlight.id 3 %}?context=viewer"
+         hx-target="#importance-{{ highlight.id }}"
+         hx-swap="outerHTML"><i class="icon-chevron-down importance-3"></i> Low</a>
+    </li>
+    <li>
+      <a class="dropdown-item"
+         href="#"
+         hx-get="{% url 'case:highlight-importance' highlight.id 2 %}?context=viewer"
+         hx-target="#importance-{{ highlight.id }}"
+         hx-swap="outerHTML"><i class="icon-chevron-down importance-2"></i> Lower</a>
+    </li>
+    <li>
+      <a class="dropdown-item"
+         href="#"
+         hx-get="{% url 'case:highlight-importance' highlight.id 1 %}?context=viewer"
+         hx-target="#importance-{{ highlight.id }}"
+         hx-swap="outerHTML"><i class="icon-chevrons-down importance-1"></i> Lowest</a>
+    </li>
+  </ul>
+</span>
