@@ -18,6 +18,26 @@ from apps.activity.expenses.views import (
     expenses_toggle_select,
     order_by_expenses,
 )
+from apps.activity.flat_fees.views import (
+    flat_fees_add,
+    flat_fees_bulk_update_comp,
+    flat_fees_bulk_update_matter,
+    flat_fees_clear_selection,
+    flat_fees_delete,
+    flat_fees_edit,
+    flat_fees_export_to_csv,
+    flat_fees_filter,
+    flat_fees_filter_matter,
+    flat_fees_filter_quick,
+    flat_fees_filter_user,
+    flat_fees_index,
+    flat_fees_list,
+    flat_fees_select_all,
+    flat_fees_toggle_entered,
+    flat_fees_toggle_select,
+    matter_amount,
+    order_by_flat_fees,
+)
 from apps.activity.labels.views import (
     add_label,
     add_label_to,
@@ -192,6 +212,82 @@ urlpatterns = [
         "activity/expenses/bulk/update-comp",
         expenses_bulk_update_comp,
         name="expenses-bulk-update-comp",
+    ),
+    # Flat-fee entries
+    path("activity/flat-fees/", flat_fees_index, name="flat-fees-index"),
+    path("activity/flat-fees/list/", flat_fees_list, name="flat-fees-list"),
+    path("activity/flat-fees/add", flat_fees_add, name="flat-fees-add"),
+    path(
+        "activity/flat-fees/add/<int:id>/<str:request_app>",
+        flat_fees_add,
+        name="flat-fees-add",
+    ),
+    path("activity/flat-fees/<int:id>/edit", flat_fees_edit, name="flat-fees-edit"),
+    path(
+        "activity/flat-fees/matter-amount/<int:matter_id>",
+        matter_amount,
+        name="flat-fees-matter-amount",
+    ),
+    path(
+        "activity/flat-fees/export/<str:format>",
+        flat_fees_export_to_csv,
+        name="flat-fees-export",
+    ),
+    path(
+        "activity/flat-fees/<int:id>/delete",
+        flat_fees_delete,
+        name="flat-fees-delete",
+    ),
+    path(
+        "activity/flat-fees/<int:id>/toggle-entered",
+        flat_fees_toggle_entered,
+        name="flat-fees-toggle-entered",
+    ),
+    path("activity/flat-fees/filter", flat_fees_filter, name="flat-fees-filter"),
+    path(
+        "activity/flat-fees/filter/quick/<str:quick_filter>",
+        flat_fees_filter_quick,
+        name="flat-fees-filter-quick",
+    ),
+    path(
+        "activity/flat-fees/filter/matter/<int:matter_id>",
+        flat_fees_filter_matter,
+        name="flat-fees-filter-matter",
+    ),
+    path(
+        "activity/flat-fees/filter/user/<int:user_id>/",
+        flat_fees_filter_user,
+        name="flat-fees-filter-user",
+    ),
+    path(
+        "activity/flat-fees/filter/order_by/<str:order>",
+        order_by_flat_fees,
+        name="flat-fees-order-by",
+    ),
+    path(
+        "activity/flat-fees/<int:entry_id>/toggle-select",
+        flat_fees_toggle_select,
+        name="flat-fees-toggle-select",
+    ),
+    path(
+        "activity/flat-fees/select-all",
+        flat_fees_select_all,
+        name="flat-fees-select-all",
+    ),
+    path(
+        "activity/flat-fees/clear-selection",
+        flat_fees_clear_selection,
+        name="flat-fees-clear-selection",
+    ),
+    path(
+        "activity/flat-fees/bulk/update-matter",
+        flat_fees_bulk_update_matter,
+        name="flat-fees-bulk-update-matter",
+    ),
+    path(
+        "activity/flat-fees/bulk/update-comp",
+        flat_fees_bulk_update_comp,
+        name="flat-fees-bulk-update-comp",
     ),
     # Labels subtab
     path("activity/labels/", labels_index, name="labels-index"),

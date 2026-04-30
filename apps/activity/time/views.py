@@ -287,19 +287,20 @@ def time_add(request, id=None, request_app="activity"):
                 initial={"date": today, "hours": 0.2}, user=request.user
             )
 
-    # get list of matters for activity form
+    # get list of matters for activity form (hourly only)
     matter_list = Matter.objects.filter(
-        status__in=["Pending", "Open", "Complete"]
+        status__in=["Pending", "Open", "Complete"],
+        billing_type="HOURLY",
     ).order_by("name")
 
     # if a single matter is selected,  pull that matter as a quersyset
     if id:
-        selected_matter = Matter.objects.filter(id=id)
+        selected_matter = Matter.objects.filter(id=id, billing_type="HOURLY")
 
         # if the matter is closed, add it to the matter list
         # if it is open, don't add it
         # avoid creating two instances of the same matter
-        if selected_matter.first().status == "Closed":
+        if selected_matter.exists() and selected_matter.first().status == "Closed":
             matter_list |= selected_matter
 
     # set the form fields
@@ -349,9 +350,10 @@ def time_edit(request, id):
             return HttpResponse(status=204, headers={"HX-Trigger": "timeChanged"})
 
     else:
-        # get list of matters for activity form
+        # get list of matters for activity form (hourly only)
         matter_list = Matter.objects.filter(
-            status__in=["Pending", "Open", "Complete"]
+            status__in=["Pending", "Open", "Complete"],
+            billing_type="HOURLY",
         ).order_by("name")
 
         selected_matter = Matter.objects.filter(id=entry.matter.id)

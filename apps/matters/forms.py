@@ -19,6 +19,8 @@ class MatterForm(forms.ModelForm):
             "practice_area",
             "jurisdiction",
             "billable",
+            "billing_type",
+            "flat_fee_amount",
         )
 
         STATUSES = (
@@ -62,6 +64,12 @@ class MatterForm(forms.ModelForm):
             "billable": forms.Select(
                 choices=((True, "Yes"), (False, "No (Administrative)")),
             ),
+            "billing_type": forms.Select(
+                attrs={"onchange": "toggleFlatFeeAmount()"},
+            ),
+            "flat_fee_amount": forms.NumberInput(
+                attrs={"step": "0.01"},
+            ),
         }
 
         labels = {
@@ -69,6 +77,8 @@ class MatterForm(forms.ModelForm):
             "clio_matter_id": "Clio Matter",
             "client_reference_id": "Client Reference",
             "practice_area": "Practice Area",
+            "billing_type": "Billing Type",
+            "flat_fee_amount": "Flat Fee Amount",
         }
 
     def __init__(self, *args, **kwargs):

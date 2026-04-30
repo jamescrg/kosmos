@@ -4,6 +4,7 @@ from django.db.models import DateField, DecimalField, F, OuterRef, Q, Subquery, 
 from django.db.models.functions import Coalesce
 
 from apps.activity.expenses.models import ExpenseEntry
+from apps.activity.flat_fees.models import FlatFeeEntry
 from apps.activity.time.models import TimeEntry
 from apps.invoicing.invoices.models import Invoice
 from apps.management.pagination import CustomPaginator
@@ -29,16 +30,23 @@ def get_unbilled_data(request):
         "entered": False,
         "invoice__isnull": True,
     }
+    flat_fee_filters = {
+        "matter": OuterRef("pk"),
+        "entered": False,
+        "invoice__isnull": True,
+    }
 
     # Apply activity period date cutoff
     if activity_period == "prior_month":
         cutoff = date.today().replace(day=1)
         time_filters["date__lt"] = cutoff
         expense_filters["date__lt"] = cutoff
+        flat_fee_filters["date__lt"] = cutoff
     elif activity_period == "current_month":
         cutoff = date.today().replace(day=1)
         time_filters["date__gte"] = cutoff
         expense_filters["date__gte"] = cutoff
+        flat_fee_filters["date__gte"] = cutoff
 
     # Use subqueries to avoid JOIN multiplication when aggregating multiple related tables
     unbilled_hours_subquery = (
@@ -65,6 +73,14 @@ def get_unbilled_data(request):
         .values("total")
     )
 
+    unbilled_flat_fees_subquery = (
+        FlatFeeEntry.objects.filter(**flat_fee_filters)
+        .exclude(comp=True)
+        .values("matter")
+        .annotate(total=Sum("amount"))
+        .values("total")
+    )
+
     # Subquery for the most recent invoice date per matter
     last_invoice_subquery = (
         Invoice.objects.filter(matter=OuterRef("pk"))
@@ -72,7 +88,7 @@ def get_unbilled_data(request):
         .values("date_issued")[:1]
     )
 
-    # Annotate matters with all unbilled time/fees and expenses
+    # Annotate matters with all unbilled time/fees, expenses, and flat fees
     matters = (
         Matter.objects.filter(billable=True)
         .annotate(
@@ -91,9 +107,18 @@ def get_unbilled_data(request):
                 0,
                 output_field=DecimalField(),
             ),
+            unbilled_flat_fees=Coalesce(
+                Subquery(unbilled_flat_fees_subquery, output_field=DecimalField()),
+                0,
+                output_field=DecimalField(),
+            ),
             last_invoice_date=Subquery(last_invoice_subquery, output_field=DateField()),
         )
-        .filter(Q(unbilled_hours__gt=0) | Q(unbilled_expenses__gt=0))
+        .filter(
+            Q(unbilled_hours__gt=0)
+            | Q(unbilled_expenses__gt=0)
+            | Q(unbilled_flat_fees__gt=0)
+        )
     )
 
     # Apply last invoice date filter
@@ -122,6 +147,7 @@ def get_unbilled_data(request):
     total_hours = 0
     total_fees = 0
     total_expenses = 0
+    total_flat_fees = 0
     total_activity = 0
     total_trust = 0
 
@@ -131,12 +157,15 @@ def get_unbilled_data(request):
             client_trust_balances.get(matter.client.id, 0) if matter.client else 0
         )
 
-        # Calculate total activity (fees + expenses)
-        matter.total_activity = matter.unbilled_fees + matter.unbilled_expenses
+        # Calculate total activity (fees + flat fees + expenses)
+        matter.total_activity = (
+            matter.unbilled_fees + matter.unbilled_flat_fees + matter.unbilled_expenses
+        )
 
         # Add to totals
         total_hours += matter.unbilled_hours
         total_fees += matter.unbilled_fees
+        total_flat_fees += matter.unbilled_flat_fees
         total_expenses += matter.unbilled_expenses
         total_activity += matter.total_activity
         total_trust += matter.trust_balance
@@ -186,6 +215,7 @@ def get_unbilled_data(request):
     unbilled_data["trigger_key"] = "unbilledListChanged"
     unbilled_data["total_hours"] = total_hours
     unbilled_data["total_fees"] = total_fees
+    unbilled_data["total_flat_fees"] = total_flat_fees
     unbilled_data["total_expenses"] = total_expenses
     unbilled_data["total_activity"] = total_activity
     unbilled_data["total_trust"] = total_trust

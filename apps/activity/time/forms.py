@@ -54,10 +54,18 @@ class TimeEntryForm(forms.ModelForm):
         self.renderer = CustomFormRendererCompact()
         self.fields["hours"].widget.attrs["tabindex"] = "3"
         self.fields["rate"].widget.attrs["tabindex"] = "4"
+        queryset = self.fields["matter"].queryset.filter(billing_type="HOURLY")
         if user:
-            self.fields["matter"].queryset = filter_matters_for_user(
-                self.fields["matter"].queryset, user
+            queryset = filter_matters_for_user(queryset, user)
+        self.fields["matter"].queryset = queryset
+
+    def clean_matter(self):
+        matter = self.cleaned_data.get("matter")
+        if matter and matter.billing_type != "HOURLY":
+            raise forms.ValidationError(
+                "Time entries can only be logged on hourly matters."
             )
+        return matter
 
 
 class AbbreviationCodeForm(forms.ModelForm):

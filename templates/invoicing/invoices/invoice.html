@@ -35,39 +35,74 @@
           {% endif %}
         </div>
       </div>
-      <div class="section">
-        <h3>Hourly Fees</h3>
-        <table class="table">
-          <tr>
-            <th class="text-left hl-gray">Date</th>
-            <th class="text-left hl-gray">Description</th>
-            <th class="text-right hl-gray">Qty</th>
-            <th class="money hl-gray">Total</th>
-          </tr>
-          {% for entry in time_entries %}
+      {% if time_entries %}
+        <div class="section">
+          <h3>Hourly Fees</h3>
+          <table class="table">
             <tr>
-              <td class="date{% if entry.comp %} comp{% endif %}">{{ entry.date|date:"Y-m-d" }}</td>
-              <td class="{% if entry.comp %} comp{% endif %}">{{ entry.actions }} {{ entry.user.initials }} {{ entry.rate }}</td>
-              <td class="text-right {% if entry.comp %}comp{% endif %}">{{ entry.hours }}</td>
-              <td class="money {% if entry.comp %}comp{% endif %}">${{ entry.fee|floatformat:2|intcomma }}</td>
+              <th class="text-left hl-gray">Date</th>
+              <th class="text-left hl-gray">Description</th>
+              <th class="text-right hl-gray">Qty</th>
+              <th class="money hl-gray">Total</th>
             </tr>
-          {% endfor %}
-          {% if invoice.show_comp and invoice.value.comp_fees %}
+            {% for entry in time_entries %}
+              <tr>
+                <td class="date{% if entry.comp %} comp{% endif %}">{{ entry.date|date:"Y-m-d" }}</td>
+                <td class="{% if entry.comp %} comp{% endif %}">{{ entry.actions }} {{ entry.user.initials }} {{ entry.rate }}</td>
+                <td class="text-right {% if entry.comp %}comp{% endif %}">{{ entry.hours }}</td>
+                <td class="money {% if entry.comp %}comp{% endif %}">${{ entry.fee|floatformat:2|intcomma }}</td>
+              </tr>
+            {% endfor %}
+            {% if invoice.show_comp and invoice.value.comp_fees %}
+              <tr>
+                <td colspan="3">Hourly Fees</td>
+                <td class="money">${{ invoice.value.gross_fees|floatformat:2|intcomma }}</td>
+              </tr>
+              <tr>
+                <td colspan="3">Less Comp Fees</td>
+                <td class="money">- ${{ invoice.value.comp_fees|floatformat:2|intcomma }}</td>
+              </tr>
+            {% endif %}
             <tr>
-              <td colspan="3">Hourly Fees</td>
-              <td class="money">${{ invoice.value.gross_fees|floatformat:2|intcomma }}</td>
+              <td colspan="3">Total Fees</td>
+              <td class="money">${{ invoice.value.net_fees|floatformat:2|intcomma }}</td>
             </tr>
+          </table>
+        </div>
+      {% endif %}
+      {% if flat_fee_entries %}
+        <div class="section">
+          <h3>Flat Fees</h3>
+          <table class="table">
             <tr>
-              <td colspan="3">Less Comp Fees</td>
-              <td class="money">- ${{ invoice.value.comp_fees|floatformat:2|intcomma }}</td>
+              <th class="text-left hl-gray">Date</th>
+              <th class="text-left hl-gray">Description</th>
+              <th class="money hl-gray">Amount</th>
             </tr>
-          {% endif %}
-          <tr>
-            <td colspan="3">Total Fees</td>
-            <td class="money">${{ invoice.value.net_fees|floatformat:2|intcomma }}</td>
-          </tr>
-        </table>
-      </div>
+            {% for entry in flat_fee_entries %}
+              <tr>
+                <td class="date{% if entry.comp %} comp{% endif %}">{{ entry.date|date:"Y-m-d" }}</td>
+                <td class="{% if entry.comp %} comp{% endif %}">{{ entry.description }}</td>
+                <td class="money{% if entry.comp %} comp{% endif %}">${{ entry.amount|floatformat:2|intcomma }}</td>
+              </tr>
+            {% endfor %}
+            {% if invoice.show_comp and invoice.value.comp_flat_fees %}
+              <tr>
+                <td colspan="2">Flat Fees</td>
+                <td class="money">${{ invoice.value.gross_flat_fees|floatformat:2|intcomma }}</td>
+              </tr>
+              <tr>
+                <td colspan="2">Less Comp Flat Fees</td>
+                <td class="money">- ${{ invoice.value.comp_flat_fees|floatformat:2|intcomma }}</td>
+              </tr>
+            {% endif %}
+            <tr>
+              <td colspan="2">Total Flat Fees</td>
+              <td class="money">${{ invoice.value.net_flat_fees|floatformat:2|intcomma }}</td>
+            </tr>
+          </table>
+        </div>
+      {% endif %}
       {% if expenses %}
         <div class="section">
           <h3>Expenses</h3>
@@ -107,10 +142,18 @@
       <div class="section">
         <h3>Invoice Total</h3>
         <table class="table invoice-totals">
-          <tr>
-            <td>Hourly Fees</td>
-            <td class="money">${{ invoice.value.net_fees|floatformat:2|intcomma }}</td>
-          </tr>
+          {% if invoice.value.net_fees %}
+            <tr>
+              <td>Hourly Fees</td>
+              <td class="money">${{ invoice.value.net_fees|floatformat:2|intcomma }}</td>
+            </tr>
+          {% endif %}
+          {% if invoice.value.net_flat_fees %}
+            <tr>
+              <td>Flat Fees</td>
+              <td class="money">${{ invoice.value.net_flat_fees|floatformat:2|intcomma }}</td>
+            </tr>
+          {% endif %}
           <tr>
             <td>Expenses</td>
             <td class="money">${{ invoice.value.net_expenses|floatformat:2|intcomma }}</td>

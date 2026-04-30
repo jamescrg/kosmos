@@ -1,0 +1,194 @@
+{% block subcontent %}
+  {% load humanize %}
+  <div class="toolbar">
+    <div class="toolbar-left">
+      {% if selected_flat_fees %}
+        <div class="filter-tools">
+          <button type="button"
+                  class="btn-icon toggle-active"
+                  hx-post="{% url 'activity:flat-fees-clear-selection' %}"
+                  hx-swap="none">
+            {{ selected_flat_fees|length }} <i class="icon-x bulk-clear-icon"></i>
+          </button>
+          <div class="dropdown" x-data="dropdown()">
+            <button type="button"
+                    class="btn-icon"
+                    x-ref="button"
+                    @click="toggle()"
+                    :aria-expanded="open">
+              <span><i class="icon-briefcase-business with-text"></i> Matter</span>
+              <small><i class="icon-chevron-down"></i></small>
+            </button>
+            <ul class="dropdown-menu" x-ref="menu" x-show="open" @click="close()">
+              {% for m in matters %}
+                <li>
+                  <a class="dropdown-item"
+                     href="#"
+                     hx-post="{% url 'activity:flat-fees-bulk-update-matter' %}"
+                     hx-vals='{"matter": "{{ m.id }}"}'
+                     hx-swap="none"><i class="icon-briefcase-business"></i> {{ m.name }}</a>
+                </li>
+              {% endfor %}
+            </ul>
+          </div>
+          <div class="dropdown" x-data="dropdown()">
+            <button type="button"
+                    class="btn-icon"
+                    x-ref="button"
+                    @click="toggle()"
+                    :aria-expanded="open">
+              <span><i class="icon-check with-text"></i> Comp</span>
+              <small><i class="icon-chevron-down"></i></small>
+            </button>
+            <ul class="dropdown-menu" x-ref="menu" x-show="open" @click="close()">
+              <li>
+                <a class="dropdown-item"
+                   href="#"
+                   hx-post="{% url 'activity:flat-fees-bulk-update-comp' %}"
+                   hx-vals='{"comp": "true"}'
+                   hx-swap="none"><i class="icon-check"></i> Comp</a>
+              </li>
+              <li>
+                <a class="dropdown-item"
+                   href="#"
+                   hx-post="{% url 'activity:flat-fees-bulk-update-comp' %}"
+                   hx-vals='{"comp": "false"}'
+                   hx-swap="none"><i class="icon-x"></i> Not Comp</a>
+              </li>
+            </ul>
+          </div>
+        </div>
+      {% else %}
+        <div class="filter-tools">
+          <button hx-get="/activity/flat-fees/add" hx-target="#htmx-modal-container">
+            <i class="icon-plus"></i>
+          </button>
+          <button hx-get="{% url 'activity:flat-fees-filter' %}"
+                  hx-target="#htmx-modal-container"
+                  class="{% if custom_filter_active %}toggle-active{% endif %}">
+            <i class="icon-list-filter with-text"></i>Filter
+          </button>
+          <div class="dropdown" x-data="dropdown()">
+            <button type="button"
+                    class="select-btn filter-dropdown-button {% if filter_label in 'unbilled today yesterday this_week this_month' %}toggle-active{% endif %}"
+                    x-ref="button"
+                    @click="toggle()"
+                    :aria-expanded="open">
+            <span><i class="icon-calendar with-text"></i>
+            {% if filter_label == "unbilled" %}
+              Unbilled
+            {% elif filter_label == "today" %}
+              Today
+            {% elif filter_label == "yesterday" %}
+              Yesterday
+            {% elif filter_label == "this_week" %}
+              This Week
+            {% elif filter_label == "this_month" %}
+              This Month
+            {% else %}
+              All Dates
+            {% endif %}
+          </span>
+          <small><i class="icon-chevron-down"></i></small>
+        </button>
+        <ul class="dropdown-menu" x-ref="menu" x-show="open">
+          <li>
+            <a class="dropdown-item"
+               href="#"
+               hx-post="{% url 'activity:flat-fees-filter-quick' 'all' %}">All Dates</a>
+          </li>
+          <li>
+            <a class="dropdown-item"
+               href="#"
+               hx-post="{% url 'activity:flat-fees-filter-quick' 'today' %}">Today</a>
+          </li>
+          <li>
+            <a class="dropdown-item"
+               href="#"
+               hx-post="{% url 'activity:flat-fees-filter-quick' 'yesterday' %}">Yesterday</a>
+          </li>
+          <li>
+            <a class="dropdown-item"
+               href="#"
+               hx-post="{% url 'activity:flat-fees-filter-quick' 'this_week' %}">This Week</a>
+          </li>
+          <li>
+            <a class="dropdown-item"
+               href="#"
+               hx-post="{% url 'activity:flat-fees-filter-quick' 'this_month' %}">This Month</a>
+          </li>
+          <li>
+            <a class="dropdown-item"
+               href="#"
+               hx-post="{% url 'activity:flat-fees-filter-quick' 'unbilled' %}">Unbilled</a>
+          </li>
+        </ul>
+      </div>
+    </div>
+  {% endif %}
+</div>
+<div class="toolbar-right">
+  <a class="btn-icon confirm"
+     href="{% url 'activity:flat-fees-export' 'standard' %}"
+     data-confirm-title="Export Records"
+     data-confirm-message="Are you sure you want to download records?"
+     data-confirm-text="Download"
+     data-confirm-dangerous="false">
+    <i class="icon-cloud-download"></i>
+  </a>
+</div>
+</div>
+<div class="table-container">
+  <table class="table activity flat-fees-list">
+    <tr>
+      {% if user.is_admin or user.perm_financial %}
+        <th class="col-select">
+          {% url 'activity:flat-fees-select-all' as select_all_url %}
+          {% include "selection/select-all-btn.html" with select_all_url=select_all_url all_selected=all_selected %}
+        </th>
+      {% endif %}
+      <th class="date">
+        Date
+        <button class="btn-sort {% if current_order == 'date' %}active{% endif %}"
+                hx-post="{% url 'activity:flat-fees-order-by' 'date' %}">
+          <i class="icon-chevrons-up-down"></i>
+        </button>
+      </th>
+      <th class="user">User</th>
+      <th class="matter">
+        Matter
+        <button class="btn-sort {% if current_order == 'matter' %}active{% endif %}"
+                hx-post="{% url 'activity:flat-fees-order-by' 'matter' %}">
+          <i class="icon-chevrons-up-down"></i>
+        </button>
+      </th>
+      <th class="actions">
+        Description
+        <button class="btn-sort {% if current_order == 'description' %}active{% endif %}"
+                hx-post="{% url 'activity:flat-fees-order-by' 'description' %}">
+          <i class="icon-chevrons-up-down"></i>
+        </button>
+      </th>
+      <th class="amount">Amount</th>
+    </tr>
+    {% for entry in objects %}
+      <tr id="flat-fee-{{ entry.id }}">
+        {% if user.is_admin or user.perm_financial %}
+          {% include "activity/flat-fees/table-row.html" with show_select=True %}
+        {% else %}
+          {% include "activity/flat-fees/table-row.html" %}
+        {% endif %}
+      </tr>
+    {% empty %}
+      <tr>
+        <td colspan="{% if user.is_admin or user.perm_financial %}6{% else %}5{% endif %}"
+            class="empty-message">No flat-fee entries found.</td>
+      </tr>
+    {% endfor %}
+  </table>
+  <div class="flex-start-space">
+    <div>{% include "pagination.html" %}</div>
+    {% include "activity/flat-fees/summary.html" %}
+  </div>
+</div>
+{% endblock subcontent %}

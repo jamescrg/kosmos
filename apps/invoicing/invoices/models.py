@@ -41,6 +41,7 @@ class Invoice(AuditMixin, models.Model):
 
     def save(self, *args, **kwargs):
         from apps.activity.expenses.models import ExpenseEntry
+        from apps.activity.flat_fees.models import FlatFeeEntry
         from apps.activity.time.models import TimeEntry
 
         invoice = super().save(*args, **kwargs)
@@ -60,15 +61,24 @@ class Invoice(AuditMixin, models.Model):
                 entered=False,
             ).update(invoice_id=self.id)
 
+            FlatFeeEntry.objects.filter(
+                matter=self.matter,
+                date__lte=self.date_limit,
+                invoice__isnull=True,
+                entered=False,
+            ).update(invoice_id=self.id)
+
         return invoice
 
     def void(self):
         """Void this invoice: release entries, remove applications, set status."""
         from apps.activity.expenses.models import ExpenseEntry
+        from apps.activity.flat_fees.models import FlatFeeEntry
         from apps.activity.time.models import TimeEntry
 
         TimeEntry.objects.filter(invoice=self).update(invoice=None)
         ExpenseEntry.objects.filter(invoice=self).update(invoice=None)
+        FlatFeeEntry.objects.filter(invoice=self).update(invoice=None)
 
         self.applications.all().delete()
         self.credit_applications.all().delete()
@@ -118,6 +128,7 @@ class Invoice(AuditMixin, models.Model):
         from django.db.models import Case, DecimalField, F, Sum, Value, When
 
         from apps.activity.expenses.models import ExpenseEntry
+        from apps.activity.flat_fees.models import FlatFeeEntry
         from apps.activity.time.models import TimeEntry
 
         # Aggregate fees using database-level calculation
@@ -153,7 +164,22 @@ class Invoice(AuditMixin, models.Model):
         comp_expenses = expense_result["comp_expenses"] or 0
         net_expenses = gross_expenses - comp_expenses
 
-        pre_discount_total = net_fees + net_expenses
+        # Aggregate flat fees using database-level calculation
+        flat_fee_result = FlatFeeEntry.objects.filter(invoice=self.id).aggregate(
+            gross_flat_fees=Sum("amount"),
+            comp_flat_fees=Sum(
+                Case(
+                    When(comp=True, then=F("amount")),
+                    default=Value(0),
+                    output_field=DecimalField(max_digits=10, decimal_places=2),
+                )
+            ),
+        )
+        gross_flat_fees = flat_fee_result["gross_flat_fees"] or 0
+        comp_flat_fees = flat_fee_result["comp_flat_fees"] or 0
+        net_flat_fees = gross_flat_fees - comp_flat_fees
+
+        pre_discount_total = net_fees + net_expenses + net_flat_fees
         final_total = pre_discount_total - self.discount
 
         return {
@@ -163,6 +189,9 @@ class Invoice(AuditMixin, models.Model):
             "gross_expenses": gross_expenses,
             "comp_expenses": comp_expenses,
             "net_expenses": net_expenses,
+            "gross_flat_fees": gross_flat_fees,
+            "comp_flat_fees": comp_flat_fees,
+            "net_flat_fees": net_flat_fees,
             "pre_discount_total": pre_discount_total,
             "final_total": final_total,
         }

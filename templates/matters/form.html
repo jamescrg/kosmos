@@ -40,3 +40,19 @@
     </div>
   </div>
 </div>
+<script>
+  function toggleFlatFeeAmount() {
+    const select = document.getElementById('id_billing_type');
+    const amountField = document.getElementById('id_flat_fee_amount');
+    if (!select || !amountField) return;
+    const group = amountField.closest('.form-group') || amountField.parentElement;
+    if (select.value === 'FLAT_FEE') {
+      group.style.display = '';
+    } else {
+      group.style.display = 'none';
+      amountField.value = '';
+    }
+  }
+  document.addEventListener('DOMContentLoaded', toggleFlatFeeAmount);
+  toggleFlatFeeAmount();
+</script>

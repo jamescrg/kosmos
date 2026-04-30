@@ -13,6 +13,7 @@ from django.db.models import (
 from django.db.models.functions import Coalesce
 
 from apps.activity.expenses.models import ExpenseEntry
+from apps.activity.flat_fees.models import FlatFeeEntry
 from apps.activity.time.models import TimeEntry
 from apps.invoicing.applications.models import CreditApplication, PaymentApplication
 from apps.invoicing.invoices.filters import InvoiceFilter
@@ -57,6 +58,22 @@ def get_annotated_invoice_queryset():
         .values("total")
     )
 
+    # Subquery for net flat fees (gross - comp)
+    flat_fee_subquery = (
+        FlatFeeEntry.objects.filter(invoice=OuterRef("pk"))
+        .values("invoice")
+        .annotate(
+            total=Sum(
+                Case(
+                    When(comp=False, then=F("amount")),
+                    default=Value(0),
+                    output_field=DecimalField(max_digits=10, decimal_places=2),
+                )
+            )
+        )
+        .values("total")
+    )
+
     # Subquery for payment applications
     payment_subquery = (
         PaymentApplication.objects.filter(invoice=OuterRef("pk"))
@@ -81,6 +98,9 @@ def get_annotated_invoice_queryset():
             annotated_net_expenses=Coalesce(
                 Subquery(expense_subquery), Decimal("0"), output_field=DecimalField()
             ),
+            annotated_net_flat_fees=Coalesce(
+                Subquery(flat_fee_subquery), Decimal("0"), output_field=DecimalField()
+            ),
             annotated_payments=Coalesce(
                 Subquery(payment_subquery), Decimal("0"), output_field=DecimalField()
             ),
@@ -89,9 +109,10 @@ def get_annotated_invoice_queryset():
             ),
         )
         .annotate(
-            # Calculate final_total = net_fees + net_expenses - discount
+            # Calculate final_total = net_fees + net_expenses + net_flat_fees - discount
             annotated_final_total=F("annotated_net_fees")
             + F("annotated_net_expenses")
+            + F("annotated_net_flat_fees")
             - F("discount"),
             # Calculate amount_remaining = final_total - payments - credits
             # Legacy PAID invoices without allocations are considered fully paid (0)
@@ -105,6 +126,7 @@ def get_annotated_invoice_queryset():
                 ),
                 default=F("annotated_net_fees")
                 + F("annotated_net_expenses")
+                + F("annotated_net_flat_fees")
                 - F("discount")
                 - F("annotated_payments")
                 - F("annotated_credits"),
@@ -131,10 +153,12 @@ def get_invoice_data(request):
     totals = invoices.aggregate(
         total_fees=Coalesce(Sum("annotated_net_fees"), Decimal("0")),
         total_expenses=Coalesce(Sum("annotated_net_expenses"), Decimal("0")),
+        total_flat_fees=Coalesce(Sum("annotated_net_flat_fees"), Decimal("0")),
     )
     total_fees = totals["total_fees"]
     total_expenses = totals["total_expenses"]
-    total = total_fees + total_expenses
+    total_flat_fees = totals["total_flat_fees"]
+    total = total_fees + total_expenses + total_flat_fees
 
     # Calculate amount due using annotations
     # For legacy PAID invoices without allocations, amount_remaining = 0
@@ -145,6 +169,7 @@ def get_invoice_data(request):
         final_total = (
             invoice.annotated_net_fees
             + invoice.annotated_net_expenses
+            + invoice.annotated_net_flat_fees
             - invoice.discount
         )
         paid = invoice.annotated_payments + invoice.annotated_credits
@@ -182,6 +207,7 @@ def get_invoice_data(request):
         "objects": pagination.get_object_list(),
         "total_fees": total_fees,
         "total_expenses": total_expenses,
+        "total_flat_fees": total_flat_fees,
         "total": total,
         "total_amount_due": total_amount_due,
         "status_options": INVOICE_STATUS,

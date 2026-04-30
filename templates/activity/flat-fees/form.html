@@ -1,0 +1,54 @@
+<div class="modal-dialog modal-md">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h1 class="modal-title">
+        {% if edit %}
+          Edit Flat-Fee Entry
+        {% else %}
+          Add Flat-Fee Entry
+        {% endif %}
+      </h1>
+      <div>
+        <button type="button" @click="$dispatch('close-modal')">
+          <i class="icon-x"></i>
+        </button>
+      </div>
+    </div>
+    <div class="modal-body">
+      <form id="flat-fee-entry-form"
+            hx-post="{{ action }}"
+            hx-target="#htmx-modal-container"
+            class="form-compact col2 flat-fees-form">
+        {% csrf_token %}
+        {{ form }}
+      </form>
+    </div>
+    <div class="modal-footer">
+      {% if edit %}
+        <button type="button"
+                class="btn btn-danger"
+                hx-confirm="Are you sure you want to delete this record?"
+                hx-post="{% url 'activity:flat-fees-delete' id=entry.id %}"
+                hx-target="#htmx-modal-container">Delete</button>
+      {% else %}
+        <button type="button"
+                class="btn btn-secondary"
+                @click="$dispatch('close-modal')">Cancel</button>
+      {% endif %}
+      <button type="submit" form="flat-fee-entry-form" class="btn btn-success">Submit</button>
+    </div>
+  </div>
+</div>
+<script>
+  function updateAmount() {
+    const matterSelect = document.getElementById('id_matter');
+    const amountField = document.getElementById('id_amount');
+    if (!matterSelect || !amountField) return;
+    const matterId = matterSelect.value;
+    if (!matterId) return;
+    fetch('/activity/flat-fees/matter-amount/' + matterId)
+      .then(r => r.ok ? r.text() : '')
+      .then(text => { if (text) amountField.value = text; })
+      .catch(() => {});
+  }
+</script>

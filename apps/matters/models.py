@@ -5,6 +5,11 @@ from simple_history.models import HistoricalRecords
 from apps.contacts.models import Contact
 from utils.models import AuditMixin
 
+BILLING_TYPE_CHOICES = (
+    ("HOURLY", "Hourly"),
+    ("FLAT_FEE", "Flat Fee"),
+)
+
 
 class Matter(AuditMixin, models.Model):
     user = models.ForeignKey(
@@ -32,6 +37,12 @@ class Matter(AuditMixin, models.Model):
     )
     jurisdiction = models.CharField(max_length=100, blank=True)
     billable = models.BooleanField(default=True)
+    billing_type = models.CharField(
+        max_length=20, choices=BILLING_TYPE_CHOICES, default="HOURLY"
+    )
+    flat_fee_amount = models.DecimalField(
+        max_digits=10, decimal_places=2, null=True, blank=True
+    )
     members = models.ManyToManyField(
         "accounts.CustomUser",
         related_name="assigned_matters",
@@ -48,6 +59,7 @@ class Matter(AuditMixin, models.Model):
             models.Index(fields=["status"]),
             models.Index(fields=["client"]),
             models.Index(fields=["billable"]),
+            models.Index(fields=["billing_type"]),
         ]
 
     def save(self, *args, **kwargs):
@@ -153,6 +165,7 @@ class Matter(AuditMixin, models.Model):
         from django.db.models import Case, DecimalField, F, Sum, Value, When
 
         from apps.activity.expenses.models import ExpenseEntry
+        from apps.activity.flat_fees.models import FlatFeeEntry
         from apps.activity.time.models import TimeEntry
         from apps.invoicing.invoices.models import Invoice
         from apps.invoicing.payments.models import Payment
@@ -193,6 +206,22 @@ class Matter(AuditMixin, models.Model):
             comp = result["comp_expenses"] or 0
             return gross, comp
 
+        def aggregate_flat_fees(queryset):
+            """Aggregate flat-fee amounts using database-level calculation."""
+            result = queryset.aggregate(
+                gross_flat_fees=Sum("amount"),
+                comp_flat_fees=Sum(
+                    Case(
+                        When(comp=True, then=F("amount")),
+                        default=Value(0),
+                        output_field=DecimalField(max_digits=10, decimal_places=2),
+                    )
+                ),
+            )
+            gross = result["gross_flat_fees"] or 0
+            comp = result["comp_flat_fees"] or 0
+            return gross, comp
+
         # Total fees and expenses (all entries for this matter)
         gross_fees, comp_fees = aggregate_fees(TimeEntry.objects.filter(matter=self))
         net_fees = gross_fees - comp_fees
@@ -202,6 +231,11 @@ class Matter(AuditMixin, models.Model):
         )
         net_expenses = gross_expenses - comp_expenses
 
+        gross_flat_fees, comp_flat_fees = aggregate_flat_fees(
+            FlatFeeEntry.objects.filter(matter=self)
+        )
+        net_flat_fees = gross_flat_fees - comp_flat_fees
+
         total = {
             "gross_fees": gross_fees,
             "comp_fees": comp_fees,
@@ -209,7 +243,10 @@ class Matter(AuditMixin, models.Model):
             "gross_expenses": gross_expenses,
             "comp_expenses": comp_expenses,
             "net_expenses": net_expenses,
-            "net_fees_and_expenses": net_fees + net_expenses,
+            "gross_flat_fees": gross_flat_fees,
+            "comp_flat_fees": comp_flat_fees,
+            "net_flat_fees": net_flat_fees,
+            "net_fees_and_expenses": net_fees + net_expenses + net_flat_fees,
         }
 
         # Unbilled fees and expenses (entered=False, no invoice)
@@ -225,6 +262,13 @@ class Matter(AuditMixin, models.Model):
         )
         unbilled_net_expenses = unbilled_gross_expenses - unbilled_comp_expenses
 
+        unbilled_gross_flat_fees, unbilled_comp_flat_fees = aggregate_flat_fees(
+            FlatFeeEntry.objects.filter(
+                matter=self, entered=False, invoice__isnull=True
+            )
+        )
+        unbilled_net_flat_fees = unbilled_gross_flat_fees - unbilled_comp_flat_fees
+
         unbilled = {
             "gross_fees": unbilled_gross_fees,
             "comp_fees": unbilled_comp_fees,
@@ -232,13 +276,18 @@ class Matter(AuditMixin, models.Model):
             "gross_expenses": unbilled_gross_expenses,
             "comp_expenses": unbilled_comp_expenses,
             "net_expenses": unbilled_net_expenses,
-            "net_fees_and_expenses": unbilled_net_fees + unbilled_net_expenses,
+            "gross_flat_fees": unbilled_gross_flat_fees,
+            "comp_flat_fees": unbilled_comp_flat_fees,
+            "net_flat_fees": unbilled_net_flat_fees,
+            "net_fees_and_expenses": (
+                unbilled_net_fees + unbilled_net_expenses + unbilled_net_flat_fees
+            ),
         }
 
         # Billed = total - unbilled
         billed = {key: total[key] - unbilled[key] for key in total.keys()}
 
-        # Invoice totals - aggregate from time/expense entries on all invoices except DRAFT/APPROVED
+        # Invoice totals - aggregate from time/expense/flat-fee entries on all invoices except DRAFT/APPROVED
         invoice_fees, invoice_comp_fees = aggregate_fees(
             TimeEntry.objects.filter(matter=self, invoice__isnull=False).exclude(
                 invoice__status__in=["DRAFT", "APPROVED", "VOID"]
@@ -246,6 +295,11 @@ class Matter(AuditMixin, models.Model):
         )
         invoice_expenses, invoice_comp_expenses = aggregate_expenses(
             ExpenseEntry.objects.filter(matter=self, invoice__isnull=False).exclude(
+                invoice__status__in=["DRAFT", "APPROVED", "VOID"]
+            )
+        )
+        invoice_flat_fees, invoice_comp_flat_fees = aggregate_flat_fees(
+            FlatFeeEntry.objects.filter(matter=self, invoice__isnull=False).exclude(
                 invoice__status__in=["DRAFT", "APPROVED", "VOID"]
             )
         )
@@ -259,6 +313,7 @@ class Matter(AuditMixin, models.Model):
         billed_invoices = (
             (invoice_fees - invoice_comp_fees)
             + (invoice_expenses - invoice_comp_expenses)
+            + (invoice_flat_fees - invoice_comp_flat_fees)
             - invoice_discount
         )
 

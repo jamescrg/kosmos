@@ -55,6 +55,7 @@ def test_edit_post(client, user, matter):
         "date_start": "2020-08-07",
         "practice_area": matter.practice_area.id,
         "client": matter.client.id,
+        "billing_type": "HOURLY",
     }
     response = client.post(f"/matters/{matter.id}/edit", data)
     assert response.status_code == 204

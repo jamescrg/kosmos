@@ -10,6 +10,7 @@ from django.template.loader import render_to_string
 from weasyprint import HTML, default_url_fetcher
 
 from apps.activity.expenses.models import ExpenseEntry
+from apps.activity.flat_fees.models import FlatFeeEntry
 from apps.activity.time.models import TimeEntry
 from apps.invoicing.invoices.models import Invoice
 from apps.settings.models import Company
@@ -62,12 +63,19 @@ def generate_invoice(
         expenses = ExpenseEntry.objects.filter(
             invoice=invoice,
         ).order_by("date")
+        flat_fee_entries = FlatFeeEntry.objects.filter(
+            invoice=invoice,
+        ).order_by("date")
     else:
         time_entries = TimeEntry.objects.filter(
             invoice=invoice,
             comp=invoice.show_comp,
         ).order_by("date")
         expenses = ExpenseEntry.objects.filter(
+            invoice=invoice,
+            comp=invoice.show_comp,
+        ).order_by("date")
+        flat_fee_entries = FlatFeeEntry.objects.filter(
             invoice=invoice,
             comp=invoice.show_comp,
         ).order_by("date")
@@ -81,6 +89,7 @@ def generate_invoice(
         "invoice": invoice,
         "time_entries": time_entries,
         "expenses": expenses,
+        "flat_fee_entries": flat_fee_entries,
         "confirmed_balance": confirmed_balance,
         "company": Company.objects.first(),
     }

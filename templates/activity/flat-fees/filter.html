@@ -1,0 +1,29 @@
+<div class="modal-dialog modal-md">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h1 class="modal-title">Filter Flat Fees</h1>
+      <div>
+        <button type="button" @click="$dispatch('close-modal')">
+          <i class="icon-x"></i>
+        </button>
+      </div>
+    </div>
+    <div class="modal-body">
+      <form id="flat-fees-filter-form"
+            class="form-responsive form-spacious filter"
+            hx-target="#htmx-modal-container"
+            hx-post="{% url 'activity:flat-fees-filter' %}">
+        {% csrf_token %}
+        {{ filter.form }}
+      </form>
+    </div>
+    <div class="modal-footer">
+      <button type="button"
+              class="btn btn-secondary"
+              hx-post="{% url 'management:clear-filters' session_key='flat_fees_filter' trigger='flatFeesChanged' %}">
+        Restore Defaults
+      </button>
+      <button type="submit" form="flat-fees-filter-form" class="btn btn-success">Apply</button>
+    </div>
+  </div>
+</div>

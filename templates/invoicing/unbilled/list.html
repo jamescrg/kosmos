@@ -100,6 +100,7 @@
       </th>
       <th class="numeric unbilled-hours">Hours</th>
       <th class="numeric unbilled-col">Fees</th>
+      <th class="numeric unbilled-col">Flat Fees</th>
       <th class="numeric unbilled-col">Expenses</th>
       <th class="numeric unbilled-col">
         Activity
@@ -128,6 +129,7 @@
         </td>
         <td class="numeric unbilled-hours">{{ matter.unbilled_hours|floatformat:1 }}</td>
         <td class="numeric unbilled-col">${{ matter.unbilled_fees|floatformat:2|intcomma }}</td>
+        <td class="numeric unbilled-col">${{ matter.unbilled_flat_fees|floatformat:2|intcomma }}</td>
         <td class="numeric unbilled-col">${{ matter.unbilled_expenses|floatformat:2|intcomma }}</td>
         <td class="numeric unbilled-col">${{ matter.total_activity|floatformat:2|intcomma }}</td>
         <td class="numeric unbilled-col">${{ matter.trust_balance|floatformat:2|intcomma }}</td>
@@ -135,7 +137,7 @@
       </tr>
     {% empty %}
       <tr>
-        <td colspan="8" class="empty-message">No unbilled activity found.</td>
+        <td colspan="9" class="empty-message">No unbilled activity found.</td>
       </tr>
     {% endfor %}
     <tr class="total-row">
@@ -148,6 +150,9 @@
       </td>
       <td class="numeric unbilled-col">
         <strong>${{ total_fees|floatformat:2|intcomma }}</strong>
+      </td>
+      <td class="numeric unbilled-col">
+        <strong>${{ total_flat_fees|floatformat:2|intcomma }}</strong>
       </td>
       <td class="numeric unbilled-col">
         <strong>${{ total_expenses|floatformat:2|intcomma }}</strong>

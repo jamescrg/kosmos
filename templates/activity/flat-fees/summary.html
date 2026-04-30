@@ -1,0 +1,23 @@
+{% load humanize %}
+<div class="totals-table">
+  <table>
+    <tr>
+      <td>Total Flat Fees</td>
+      <td class="numeric">${{ summary.total_amount|floatformat:2|intcomma }}</td>
+    </tr>
+    <tr>
+      <td>Comp Flat Fees</td>
+      <td class="numeric">${{ summary.comp_amount|floatformat:2|intcomma }}</td>
+    </tr>
+    {% if summary.admin_amount %}
+      <tr>
+        <td>Admin Flat Fees</td>
+        <td class="numeric">${{ summary.admin_amount|floatformat:2|intcomma }}</td>
+      </tr>
+    {% endif %}
+    <tr class="total">
+      <th>Net Flat Fees</th>
+      <td class="numeric">${{ summary.net_amount|floatformat:2|intcomma }}</td>
+    </tr>
+  </table>
+</div>
