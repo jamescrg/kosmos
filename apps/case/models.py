@@ -206,6 +206,7 @@ class Highlight(AuditMixin, models.Model):
         default=4, validators=[MinValueValidator(1), MaxValueValidator(7)]
     )
     labels = models.ManyToManyField(Label, related_name="highlights", blank=True)
+    witnesses = models.ManyToManyField("Witness", related_name="highlights", blank=True)
     history = HistoricalRecords()
 
     class Meta:

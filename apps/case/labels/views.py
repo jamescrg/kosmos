@@ -2,6 +2,8 @@ from django.contrib.auth.decorators import login_required
 from django.db.models import Q
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404, render
+from django.template.loader import render_to_string
+from django.views.decorators.http import require_POST
 
 from apps.case.models import CaseLaw, Document, Fact, Highlight, Label
 from apps.case.views import get_matter_from_url, get_session_key, set_last_tab
@@ -212,6 +214,22 @@ def _get_object_for_labels(object_type, object_id, view=None):
     return obj, matter, row_template, context_key
 
 
+def _split_labels_by_state(obj, matter):
+    """Return (applied, available) lists of labels for the given object."""
+    labels = Label.objects.filter(Q(matter=None) | Q(matter=matter)).order_by(
+        "matter", "name"
+    )
+    applied_ids = set(obj.labels.values_list("id", flat=True))
+    applied, available = [], []
+    for label in labels:
+        item = {"id": label.id, "name": label.name, "color": label.color}
+        if label.id in applied_ids:
+            applied.append(item)
+        else:
+            available.append(item)
+    return applied, available, labels.exists()
+
+
 @login_required
 def labels_apply_modal(request, object_type, object_id):
     """Open modal to apply labels to an object."""
@@ -220,10 +238,19 @@ def labels_apply_modal(request, object_type, object_id):
         return HttpResponse("Invalid object type", status=400)
 
     view = request.GET.get("view", "")
+    applied, available, has_labels = _split_labels_by_state(obj, matter)
     return render(
         request,
         "case/labels/apply-modal.html",
-        {"object": obj, "object_type": object_type, "matter": matter, "view": view},
+        {
+            "object": obj,
+            "object_type": object_type,
+            "matter": matter,
+            "view": view,
+            "applied_labels": applied,
+            "available_labels": available,
+            "has_labels": has_labels,
+        },
     )
 
 
@@ -363,3 +390,63 @@ def labels_create_and_apply(request, object_type, object_id):
         context["selected_highlights"] = request.session.get(selected_session_key, [])
 
     return render(request, row_template, context)
+
+
+@login_required
+@require_POST
+def labels_apply_modal_action(request, object_type, object_id):
+    """Add or remove a label and re-render the modal + OOB row update."""
+    view = request.POST.get("view", "")
+    obj, matter, row_template, context_key = _get_object_for_labels(
+        object_type, object_id, view
+    )
+    if obj is None:
+        return HttpResponse("Invalid object type", status=400)
+
+    label = get_object_or_404(Label, id=request.POST.get("label_id"))
+    action = request.POST.get("action")
+
+    if action == "add":
+        obj.labels.add(label)
+    elif action == "remove":
+        obj.labels.remove(label)
+    else:
+        return HttpResponse("Invalid action", status=400)
+
+    applied, available, has_labels = _split_labels_by_state(obj, matter)
+    modal_html = render_to_string(
+        "case/labels/apply-modal.html",
+        {
+            "object": obj,
+            "object_type": object_type,
+            "matter": matter,
+            "view": view,
+            "applied_labels": applied,
+            "available_labels": available,
+            "has_labels": has_labels,
+        },
+        request=request,
+    )
+
+    row_context = {
+        context_key: obj,
+        "importance_choices": range(7, 0, -1),
+        "matter": matter,
+        "oob": True,
+    }
+    if object_type == "highlight" and matter:
+        selected_session_key = get_session_key("selected_highlights", matter.id)
+        row_context["selected_highlights"] = request.session.get(
+            selected_session_key, []
+        )
+    if view == "table":
+        # The table row is a <tr> — emitting it bare alongside the modal HTML
+        # confuses HTMX's table-context auto-wrapping and the browser's HTML
+        # parser. Fire highlightsChanged instead so the parent list re-fetches.
+        response = HttpResponse(modal_html)
+        response["HX-Trigger"] = "highlightsChanged"
+        return response
+
+    # Viewer/card row roots (div/article) are valid orphans — OOB swap directly.
+    row_html = render_to_string(row_template, row_context, request=request)
+    return HttpResponse(modal_html + row_html)

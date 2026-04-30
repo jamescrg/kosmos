@@ -28,7 +28,7 @@
     <script defer src="https://unpkg.com/alpinejs@3.14.3/dist/cdn.min.js"></script>
     <script src="{% static_v 'js/alpine-components.js' %}"></script>
   </head>
-  <body>
+  <body hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}'>
     <!-- Main container -->
     <div id="main-container">
       <!-- PDF iframe -->
@@ -48,9 +48,33 @@
             </button>
             <span id="highlights-count">{{ highlights|length }}</span>
           </div>
-          <button id="toggle-condensed" class="btn-icon" title="Toggle condensed view">
-            <i class="icon-chevrons-down-up"></i>
-          </button>
+          <div class="highlights-right">
+            <div class="dropdown" x-data="dropdown()">
+              <button id="sort-highlights"
+                      class="btn-icon"
+                      x-ref="button"
+                      @click="toggle()"
+                      :aria-expanded="open"
+                      title="Sort highlights">
+                <i class="icon-arrow-up-down"></i>
+              </button>
+              <ul id="sort-highlights-menu"
+                  class="dropdown-menu"
+                  x-ref="menu"
+                  x-show="open"
+                  @click="close()">
+                <li>
+                  <a class="dropdown-item" href="#" data-sort="page"><i class="icon-book-open"></i> Document Flow</a>
+                </li>
+                <li>
+                  <a class="dropdown-item" href="#" data-sort="created"><i class="icon-clock"></i> Most Recent</a>
+                </li>
+              </ul>
+            </div>
+            <button id="toggle-condensed" class="btn-icon" title="Toggle condensed view">
+              <i class="icon-chevrons-down-up"></i>
+            </button>
+          </div>
         </div>
         <div id="highlights-list">
           {% for highlight in highlights %}
@@ -223,6 +247,9 @@
     let selectedHighlightId = null;
 
     // Sort highlights
+    const SORT_KEY = 'viewer-highlight-sort';
+    let currentSort = localStorage.getItem(SORT_KEY) || 'page';
+
     function sortHighlights(sortBy) {
       const list = document.getElementById('highlights-list');
       const items = Array.from(list.querySelectorAll('.highlight-item'));
@@ -231,17 +258,39 @@
         if (sortBy === 'page') {
           const pageA = parseInt(a.dataset.page) || 0;
           const pageB = parseInt(b.dataset.page) || 0;
-          return pageA - pageB;
+          if (pageA !== pageB) return pageA - pageB;
+          // Stable secondary order: id ascending (creation order on the page)
+          return parseInt(a.dataset.highlightId) - parseInt(b.dataset.highlightId);
         } else if (sortBy === 'slug') {
           const slugA = a.querySelector('.highlight-slug')?.textContent?.toLowerCase() || '';
           const slugB = b.querySelector('.highlight-slug')?.textContent?.toLowerCase() || '';
           return slugA.localeCompare(slugB);
+        } else if (sortBy === 'created') {
+          // Newest first — higher id is newer
+          return parseInt(b.dataset.highlightId) - parseInt(a.dataset.highlightId);
         }
         return 0;
       });
 
       items.forEach(item => list.appendChild(item));
     }
+
+    function setSortMenuActive(sortBy) {
+      document.querySelectorAll('#sort-highlights-menu .dropdown-item').forEach(el => {
+        el.classList.toggle('active', el.dataset.sort === sortBy);
+      });
+    }
+
+    document.querySelectorAll('#sort-highlights-menu .dropdown-item').forEach(el => {
+      el.addEventListener('click', (e) => {
+        e.preventDefault();
+        currentSort = el.dataset.sort;
+        localStorage.setItem(SORT_KEY, currentSort);
+        sortHighlights(currentSort);
+        setSortMenuActive(currentSort);
+      });
+    });
+    setSortMenuActive(currentSort);
 
     // Condensed view toggle
     document.getElementById('toggle-condensed').addEventListener('click', function() {
@@ -264,8 +313,8 @@
       }
     });
 
-    // Initial sort by page number
-    sortHighlights('page');
+    // Initial sort using persisted preference (default: page / document flow)
+    sortHighlights(currentSort);
 
     // Wait for iframe to be ready
     window.addEventListener('message', function(evt) {
@@ -472,7 +521,8 @@
       const noHighlights = list.querySelector('.no-highlights');
       if (noHighlights) noHighlights.remove();
 
-      const applyModalUrl = `/case/labels/apply/highlight/${highlight.id}/?view=viewer`;
+      const labelsModalUrl = `/case/labels/apply/highlight/${highlight.id}/?view=viewer`;
+      const witnessesModalUrl = `/case/witnesses/apply/highlight/${highlight.id}/?view=viewer`;
 
       const item = document.createElement('div');
       item.id = `highlight-${highlight.id}`;
@@ -492,9 +542,15 @@
           </a>
         </div>
         <div class="highlight-labels-area">
-          <a href="#" class="add-icon add-label-icon" title="Add label" hx-get="${applyModalUrl}" hx-target="#htmx-modal-container">
-            <i class="icon-tag"></i>
-          </a>
+          <div class="dropdown highlight-add-menu" x-data="dropdown()">
+            <button type="button" class="add-link-btn" x-ref="button" @click="toggle()" :aria-expanded="open" title="Add label or witness">
+              <i class="icon-plus"></i>
+            </button>
+            <ul class="dropdown-menu" x-ref="menu" x-show="open" @click="close()">
+              <li><a class="dropdown-item" href="#" hx-get="${labelsModalUrl}" hx-target="#htmx-modal-container"><i class="icon-tag"></i> Add Label</a></li>
+              <li><a class="dropdown-item" href="#" hx-get="${witnessesModalUrl}" hx-target="#htmx-modal-container"><i class="icon-user"></i> Add Witness</a></li>
+            </ul>
+          </div>
         </div>
       `;
       list.appendChild(item);
@@ -504,8 +560,8 @@
         htmx.process(item);
       }
 
-      // Re-sort by page number and update count
-      sortHighlights('page');
+      // Re-sort using current preference and update count
+      sortHighlights(currentSort);
       updateHighlightCount();
     }
 

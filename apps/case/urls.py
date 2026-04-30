@@ -190,6 +190,16 @@ urlpatterns = [
         name="highlights-filter-source-type",
     ),
     path(
+        "case/<int:matter_id>/highlights/filter/witness/",
+        highlights.highlights_filter_witness,
+        name="highlights-filter-witness-clear",
+    ),
+    path(
+        "case/<int:matter_id>/highlights/filter/witness/<int:witness_id>/",
+        highlights.highlights_filter_witness,
+        name="highlights-filter-witness",
+    ),
+    path(
         "case/<int:matter_id>/highlights/filter/sort/<str:order>/",
         highlights.highlights_filter_sort,
         name="highlights-filter-sort",
@@ -233,6 +243,16 @@ urlpatterns = [
         "case/<int:matter_id>/highlights/bulk-label-action/",
         highlights.bulk_highlights_label_action,
         name="highlights-bulk-label-action",
+    ),
+    path(
+        "case/<int:matter_id>/highlights/bulk-witnesses/",
+        highlights.bulk_highlights_witnesses_modal,
+        name="highlights-bulk-witnesses",
+    ),
+    path(
+        "case/<int:matter_id>/highlights/bulk-witness-action/",
+        highlights.bulk_highlights_witness_action,
+        name="highlights-bulk-witness-action",
     ),
     # Facts (matter-scoped)
     path("case/<int:matter_id>/facts/", facts.facts_index, name="facts-index"),
@@ -353,6 +373,31 @@ urlpatterns = [
         "case/<int:matter_id>/witnesses/sort/<str:order>/",
         witnesses.witnesses_sort,
         name="witnesses-sort",
+    ),
+    path(
+        "case/witnesses/apply/<str:object_type>/<int:object_id>/",
+        witnesses.witnesses_apply_modal,
+        name="witnesses-apply-modal",
+    ),
+    path(
+        "case/witnesses/apply-action/<str:object_type>/<int:object_id>/",
+        witnesses.witnesses_apply_modal_action,
+        name="witnesses-apply-modal-action",
+    ),
+    path(
+        "case/witnesses/search/<str:object_type>/<int:object_id>/",
+        witnesses.witnesses_search,
+        name="witnesses-search",
+    ),
+    path(
+        "case/witnesses/add-to/<str:object_type>/<int:object_id>/",
+        witnesses.add_witness_to,
+        name="add-witness-to",
+    ),
+    path(
+        "case/witnesses/remove-from/<str:object_type>/<int:object_id>/",
+        witnesses.remove_witness_from,
+        name="remove-witness-from",
     ),
     # Notes (matter-scoped)
     path("case/<int:matter_id>/notes/", notes.notes_index, name="notes-index"),
@@ -835,6 +880,11 @@ urlpatterns = [
         "case/labels/apply/<str:object_type>/<int:object_id>/",
         labels.labels_apply_modal,
         name="labels-apply-modal",
+    ),
+    path(
+        "case/labels/apply-action/<str:object_type>/<int:object_id>/",
+        labels.labels_apply_modal_action,
+        name="labels-apply-modal-action",
     ),
     path(
         "case/labels/search/<str:object_type>/<int:object_id>/",

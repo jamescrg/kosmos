@@ -1,4 +1,5 @@
 <tr id="highlight-{{ highlight.id }}"
+    {% if oob %}hx-swap-oob="true"{% endif %}
     class="importance-{{ highlight.importance }}">
   <td class="col-select">
     {% url 'case:highlights-toggle-select' matter.id highlight.id as toggle_url %}
@@ -57,12 +58,33 @@
       {% for label in highlight.labels.all %}
         {% include "case/labels/badge.html" with object_type="highlight" object=highlight view="table" %}
       {% endfor %}
-      <a href="#"
-         class="add-icon"
-         hx-get="{% url 'case:labels-apply-modal' 'highlight' highlight.id %}?view=table"
-         hx-target="#htmx-modal-container">
-        <i class="icon-tag"></i>
-      </a>
+      {% for witness in highlight.witnesses.all %}
+        {% include "case/witnesses/badge.html" with object_type="highlight" object=highlight view="table" %}
+      {% endfor %}
+      <div class="dropdown highlight-add-menu" x-data="dropdown()">
+        <button type="button"
+                class="add-link-btn"
+                x-ref="button"
+                @click="toggle()"
+                :aria-expanded="open"
+                title="Add label or witness">
+          <i class="icon-plus"></i>
+        </button>
+        <ul class="dropdown-menu" x-ref="menu" x-show="open" @click="close()">
+          <li>
+            <a class="dropdown-item"
+               href="#"
+               hx-get="{% url 'case:labels-apply-modal' 'highlight' highlight.id %}?view=table"
+               hx-target="#htmx-modal-container"><i class="icon-tag"></i> Add Label</a>
+          </li>
+          <li>
+            <a class="dropdown-item"
+               href="#"
+               hx-get="{% url 'case:witnesses-apply-modal' 'highlight' highlight.id %}?view=table"
+               hx-target="#htmx-modal-container"><i class="icon-user"></i> Add Witness</a>
+          </li>
+        </ul>
+      </div>
     </div>
   </td>
   <td class="date">

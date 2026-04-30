@@ -15,6 +15,12 @@
                 hx-target="#htmx-modal-container">
           <i class="icon-tag with-text"></i> Labels
         </button>
+        <button type="button"
+                class="btn-icon"
+                hx-get="{% url 'case:highlights-bulk-witnesses' matter.id %}"
+                hx-target="#htmx-modal-container">
+          <i class="icon-user with-text"></i> Witnesses
+        </button>
         <div class="dropdown" x-data="dropdown()">
           <button type="button"
                   class="btn-icon"
@@ -207,6 +213,42 @@
              hx-get="{% url 'case:highlights-filter-importance' matter.id 0 %}"
              hx-target="#highlights"><i class="icon-flag"></i> All Levels</a>
         </li>
+      </ul>
+    </div>
+    <div class="dropdown" x-data="dropdown()">
+      <button type="button"
+              id="highlights-witness-filter"
+              class="select-btn filter-dropdown-button {% if selected_witness %}toggle-active{% endif %}"
+              x-ref="button"
+              @click="toggle()"
+              :aria-expanded="open">
+        <span>
+          <i class="icon-user with-text"></i>
+          {% if selected_witness %}
+            {{ selected_witness.name }}
+          {% else %}
+            All Witnesses
+          {% endif %}
+        </span>
+        <small><i class="icon-chevron-down"></i></small>
+      </button>
+      <ul class="dropdown-menu" x-ref="menu" x-show="open">
+        <li>
+          <a class="dropdown-item {% if not selected_witness %}active{% endif %}"
+             href="#"
+             hx-get="{% url 'case:highlights-filter-witness-clear' matter.id %}"
+             hx-swap="none"><i class="icon-users"></i> All Witnesses</a>
+        </li>
+        {% for witness in witnesses %}
+          <li>
+            <a class="dropdown-item {% if selected_witness.id == witness.id %}active{% endif %}"
+               href="#"
+               hx-get="{% url 'case:highlights-filter-witness' matter.id witness.id %}"
+               hx-swap="none"><i class="icon-user"></i> {{ witness.name }}</a>
+          </li>
+        {% empty %}
+          <li class="empty-message">No witnesses for this matter.</li>
+        {% endfor %}
       </ul>
     </div>
     <input type="text"

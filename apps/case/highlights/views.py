@@ -6,7 +6,7 @@ from django.http import HttpResponse, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.views.decorators.http import require_POST
 
-from apps.case.models import Document, Highlight, Label
+from apps.case.models import Document, Highlight, Label, Witness
 from apps.case.views import get_matter_from_url, get_session_key, set_last_tab
 from apps.management.pagination import CustomPaginator
 from apps.management.selection import (
@@ -41,6 +41,10 @@ def get_highlights_data(request, matter, matter_id):
     order_by = get_filter_value("order_by")
     document_id = get_filter_value("document")
     source_type = get_filter_value("source_type")
+    witness_id = get_filter_value("witness")
+
+    witnesses = []
+    selected_witness = None
 
     if matter:
         # Include both document and case law highlights
@@ -48,6 +52,10 @@ def get_highlights_data(request, matter, matter_id):
             Q(document__matter=matter) | Q(caselaw__matter=matter)
         ).select_related("document", "document__matter", "caselaw", "created_by")
         documents = Document.objects.filter(matter=matter).order_by("name")
+        witnesses = Witness.objects.filter(matter=matter).order_by("name")
+
+        if witness_id:
+            selected_witness = witnesses.filter(id=witness_id).first()
 
         # Apply filters using HighlightsFilter
         highlight_filter = HighlightsFilter(
@@ -130,6 +138,8 @@ def get_highlights_data(request, matter, matter_id):
             else ""
         ),
         "source_type": source_type,
+        "witnesses": witnesses,
+        "selected_witness": selected_witness,
     }
 
 
@@ -228,6 +238,20 @@ def highlights_filter_importance(request, matter_id, importance_value):
     request.session[pagination_session_key] = 1  # Reset to page 1
 
     return redirect("case:highlights-list", matter_id=matter_id)
+
+
+@login_required
+def highlights_filter_witness(request, matter_id, witness_id=None):
+    """Filter highlights by witness (inline dropdown)."""
+    filter_session_key = get_session_key("highlights_filter", matter_id)
+    pagination_session_key = get_session_key("highlights_pagination", matter_id)
+    filter_data = request.session.get(filter_session_key, {})
+
+    filter_data["witness"] = witness_id if witness_id else ""
+    request.session[filter_session_key] = filter_data
+    request.session[pagination_session_key] = 1
+
+    return HttpResponse(status=204, headers={"HX-Trigger": "highlightsChanged"})
 
 
 @login_required
@@ -656,5 +680,92 @@ def bulk_highlights_label_action(request, matter_id):
         return HttpResponse(status=400, content="Invalid action.")
 
     return _render_bulk_labels_modal(
+        request, matter, matter_id, extra_headers={"HX-Trigger": "highlightsChanged"}
+    )
+
+
+def _render_bulk_witnesses_modal(request, matter, matter_id, extra_headers=None):
+    """Render the bulk-witnesses modal for the highlights currently selected."""
+    key = get_session_key("selected_highlights", matter_id)
+    selected = get_selected_ids(request, key)
+
+    if not selected:
+        return HttpResponse(status=400, content="No highlights selected.")
+
+    witnesses = (
+        Witness.objects.filter(matter=matter).order_by("name")
+        if matter
+        else Witness.objects.none()
+    )
+    highlights = _selected_highlights_qs(matter, selected)
+    selected_count = highlights.count()
+
+    applied_witnesses = []
+    available_witnesses = []
+    for witness in witnesses:
+        with_witness = highlights.filter(witnesses=witness).count()
+        if with_witness == 0:
+            state = "none"
+        elif with_witness == selected_count:
+            state = "all"
+        else:
+            state = "some"
+        item = {"id": witness.id, "name": witness.name, "state": state}
+        if state == "all":
+            applied_witnesses.append(item)
+        else:
+            available_witnesses.append(item)
+
+    response = render(
+        request,
+        "case/highlights/bulk_witnesses_modal.html",
+        {
+            "matter": matter,
+            "applied_witnesses": applied_witnesses,
+            "available_witnesses": available_witnesses,
+            "has_witnesses": witnesses.exists(),
+            "selected_count": selected_count,
+        },
+    )
+    if extra_headers:
+        for header, value in extra_headers.items():
+            response[header] = value
+    return response
+
+
+@login_required
+def bulk_highlights_witnesses_modal(request, matter_id):
+    """Open the bulk-witnesses modal."""
+    matter, _ = get_matter_from_url(request, matter_id)
+    return _render_bulk_witnesses_modal(request, matter, matter_id)
+
+
+@login_required
+@require_POST
+def bulk_highlights_witness_action(request, matter_id):
+    """Add or remove a single witness from all selected highlights."""
+    matter, _ = get_matter_from_url(request, matter_id)
+    key = get_session_key("selected_highlights", matter_id)
+    selected = get_selected_ids(request, key)
+
+    if not selected:
+        return HttpResponse(status=400, content="No highlights selected.")
+
+    witness = get_object_or_404(
+        Witness, id=request.POST.get("witness_id"), matter=matter
+    )
+    action = request.POST.get("action")
+    highlights = _selected_highlights_qs(matter, selected)
+
+    if action == "add":
+        for highlight in highlights:
+            highlight.witnesses.add(witness)
+    elif action == "remove":
+        for highlight in highlights:
+            highlight.witnesses.remove(witness)
+    else:
+        return HttpResponse(status=400, content="Invalid action.")
+
+    return _render_bulk_witnesses_modal(
         request, matter, matter_id, extra_headers={"HX-Trigger": "highlightsChanged"}
     )

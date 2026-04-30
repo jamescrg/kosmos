@@ -1,0 +1,23 @@
+<span class="label-badge dropdown" x-data="dropdown()">
+  <a href="#"
+     class="app-badge badge-gray witness-badge"
+     x-ref="button"
+     @click.prevent="toggle()"
+     :aria-expanded="open"><i class="icon-user"></i>{{ witness.name }}</a>
+  <ul class="dropdown-menu" x-ref="menu" x-show="open">
+    <li>
+      <a class="dropdown-item"
+         href="#"
+         hx-get="{% url 'case:witnesses-apply-modal' object_type object.id %}{% if view %}?view={{ view }}{% endif %}"
+         hx-target="#htmx-modal-container"><i class="icon-user-plus"></i> Add Witness</a>
+    </li>
+    <li>
+      <a class="dropdown-item urgent"
+         href="#"
+         hx-post="{% url 'case:remove-witness-from' object_type object.id %}"
+         hx-vals='{"witness_id": "{{ witness.id }}"{% if view %}, "view": "{{ view }}"{% endif %}}'
+         hx-target="#{{ object_type }}-{{ object.id }}"
+         hx-swap="outerHTML"><i class="icon-x"></i> Remove</a>
+    </li>
+  </ul>
+</span>

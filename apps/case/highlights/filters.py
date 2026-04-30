@@ -1,7 +1,7 @@
 import django_filters
 from django.db.models import Q
 
-from apps.case.models import Document, Highlight, Label
+from apps.case.models import Document, Highlight, Label, Witness
 
 IMPORTANCE_CHOICES = (
     (7, "Highest"),
@@ -41,6 +41,12 @@ class HighlightsFilter(django_filters.FilterSet):
         empty_label="All Labels",
         label="Label",
     )
+    witness = django_filters.ModelChoiceFilter(
+        method="filter_witness",
+        queryset=Witness.objects.none(),
+        empty_label="All Witnesses",
+        label="Witness",
+    )
     importance = django_filters.ChoiceFilter(
         field_name="importance",
         choices=IMPORTANCE_CHOICES,
@@ -73,6 +79,7 @@ class HighlightsFilter(django_filters.FilterSet):
             "document",
             "keyword",
             "label",
+            "witness",
             "importance",
             "order_by",
         ]
@@ -86,6 +93,9 @@ class HighlightsFilter(django_filters.FilterSet):
             self.filters["label"].queryset = Label.objects.filter(
                 Q(matter=matter) | Q(matter__isnull=True)
             ).order_by("name")
+            self.filters["witness"].queryset = Witness.objects.filter(
+                matter=matter
+            ).order_by("name")
 
     def filter_keyword(self, queryset, name, value):
         """Filter highlights by keyword in slug or text."""
@@ -97,6 +107,12 @@ class HighlightsFilter(django_filters.FilterSet):
         """Filter highlights by label."""
         if value:
             return queryset.filter(labels=value)
+        return queryset
+
+    def filter_witness(self, queryset, name, value):
+        """Filter highlights by witness."""
+        if value:
+            return queryset.filter(witnesses=value)
         return queryset
 
     def filter_source_type(self, queryset, name, value):

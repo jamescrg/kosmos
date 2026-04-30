@@ -1,4 +1,6 @@
-<article class="highlight-card" id="highlight-{{ highlight.id }}">
+<article class="highlight-card"
+         id="highlight-{{ highlight.id }}"
+         {% if oob %}hx-swap-oob="true"{% endif %}>
   <div class="highlight-card-content">
     {% include "case/highlights/importance-badge.html" %}
     <h3 class="highlight-card-slug">

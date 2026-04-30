@@ -22,7 +22,6 @@
                  hx-target="#htmx-modal-container">
                 <i class="icon-tag"></i>{{ label.name }}
                 {% if label.state == 'some' %}<span class="bulk-label-some-tag">partial</span>{% endif %}
-                <i class="icon-plus bulk-label-toggle"></i>
               </a>
             {% empty %}
               <span class="bulk-labels-empty">All labels applied.</span>
@@ -39,7 +38,7 @@
                  hx-post="{% url 'case:highlights-bulk-label-action' matter.id %}"
                  hx-vals='{"label_id": "{{ label.id }}", "action": "remove"}'
                  hx-target="#htmx-modal-container">
-                <i class="icon-tag"></i>{{ label.name }}<i class="icon-minus bulk-label-toggle"></i>
+                <i class="icon-tag"></i>{{ label.name }}
               </a>
             {% empty %}
               <span class="bulk-labels-empty">None applied yet.</span>

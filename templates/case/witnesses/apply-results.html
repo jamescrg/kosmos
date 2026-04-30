@@ -1,0 +1,13 @@
+<div class="labels-flow apply-labels-flow">
+  {% for witness in witnesses %}
+    <a href="#"
+       class="app-badge badge-gray witness-badge"
+       hx-post="{% url 'case:add-witness-to' object_type object.id %}"
+       hx-vals='{"witness_id": "{{ witness.id }}"{% if view %}, "view": "{{ view }}"{% endif %}}'
+       hx-target="#{{ object_type }}-{{ object.id }}"
+       hx-swap="outerHTML"
+       @click="$dispatch('close-modal')"><i class="icon-user"></i>{{ witness.name }}</a>
+  {% empty %}
+    <span class="apply-labels-empty">No matching witnesses found.</span>
+  {% endfor %}
+</div>

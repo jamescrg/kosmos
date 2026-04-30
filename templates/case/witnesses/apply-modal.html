@@ -1,0 +1,54 @@
+<div class="modal-dialog modal-md">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h1 class="modal-title">Link Witnesses</h1>
+      <div>
+        <button type="button" @click="$dispatch('close-modal')">
+          <i class="icon-x"></i>
+        </button>
+      </div>
+    </div>
+    <div class="modal-body">
+      {% if has_witnesses %}
+        <div class="bulk-labels-section">
+          <div class="bulk-labels-section-header">Available</div>
+          <div class="labels-flow bulk-labels-flow">
+            {% for witness in available_witnesses %}
+              <a href="#"
+                 class="app-badge badge-gray bulk-label-action"
+                 title="Link this witness"
+                 hx-post="{% url 'case:witnesses-apply-modal-action' object_type object.id %}"
+                 hx-vals='{"witness_id": "{{ witness.id }}", "action": "add"{% if view %}, "view": "{{ view }}"{% endif %}}'
+                 hx-target="#htmx-modal-container"
+                 hx-swap="innerHTML">
+                <i class="icon-user"></i>{{ witness.name }}
+              </a>
+            {% empty %}
+              <span class="bulk-labels-empty">All witnesses linked.</span>
+            {% endfor %}
+          </div>
+        </div>
+        <div class="bulk-labels-section">
+          <div class="bulk-labels-section-header">Linked</div>
+          <div class="labels-flow bulk-labels-flow">
+            {% for witness in linked_witnesses %}
+              <a href="#"
+                 class="app-badge badge-gray bulk-label-action"
+                 title="Unlink this witness"
+                 hx-post="{% url 'case:witnesses-apply-modal-action' object_type object.id %}"
+                 hx-vals='{"witness_id": "{{ witness.id }}", "action": "remove"{% if view %}, "view": "{{ view }}"{% endif %}}'
+                 hx-target="#htmx-modal-container"
+                 hx-swap="innerHTML">
+                <i class="icon-user"></i>{{ witness.name }}
+              </a>
+            {% empty %}
+              <span class="bulk-labels-empty">None linked yet.</span>
+            {% endfor %}
+          </div>
+        </div>
+      {% else %}
+        <p class="text-muted">No witnesses for this matter. Add witnesses in the Witnesses tab first.</p>
+      {% endif %}
+    </div>
+  </div>
+</div>

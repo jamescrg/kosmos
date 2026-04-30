@@ -1,9 +1,10 @@
 from django.contrib.auth.decorators import login_required
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
+from django.template.loader import render_to_string
 from django.views.decorators.http import require_POST
 
-from apps.case.models import Witness
+from apps.case.models import Highlight, Witness
 from apps.case.views import get_matter_from_url, get_session_key, set_last_tab
 
 from .filters import WitnessesFilter
@@ -241,3 +242,207 @@ def witnesses_filter_importance(request, matter_id, importance_value):
     request.session[filter_session_key] = filter_data
 
     return redirect("case:witnesses-list", matter_id=matter_id)
+
+
+def _get_object_for_witnesses(object_type, object_id, view=None):
+    """Resolve object + matter + row template for the witness apply flow."""
+    if object_type == "highlight":
+        obj = get_object_or_404(Highlight, id=object_id)
+        matter = obj.document.matter if obj.document else obj.caselaw.matter
+        if view == "table":
+            row_template = "case/highlights/highlight-row.html"
+        elif view == "viewer":
+            row_template = "case/highlights/viewer-card.html"
+        else:
+            row_template = "case/highlights/row.html"
+        return obj, matter, row_template, "highlight"
+    return None, None, None, None
+
+
+def _split_witnesses_by_state(obj, matter):
+    """Return (linked, available) lists of witnesses for the given object."""
+    witnesses = (
+        Witness.objects.filter(matter=matter).order_by("name")
+        if matter
+        else Witness.objects.none()
+    )
+    linked_ids = set(obj.witnesses.values_list("id", flat=True))
+    linked, available = [], []
+    for witness in witnesses:
+        item = {"id": witness.id, "name": witness.name}
+        if witness.id in linked_ids:
+            linked.append(item)
+        else:
+            available.append(item)
+    return linked, available, witnesses.exists()
+
+
+@login_required
+def witnesses_apply_modal(request, object_type, object_id):
+    """Open modal to link witnesses to an object."""
+    obj, matter, _, _ = _get_object_for_witnesses(object_type, object_id)
+    if obj is None:
+        return HttpResponse("Invalid object type", status=400)
+
+    view = request.GET.get("view", "")
+    linked, available, has_witnesses = _split_witnesses_by_state(obj, matter)
+    return render(
+        request,
+        "case/witnesses/apply-modal.html",
+        {
+            "object": obj,
+            "object_type": object_type,
+            "matter": matter,
+            "view": view,
+            "linked_witnesses": linked,
+            "available_witnesses": available,
+            "has_witnesses": has_witnesses,
+        },
+    )
+
+
+@login_required
+def witnesses_search(request, object_type, object_id):
+    """Search witnesses for the apply modal."""
+    obj, matter, _, _ = _get_object_for_witnesses(object_type, object_id)
+    if obj is None:
+        return HttpResponse("Invalid object type", status=400)
+
+    query = request.GET.get("q", "").strip()
+    view = request.GET.get("view", "")
+
+    witnesses = (
+        Witness.objects.filter(matter=matter) if matter else Witness.objects.none()
+    )
+
+    if query:
+        witnesses = witnesses.filter(name__icontains=query)
+
+    existing_ids = obj.witnesses.values_list("id", flat=True)
+    witnesses = witnesses.exclude(id__in=existing_ids).order_by("name")
+
+    return render(
+        request,
+        "case/witnesses/apply-results.html",
+        {
+            "witnesses": witnesses,
+            "object": obj,
+            "object_type": object_type,
+            "view": view,
+        },
+    )
+
+
+def _row_context_for_object(object_type, obj, matter, request):
+    """Context for re-rendering a row after a witness change."""
+    context = {
+        object_type: obj,
+        "importance_choices": range(7, 0, -1),
+        "matter": matter,
+    }
+    if object_type == "highlight" and matter:
+        selected_session_key = get_session_key("selected_highlights", matter.id)
+        context["selected_highlights"] = request.session.get(selected_session_key, [])
+    return context
+
+
+@login_required
+@require_POST
+def add_witness_to(request, object_type, object_id):
+    """Add a witness to an object."""
+    view = request.POST.get("view")
+    obj, matter, row_template, context_key = _get_object_for_witnesses(
+        object_type, object_id, view
+    )
+    if obj is None:
+        return HttpResponse("Invalid object type", status=400)
+
+    witness_id = request.POST.get("witness_id")
+    if witness_id:
+        try:
+            witness = Witness.objects.get(id=witness_id, matter=matter)
+            obj.witnesses.add(witness)
+        except Witness.DoesNotExist:
+            pass
+
+    return render(
+        request,
+        row_template,
+        _row_context_for_object(context_key, obj, matter, request),
+    )
+
+
+@login_required
+@require_POST
+def remove_witness_from(request, object_type, object_id):
+    """Remove a witness from an object."""
+    view = request.POST.get("view")
+    obj, matter, row_template, context_key = _get_object_for_witnesses(
+        object_type, object_id, view
+    )
+    if obj is None:
+        return HttpResponse("Invalid object type", status=400)
+
+    witness_id = request.POST.get("witness_id")
+    if witness_id:
+        try:
+            witness = Witness.objects.get(id=witness_id)
+            obj.witnesses.remove(witness)
+        except Witness.DoesNotExist:
+            pass
+
+    return render(
+        request,
+        row_template,
+        _row_context_for_object(context_key, obj, matter, request),
+    )
+
+
+@login_required
+@require_POST
+def witnesses_apply_modal_action(request, object_type, object_id):
+    """Add or remove a witness and re-render the modal + OOB row update."""
+    view = request.POST.get("view", "")
+    obj, matter, row_template, context_key = _get_object_for_witnesses(
+        object_type, object_id, view
+    )
+    if obj is None:
+        return HttpResponse("Invalid object type", status=400)
+
+    witness = get_object_or_404(
+        Witness, id=request.POST.get("witness_id"), matter=matter
+    )
+    action = request.POST.get("action")
+
+    if action == "add":
+        obj.witnesses.add(witness)
+    elif action == "remove":
+        obj.witnesses.remove(witness)
+    else:
+        return HttpResponse("Invalid action", status=400)
+
+    linked, available, has_witnesses = _split_witnesses_by_state(obj, matter)
+    modal_html = render_to_string(
+        "case/witnesses/apply-modal.html",
+        {
+            "object": obj,
+            "object_type": object_type,
+            "matter": matter,
+            "view": view,
+            "linked_witnesses": linked,
+            "available_witnesses": available,
+            "has_witnesses": has_witnesses,
+        },
+        request=request,
+    )
+
+    if view == "table":
+        # See note in labels_apply_modal_action: avoid bare <tr> alongside modal.
+        response = HttpResponse(modal_html)
+        response["HX-Trigger"] = "highlightsChanged"
+        return response
+
+    row_context = _row_context_for_object(context_key, obj, matter, request)
+    row_context["oob"] = True
+    row_html = render_to_string(row_template, row_context, request=request)
+    return HttpResponse(modal_html + row_html)

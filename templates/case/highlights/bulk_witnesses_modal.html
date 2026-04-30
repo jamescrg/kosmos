@@ -1,0 +1,54 @@
+<div class="modal-dialog modal-md">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h1 class="modal-title">Apply Witnesses ({{ selected_count }} highlight{{ selected_count|pluralize }})</h1>
+      <div>
+        <button type="button" @click="$dispatch('close-modal')">
+          <i class="icon-x"></i>
+        </button>
+      </div>
+    </div>
+    <div class="modal-body">
+      {% if has_witnesses %}
+        <div class="bulk-labels-section">
+          <div class="bulk-labels-section-header">Available</div>
+          <div class="labels-flow bulk-labels-flow">
+            {% for witness in available_witnesses %}
+              <a href="#"
+                 class="app-badge badge-gray bulk-label-action state-{{ witness.state }}"
+                 title="{% if witness.state == 'some' %}Linked to some — click to add to the rest{% else %}Add to all selected highlights{% endif %}"
+                 hx-post="{% url 'case:highlights-bulk-witness-action' matter.id %}"
+                 hx-vals='{"witness_id": "{{ witness.id }}", "action": "add"}'
+                 hx-target="#htmx-modal-container">
+                <i class="icon-user"></i>{{ witness.name }}
+                {% if witness.state == 'some' %}<span class="bulk-label-some-tag">partial</span>{% endif %}
+                <i class="icon-plus bulk-label-toggle"></i>
+              </a>
+            {% empty %}
+              <span class="bulk-labels-empty">All witnesses linked.</span>
+            {% endfor %}
+          </div>
+        </div>
+        <div class="bulk-labels-section">
+          <div class="bulk-labels-section-header">Applied</div>
+          <div class="labels-flow bulk-labels-flow">
+            {% for witness in applied_witnesses %}
+              <a href="#"
+                 class="app-badge badge-gray bulk-label-action state-all"
+                 title="Remove from all selected highlights"
+                 hx-post="{% url 'case:highlights-bulk-witness-action' matter.id %}"
+                 hx-vals='{"witness_id": "{{ witness.id }}", "action": "remove"}'
+                 hx-target="#htmx-modal-container">
+                <i class="icon-user"></i>{{ witness.name }}<i class="icon-minus bulk-label-toggle"></i>
+              </a>
+            {% empty %}
+              <span class="bulk-labels-empty">None linked yet.</span>
+            {% endfor %}
+          </div>
+        </div>
+      {% else %}
+        <p class="text-muted">No witnesses for this matter. Add witnesses in the Witnesses tab first.</p>
+      {% endif %}
+    </div>
+  </div>
+</div>
