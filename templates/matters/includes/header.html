@@ -1,7 +1,7 @@
 <div class="detail-header">
   <div class="toolbar">
     <div class="toolbar-left">
-      {% if mode == 'detail' %}
+      {% if mode == 'detail' or mode == 'case' %}
         <a href="{% url 'matters:index' %}" class="back-link"><i class="icon-arrow-left"></i></a>
       {% endif %}
       {% include "matters/includes/switcher.html" %}
