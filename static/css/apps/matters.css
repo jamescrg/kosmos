@@ -92,6 +92,10 @@ Matter List
 Matter Switcher
 ========================================================================== */
 
+.detail-header .toolbar-left:has(> .back-link) {
+  gap: 0.5rem;
+}
+
 .toolbar .matter-switcher > button {
   background: none;
   border: none;

@@ -2,9 +2,6 @@
      class="subnav"
      {% if oob %}hx-swap-oob="true"{% endif %}>
   <ul>
-    <li class="subnav-back">
-      <a href="{% url 'matters:index' %}"><i class="icon-arrow-left"></i> Matters</a>
-    </li>
     <li {% if subapp == 'contacts' %}class="active"{% endif %}>
       <a href="{% url 'matters:contacts' id=matter.id %}"
          hx-get="{% url 'matters:tab-content' id=matter.id tab='contacts' %}"
