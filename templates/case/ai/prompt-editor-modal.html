@@ -141,7 +141,20 @@
   });
 
   // Close modal after form submission completes
-  document.getElementById('promptEditorForm').addEventListener('htmx:afterRequest', function() {
+  document.getElementById('promptEditorForm').addEventListener('htmx:afterRequest', function(event) {
+    // Sync newly-created conversation id back to the parent page so a
+    // follow-up prompt targets the same conversation instead of creating a new one.
+    const xhr = event.detail.xhr;
+    if (xhr) {
+      const newConvId = xhr.getResponseHeader('X-Conversation-Id');
+      if (newConvId) {
+        const convIdInput = document.getElementById('conversationId');
+        if (convIdInput) {
+          convIdInput.value = newConvId;
+        }
+        window.history.replaceState({}, '', '/case/ai/conversations/' + newConvId + '/view/');
+      }
+    }
     window.dispatchEvent(new CustomEvent('close-modal'));
     updatePromptList();
     scrollMessagesToBottom();
