@@ -11,6 +11,7 @@ import logging
 from dataclasses import dataclass
 
 from apps.case.models import CaseLaw, Document
+from apps.invoicing.invoices.models import Invoice
 
 from .gemini_client import send_to_gemini
 from .models import Conversation
@@ -39,13 +40,15 @@ and a manifest of available case materials, select which materials should be \
 included in context to answer the question effectively.
 
 Return ONLY a JSON object with this format:
-{"selected": [{"type": "document", "id": 123}, {"type": "caselaw", "id": 45}, {"type": "conversation", "id": 67}]}
+{"selected": [{"type": "document", "id": 123}, {"type": "caselaw", "id": 45}, {"type": "conversation", "id": 67}, {"type": "invoice", "id": 42}]}
 
 Rules:
 - Select materials that are relevant to the user's question.
 - Stay within the token budget specified below.
 - Prioritize higher-priority items when budget is tight.
 - When in doubt about relevance, include rather than exclude.
+- Invoices are billing/financial records — only include them if the user is \
+asking about billing, fees, payments, balances, or specific invoices.
 - Return ONLY the JSON object, no other text."""
 
 
@@ -205,6 +208,28 @@ def build_manifest(matter, current_conversation=None):
             content_parts.append("\n".join(msg_lines))
         content_map[("conversation", conv.id)] = "\n".join(content_parts)
 
+    # Invoices — every invoice on the matter is offered to the selector, but
+    # only included when the user's question is actually about billing.
+    for invoice in Invoice.objects.filter(matter=matter).order_by("-date_issued"):
+        manifest_items.append(
+            ManifestItem(
+                item_type="invoice",
+                item_id=invoice.id,
+                name=f"Invoice #{invoice.id}",
+                category=invoice.status,
+                date=str(invoice.date_issued) if invoice.date_issued else None,
+                description=(
+                    f"Period through {invoice.date_limit}, "
+                    f"balance ${invoice.amount_remaining:,.2f}"
+                ),
+                word_count=200,  # rough estimate; resolved on demand
+                importance=1,
+            )
+        )
+        # Resolved lazily via _resolve_content to avoid extra aggregation
+        # queries for invoices the selector ends up not picking.
+        content_map[("invoice", invoice.id)] = invoice
+
     return manifest_items, content_map
 
 
@@ -249,16 +274,20 @@ def select_context(
     if not manifest_items:
         return [], []
 
-    # Check if everything fits — skip selector API call
-    total_words = sum(item.word_count for item in manifest_items)
-    if total_words <= SMALL_MATTER_THRESHOLD:
+    # Check if everything fits — skip selector API call. Invoices are never
+    # auto-included even on small matters: they're financial records that
+    # should only enter context when the user's question is about billing.
+    non_invoice_items = [i for i in manifest_items if i.item_type != "invoice"]
+    invoice_items = [i for i in manifest_items if i.item_type == "invoice"]
+    total_words = sum(item.word_count for item in non_invoice_items)
+    if total_words <= SMALL_MATTER_THRESHOLD and not invoice_items:
         logger.info(
             "Small matter (%d words across %d auto items) — including all",
             total_words,
             len(manifest_items),
         )
         all_contents = []
-        for item in manifest_items:
+        for item in non_invoice_items:
             key = (item.item_type, item.item_id)
             if key in content_map:
                 content = _resolve_content(key, content_map)
@@ -326,7 +355,10 @@ def _parse_selector_response(response_text: str) -> list[tuple[str, int]]:
     for item in selected:
         item_type = item.get("type", "")
         item_id = item.get("id")
-        if item_type in ("document", "caselaw", "conversation") and item_id is not None:
+        if (
+            item_type in ("document", "caselaw", "conversation", "invoice")
+            and item_id is not None
+        ):
             keys.append((item_type, int(item_id)))
 
     return keys
@@ -339,6 +371,14 @@ def _resolve_content(key: tuple[str, int], content_map: dict) -> str:
         return ""
     if isinstance(value, str):
         return value
+
+    # Invoice object — format on demand
+    if isinstance(value, Invoice):
+        from apps.case.ai.context import format_invoice
+
+        resolved = format_invoice(value)
+        content_map[key] = resolved
+        return resolved
 
     # CaseLaw object — fetch full text on demand
     caselaw = value
@@ -368,8 +408,13 @@ def _fallback_by_importance(
     content_map: dict,
     token_budget: int,
 ) -> list[tuple[str, int]]:
-    """Fallback: select items by importance until budget is filled."""
-    sorted_items = sorted(manifest_items, key=lambda x: x.importance, reverse=True)
+    """Fallback: select items by importance until budget is filled.
+
+    Invoices are skipped — they're explicit-only and should never sneak in
+    via the importance fallback when the selector model fails.
+    """
+    eligible = [item for item in manifest_items if item.item_type != "invoice"]
+    sorted_items = sorted(eligible, key=lambda x: x.importance, reverse=True)
     selected = []
     used_tokens = 0
 

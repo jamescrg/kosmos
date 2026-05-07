@@ -783,6 +783,51 @@ def format_time_entries(matter) -> str:
     return "\n".join(lines)
 
 
+def format_invoice(invoice) -> str:
+    """Format a single invoice with totals, balance, and metadata."""
+    from apps.activity.expenses.models import ExpenseEntry
+    from apps.activity.flat_fees.models import FlatFeeEntry
+    from apps.activity.time.models import TimeEntry
+
+    value = invoice.value
+    lines = [
+        f"**Invoice #{invoice.id}** — {invoice.status_display}",
+        f"Period covered: through {invoice.date_limit}",
+        f"Date issued: {invoice.date_issued}",
+    ]
+
+    lines.append(
+        f"Fees: ${value['net_fees']:,.2f} (gross ${value['gross_fees']:,.2f}, "
+        f"comp ${value['comp_fees']:,.2f})"
+    )
+    lines.append(
+        f"Expenses: ${value['net_expenses']:,.2f} (gross ${value['gross_expenses']:,.2f}, "
+        f"comp ${value['comp_expenses']:,.2f})"
+    )
+    lines.append(
+        f"Flat fees: ${value['net_flat_fees']:,.2f} (gross ${value['gross_flat_fees']:,.2f}, "
+        f"comp ${value['comp_flat_fees']:,.2f})"
+    )
+    if invoice.discount:
+        lines.append(f"Discount: ${invoice.discount:,.2f}")
+    lines.append(f"Total: ${value['final_total']:,.2f}")
+    lines.append(f"Balance remaining: ${invoice.amount_remaining:,.2f}")
+
+    time_count = TimeEntry.objects.filter(invoice=invoice).count()
+    expense_count = ExpenseEntry.objects.filter(invoice=invoice).count()
+    flat_count = FlatFeeEntry.objects.filter(invoice=invoice).count()
+    lines.append(
+        f"Line items: {time_count} time, {expense_count} expense, {flat_count} flat fee"
+    )
+
+    if invoice.message:
+        lines.append(f"Message: {invoice.message}")
+    if invoice.comment:
+        lines.append(f"Comment: {invoice.comment}")
+
+    return "\n".join(lines)
+
+
 def format_settlement(matter) -> str:
     """Format settlement information."""
     entries = SettlementEntry.objects.filter(matter=matter).order_by("-date")
