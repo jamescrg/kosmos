@@ -2,9 +2,6 @@
      class="subnav"
      {% if oob %}hx-swap-oob="true"{% endif %}>
   <ul>
-    <li class="subnav-back">
-      <a href="{% url 'invoicing:invoices-index' %}"><i class="icon-arrow-left"></i> Invoices</a>
-    </li>
     <li {% if subapp == "details" %}class="active"{% endif %}>
       <a href="{% url 'invoicing:invoice-details-index' invoice.id %}"
          hx-get="{% url 'invoicing:invoice-tab-content' invoice.id 'details' %}"

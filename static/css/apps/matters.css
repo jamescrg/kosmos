@@ -100,6 +100,12 @@ Matter Switcher
   padding-block: 0.25rem;
 }
 
+/* Compensate for the inner padding the matter-switcher button gives its h1
+   so a bare h1 next to the back-link sits at the same visual distance. */
+.detail-header .toolbar-left > .back-link + h1 {
+  margin-left: 0.75rem;
+}
+
 .toolbar .matter-switcher > button {
   background: none;
   border: none;
