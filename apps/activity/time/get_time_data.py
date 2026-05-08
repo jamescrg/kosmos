@@ -70,6 +70,12 @@ def get_time_data(request):
         entries = filter.qs
         user_id = None
 
+    # Admin (non-billable matter) entries are never invoiced, so they would
+    # otherwise inflate the unbilled view. Exclude them from both the table
+    # and the summary when the unbilled quick filter is active.
+    if filter.data.get("filter_label") == "unbilled":
+        entries = entries.exclude(matter__billable=False)
+
     request.session["time_filter"] = filter.data
     request.session.modified = True
 
