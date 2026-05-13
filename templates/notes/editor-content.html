@@ -6,6 +6,10 @@
            data-note-id="{{ note.id }}"
            value="{{ note.title }}">
   </div>
+  <div class="note-meta"
+       hx-get="{% if note.matter %}{% url 'case:note-meta' note.id %}{% else %}{% url 'notes:note-meta' note.id %}{% endif %}"
+       hx-trigger="noteSaved from:body"
+       hx-swap="innerHTML">{% include "notes/meta.html" %}</div>
   <div id="note-editor"></div>
 </div>
 <!-- Floating Reference Picker -->

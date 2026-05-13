@@ -240,6 +240,7 @@ function setupTitleEdit() {
         if (data.saved) {
           originalTitle = data.title;
           input.value = data.title;
+          document.body.dispatchEvent(new Event("noteSaved"));
         } else {
           input.value = originalTitle;
         }

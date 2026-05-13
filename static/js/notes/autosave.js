@@ -40,6 +40,7 @@ export function performAutosave() {
       if (data.saved) {
         state.lastSavedContent = content;
         updateSaveStatus("saved");
+        document.body.dispatchEvent(new Event("noteSaved"));
       }
     })
     .catch(() => updateSaveStatus("unsaved"));

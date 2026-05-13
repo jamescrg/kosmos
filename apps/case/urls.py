@@ -856,6 +856,11 @@ urlpatterns = [
         name="note-title",
     ),
     path(
+        "case/notes/<int:note_id>/meta/",
+        notes.note_meta,
+        name="note-meta",
+    ),
+    path(
         "case/notes/<int:note_id>/reference-search/",
         notes.reference_search,
         name="note-reference-search",

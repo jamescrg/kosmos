@@ -569,7 +569,9 @@ def note_autosave(request, note_id):
 
     content = request.POST.get("content", "")
     note.content = content
-    note.save(update_fields=["content", "updated_at"])
+    # updated_by is set by AuditMixin.save; include it in update_fields so the
+    # change is actually persisted.
+    note.save(update_fields=["content", "updated_at", "updated_by"])
 
     return JsonResponse({"saved": True, "updated_at": note.updated_at.isoformat()})
 
@@ -583,10 +585,17 @@ def note_title(request, note_id):
     title = request.POST.get("title", "").strip()
     if title:
         note.title = title
-        note.save(update_fields=["title", "updated_at"])
+        note.save(update_fields=["title", "updated_at", "updated_by"])
         return JsonResponse({"saved": True, "title": note.title})
 
     return JsonResponse({"saved": False, "error": "Title cannot be empty"}, status=400)
+
+
+@login_required
+def note_meta(request, note_id):
+    """Render the note meta partial (used by HTMX to refresh after autosave)."""
+    note = get_object_or_404(Note, pk=note_id, matter__isnull=True)
+    return render(request, "notes/meta.html", {"note": note})
 
 
 @login_required
