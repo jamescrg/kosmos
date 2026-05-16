@@ -645,7 +645,14 @@ def invoice_ledes_98b(request, pk):
 @login_required
 def invoices_filter(request):
     if request.method == "POST":
-        request.session["invoices_filter"] = request.POST
+        # Merge into existing session so the status quick-filter (and any
+        # other non-form state) is preserved; skip the CSRF token explicitly.
+        filter_data = dict(request.session.get("invoices_filter", {}))
+        for key, val in request.POST.items():
+            if key == "csrfmiddlewaretoken":
+                continue
+            filter_data[key] = val
+        request.session["invoices_filter"] = filter_data
 
         return HttpResponse(status=204, headers={"HX-Trigger": "invoicesChanged"})
     else:
