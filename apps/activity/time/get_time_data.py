@@ -115,12 +115,19 @@ def get_time_data(request):
     visible_ids = [entry.id for entry in pagination.get_object_list()]
     all_selected = all_visible_selected(selected_time, visible_ids)
 
-    # Filter button highlights when modal-specific fields have non-default values
-    custom_filter_active = filter_data and any(
+    # Filter button is the superset signal for the modal-only dimensions.
+    # Date and user have dedicated dropdowns that show their own active state,
+    # so they're intentionally excluded here. entered/invoice get folded in
+    # only when they're NOT already conveyed by the "Unbilled" date preset.
+    custom_filter_active = bool(filter_data) and any(
         [
-            filter_data.get("comp") not in (None, ""),
             filter_data.get("matter") not in (None, ""),
-            filter_data.get("keyword", "") != "",
+            filter_data.get("actions", "") != "",
+            filter_data.get("comp") not in (None, ""),
+            filter_data.get("filter_label") != "unbilled"
+            and filter_data.get("entered") not in (None, ""),
+            filter_data.get("filter_label") != "unbilled"
+            and filter_data.get("invoice") not in (None, ""),
         ]
     )
 

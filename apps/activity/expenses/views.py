@@ -58,6 +58,44 @@ def expenses_list(request):
     return render(request, "activity/expenses/list.html", context)
 
 
+def _detect_filter_label(filter_data, today):
+    """Match filter_data's date / entered / invoice state to a quick-filter preset.
+
+    Lets the date-dropdown stay truthful even when the user sets dates via the
+    Filter modal: if posted dates happen to match a known preset, we store that
+    label; otherwise "custom" so the dropdown shows "Custom range" instead of
+    silently mislabeling the state as "All Dates".
+    """
+    date_min = filter_data.get("date_min", "")
+    date_max = filter_data.get("date_max", "")
+    entered = str(filter_data.get("entered", ""))
+    invoice = str(filter_data.get("invoice", ""))
+
+    if not date_min and not date_max:
+        if entered == "0" and invoice == "0":
+            return "unbilled"
+        return "all"
+
+    if not date_min or not date_max:
+        return "custom"
+
+    monday = today - timedelta(days=today.weekday())
+    month_start = today.replace(day=1)
+    last_month_end = month_start - timedelta(days=1)
+    presets = {
+        "today": (today, today),
+        "yesterday": (today - timedelta(days=1), today - timedelta(days=1)),
+        "this_week": (monday, today),
+        "last_week": (monday - timedelta(days=7), monday - timedelta(days=1)),
+        "this_month": (month_start, today),
+        "last_month": (last_month_end.replace(day=1), last_month_end),
+    }
+    for label, (lo, hi) in presets.items():
+        if date_min == str(lo) and date_max == str(hi):
+            return label
+    return "custom"
+
+
 @login_required
 def expenses_filter(request):
     def get_filter(request):
@@ -70,10 +108,12 @@ def expenses_filter(request):
         return ExpenseFilter(filter_data, queryset=ExpenseEntry.objects.all())
 
     if request.method == "POST":
-        filter_data = {}
+        filter_data = dict(request.session.get("expenses_filter", {}))
         for key, val in request.POST.items():
+            if key == "csrfmiddlewaretoken":
+                continue
             filter_data[key] = val
-        filter_data["filter_label"] = "custom"
+        filter_data["filter_label"] = _detect_filter_label(filter_data, date.today())
         request.session["expenses_filter"] = filter_data
         return HttpResponse(status=204, headers={"HX-Trigger": "expensesChanged"})
 

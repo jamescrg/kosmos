@@ -77,7 +77,7 @@
           </button>
           <div class="dropdown" x-data="dropdown()">
             <button type="button"
-                    class="select-btn filter-dropdown-button {% if filter_label in 'unbilled today yesterday this_week last_week this_month last_month' %}toggle-active{% endif %}"
+                    class="select-btn filter-dropdown-button {% if filter_label in 'unbilled today yesterday this_week last_week this_month last_month custom' %}toggle-active{% endif %}"
                     x-ref="button"
                     @click="toggle()"
                     :aria-expanded="open">
@@ -96,6 +96,8 @@
               This Month
             {% elif filter_label == "last_month" %}
               Last Month
+            {% elif filter_label == "custom" %}
+              Custom range
             {% else %}
               All Dates
             {% endif %}
