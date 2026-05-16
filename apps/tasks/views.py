@@ -245,15 +245,47 @@ def tasks_delete(request, id):
     return HttpResponse(status=204, headers={"HX-Trigger": "tasksListChanged"})
 
 
+def _detect_filter_label(filter_data, today):
+    """Reconcile the date-dropdown label from filter_data's date / has_due_date state.
+
+    Lets the date dropdown stay truthful when a date setting comes from the
+    modal: matches today / week / unscheduled / all presets exactly, otherwise
+    returns "custom" so the dropdown shows "Custom range" instead of silently
+    mislabeling the state as "All Tasks".
+    """
+    has_due_date = str(filter_data.get("has_due_date", ""))
+    date_due_min = filter_data.get("date_due_min", "")
+    date_due_max = filter_data.get("date_due_max", "")
+
+    if has_due_date.lower() == "false" and not date_due_min and not date_due_max:
+        return "unscheduled"
+    if not date_due_min and not date_due_max and has_due_date in ("", "None"):
+        return "all"
+    if date_due_min:
+        return "custom"
+    if not date_due_max:
+        return "custom"
+
+    today_s = str(today)
+    end_of_week_s = str(today + timedelta(days=6 - today.weekday()))
+    if date_due_max == today_s and not has_due_date:
+        return "today"
+    if date_due_max == end_of_week_s and not has_due_date:
+        return "week"
+    return "custom"
+
+
 @login_required
 def tasks_filter(request, user=None):
     if request.method == "POST":
-        # Convert QueryDict to regular dict, excluding CSRF token
-        filter_data = {
-            key: value
-            for key, value in request.POST.items()
-            if key != "csrfmiddlewaretoken"
-        }
+        # Merge into existing session so unmodified quick-filter state is
+        # preserved; skip the CSRF token explicitly.
+        filter_data = dict(request.session.get("tasks_filter", {}))
+        for key, val in request.POST.items():
+            if key == "csrfmiddlewaretoken":
+                continue
+            filter_data[key] = val
+        filter_data["filter_label"] = _detect_filter_label(filter_data, date.today())
         request.session["tasks_filter"] = filter_data
         return HttpResponse(status=204, headers={"HX-Trigger": "tasksListChanged"})
 
@@ -325,31 +357,30 @@ def tasks_filter_quick(request, quick_filter):
     # Calendar week: Monday through Sunday. weekday() is 0 for Monday.
     end_of_week = today + timedelta(days=6 - today.weekday())
 
+    # Quick filters only touch the date dimension. status is intentionally
+    # left alone so a "Complete" filter set via the modal isn't silently
+    # destroyed when the user clicks Today / This Week / etc.
     quick_filters = {
         "all": {
             "filter_label": "all",
-            "status": "Pending",
             "date_due_min": "",
             "date_due_max": "",
             "has_due_date": "",
         },
         "unscheduled": {
             "filter_label": "unscheduled",
-            "status": "Pending",
             "has_due_date": "false",
             "date_due_min": "",
             "date_due_max": "",
         },
         "today": {
             "filter_label": "today",
-            "status": "Pending",
             "date_due_max": today.strftime("%Y-%m-%d"),
             "date_due_min": "",
             "has_due_date": "",
         },
         "week": {
             "filter_label": "week",
-            "status": "Pending",
             "date_due_min": "",
             "date_due_max": end_of_week.strftime("%Y-%m-%d"),
             "has_due_date": "",

@@ -178,12 +178,14 @@ def get_list_data(request):
         if importance_value
         else "",
         "filter_label": filter_data.get("filter_label", None) if filter_data else None,
-        "custom_filter_active": filter_data
+        # Filter button is the superset signal for the modal-only dimensions.
+        # Date, user, and importance have their own toolbar dropdowns (date
+        # covers date_due via "Custom range" too) so they're excluded here.
+        "custom_filter_active": bool(filter_data)
         and any(
             [
                 filter_data.get("status") == "Complete",
                 filter_data.get("matter") not in (None, ""),
-                filter_data.get("date_due_min") not in (None, ""),
                 filter_data.get("date_completed_min") not in (None, ""),
                 filter_data.get("date_completed_max") not in (None, ""),
             ]
