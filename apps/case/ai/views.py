@@ -1220,8 +1220,8 @@ def context_preview(request, matter_id):
             "input_price": 2.00,
             "context_limit": 1_000_000,
         },
-        {"name": "Claude Sonnet 4", "input_price": 3.00, "context_limit": 200_000},
-        {"name": "Claude Opus 4.5", "input_price": 15.00, "context_limit": 200_000},
+        {"name": "Claude Sonnet 4", "input_price": 3.00, "context_limit": 1_000_000},
+        {"name": "Claude Opus 4.5", "input_price": 15.00, "context_limit": 1_000_000},
     ]
 
     for model in model_costs:

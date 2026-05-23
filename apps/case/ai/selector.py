@@ -18,16 +18,31 @@ from .models import Conversation
 
 logger = logging.getLogger(__name__)
 
-# Usable context budget per model (roughly 75% of full context window,
-# reserving space for conversation history and response). Sonnet 4.6 and
-# Opus 4.6 both have 1M-token context windows GA, so they get the same
-# 750k budget as the Gemini models.
+# Usable context budget per model — the per-request soft cap the SELECTOR
+# uses when deciding how much auto-content to include. Sized at roughly
+# 60% of each model's window, leaving ~40% headroom for the fixed sections
+# (overview / contacts / proceedings / always-included highlights / facts /
+# notes / reference conversations / etc.) which the selector does not trim.
+# Without that headroom, heavy matters can push the assembled prompt past
+# the model's window even though the selector itself stayed under budget.
+# Claude Sonnet/Opus 4.6 and Gemini 2.5 Flash/Pro all have ~1M-token windows.
 MODEL_CONTEXT_LIMITS = {
-    "claude": 750_000,
-    "claude-opus": 750_000,
+    "claude": 600_000,
+    "claude-opus": 600_000,
     "gemini-flash": 750_000,
     "gemini-pro": 750_000,
     "gemini-pro-latest": 750_000,
+}
+
+# Hard ceilings (the actual model context windows). Used by context
+# assembly as a final safety check — if the assembled prompt would exceed
+# the ceiling, auto-selected items are dropped to fit before sending.
+MODEL_HARD_LIMITS = {
+    "claude": 1_000_000,
+    "claude-opus": 1_000_000,
+    "gemini-flash": 1_000_000,
+    "gemini-pro": 1_000_000,
+    "gemini-pro-latest": 1_000_000,
 }
 
 # If total auto content is under this many words, include everything

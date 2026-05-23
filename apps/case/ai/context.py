@@ -517,6 +517,7 @@ def assemble_matter_context_with_selection(
     """
     from .selector import (
         MODEL_CONTEXT_LIMITS,
+        MODEL_HARD_LIMITS,
         build_manifest,
         estimate_tokens,
         select_context,
@@ -642,6 +643,47 @@ def assemble_matter_context_with_selection(
             not in ("critical_items", "high_items", "medium_items", "reference_items")
         },
     )
+
+    # Hard-ceiling enforcement. The selector caps its own auto-selected slice
+    # against MODEL_CONTEXT_LIMITS, but the always-included content (fixed
+    # sections + ai_context="always" items + every Highlight / Fact / Note /
+    # reference Conversation) isn't trimmed by the selector and can push the
+    # final prompt past the model's window. If that happens, demote all
+    # auto-selected items to "Also Available" so the AI still knows they exist
+    # and can ask the user, instead of letting Anthropic / Google reject the
+    # request with a "prompt too long" error.
+    hard_limit = MODEL_HARD_LIMITS.get(llm, 1_000_000)
+    safe_ceiling = int(hard_limit * 0.95)
+    provisional = (
+        f"{request_info}{legal_prompt}\n\n---\n{matter_context}"
+        f"{selected_section}{also_available}"
+    )
+    if estimate_tokens(provisional) > safe_ceiling and selected_contents:
+        logger.warning(
+            "Assembled context (~%d tokens) exceeds safe ceiling for %s (%d); "
+            "demoting %d auto-selected items to 'Also Available'.",
+            estimate_tokens(provisional),
+            llm,
+            safe_ceiling,
+            len(selected_contents),
+        )
+        # Move every manifest item into the "Also Available" listing so the
+        # AI can name them in a follow-up question.
+        selected_section = ""
+        if manifest_items:
+            lines = [
+                "\n\n## Also Available (not included in this context)",
+                "The following materials exist but were omitted to keep the "
+                "prompt within the model's context window. Ask to see specific "
+                "items if needed:",
+            ]
+            for item in manifest_items:
+                date_str = f", {item.date}" if item.date else ""
+                lines.append(
+                    f'- {item.item_type.title()}: "{item.name}" '
+                    f"({item.category}{date_str})"
+                )
+            also_available = "\n".join(lines)
 
     return (
         f"{request_info}{legal_prompt}\n\n---\n{matter_context}"

@@ -54,8 +54,12 @@ def send_to_claude(
     Uses streaming mode to allow cancellation mid-request. When cancelled,
     only tokens generated up to that point are billed.
 
-    Sonnet 4.6 and Opus 4.6 have 1M-token context windows generally
-    available; we don't pass any beta header.
+    Sonnet 4.6 and Opus 4.6 expose a 1M-token context window on this account
+    without any beta header. The selector's MODEL_CONTEXT_LIMITS is a soft
+    cap on auto-selected content; the assembler enforces a separate hard
+    ceiling so the total prompt stays under the model window even when
+    always-included content (highlights, facts, notes, reference convos)
+    inflates the fixed portion.
 
     Args:
         system_context: The system prompt with matter context

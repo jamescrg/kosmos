@@ -144,7 +144,9 @@ def process_ai_request(
             # Claude - show elapsed time updates
             update_status("generating", "Generating response...")
 
-            # Map llm choice to model ID. Both 4.6 models have 1M context GA.
+            # Map llm choice to model ID. Both 4.6 models have a 1M-token
+            # context window; the selector budget plus the hard-ceiling check
+            # in context assembly together keep prompts within that window.
             claude_model = (
                 "claude-opus-4-6" if llm == "claude-opus" else "claude-sonnet-4-6"
             )
