@@ -653,7 +653,10 @@ def assemble_matter_context_with_selection(
     # and can ask the user, instead of letting Anthropic / Google reject the
     # request with a "prompt too long" error.
     hard_limit = MODEL_HARD_LIMITS.get(llm, 1_000_000)
-    safe_ceiling = int(hard_limit * 0.95)
+    # 80% of the window so the chat history (added at send time) plus any
+    # under-counting in estimate_tokens (chars/4) still leaves room. The
+    # send-site guard in tasks.py is the final defense.
+    safe_ceiling = int(hard_limit * 0.80)
     provisional = (
         f"{request_info}{legal_prompt}\n\n---\n{matter_context}"
         f"{selected_section}{also_available}"

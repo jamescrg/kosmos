@@ -10,6 +10,7 @@ from django.core.cache import cache
 from .anthropic_client import send_to_claude
 from .citations import citations_to_dict, verify_all_citations
 from .gemini_client import send_to_gemini, send_to_gemini_streaming
+from .selector import MODEL_HARD_LIMITS, estimate_tokens
 
 logger = logging.getLogger(__name__)
 
@@ -101,6 +102,50 @@ def process_ai_request(
             for msg in chat_history:
                 if msg["role"] == "user" and msg.get("user_name"):
                     msg["content"] = f"[{msg['user_name']}]: {msg['content']}"
+
+        # Final size guard. estimate_tokens (chars/4) under-counts real
+        # tokenization, so apply the cap at 80% of the model window and
+        # treat the estimate generously. If the assembled prompt plus the
+        # chat history would still exceed the cap, drop the oldest chat
+        # messages until it fits — preserving the current user message and
+        # the most recent exchanges. Better than a 400 from the provider.
+        hard_limit = MODEL_HARD_LIMITS.get(llm, 1_000_000)
+        send_ceiling = int(hard_limit * 0.80)
+        context_tokens = estimate_tokens(context_text)
+
+        def _history_tokens(history):
+            return sum(estimate_tokens(m.get("content", "")) for m in history)
+
+        history_tokens = _history_tokens(chat_history)
+        if context_tokens + history_tokens > send_ceiling:
+            dropped = 0
+            # Trim from the front (oldest) while keeping at least the most
+            # recent message (the one we're responding to).
+            while (
+                len(chat_history) > 1
+                and context_tokens + _history_tokens(chat_history) > send_ceiling
+            ):
+                chat_history.pop(0)
+                dropped += 1
+            history_tokens = _history_tokens(chat_history)
+            logger.warning(
+                "AI prompt over send ceiling for %s (~%d tokens > %d). "
+                "Dropped %d oldest chat messages; final estimate ~%d tokens.",
+                llm,
+                context_tokens + history_tokens + dropped,  # rough pre-trim figure
+                send_ceiling,
+                dropped,
+                context_tokens + history_tokens,
+            )
+            if context_tokens + history_tokens > send_ceiling:
+                logger.error(
+                    "AI prompt still over send ceiling after trimming chat "
+                    "history for conversation %s (context alone ~%d tokens > %d). "
+                    "Request will likely be rejected by the provider.",
+                    conversation_id,
+                    context_tokens,
+                    send_ceiling,
+                )
 
         # Set connecting status
         update_status("connecting", "Connecting to AI...")
