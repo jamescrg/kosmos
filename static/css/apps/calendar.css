@@ -169,11 +169,22 @@
   --fc-neutral-bg-color: var(--background-light);
 }
 
-[data-theme="dark"] .fc {
-  --fc-today-bg-color: var(--gb-dark2);
-  --fc-event-bg-color: var(--gb-faded-aqua);
-  --fc-event-border-color: var(--gb-aqua);
-  --fc-event-text-color: var(--gb-light);
+/* Dark-mode overrides — direct selectors because the rules below use
+   !important on raw palette values, which beats any --fc-* token override. */
+[data-theme="dark"] .fc-event,
+[data-theme="dark"] .fc-event.fc-daygrid-block-event,
+[data-theme="dark"] .fc-event.fc-daygrid-dot-event {
+  background-color: var(--gb-dark2) !important;
+  border-color: var(--gb-dark3) !important;
+}
+
+[data-theme="dark"] .fc-event.fc-event-no-matter {
+  background-color: var(--gb-dark) !important;
+}
+
+[data-theme="dark"] .fc .fc-day-today .fc-daygrid-day-number {
+  background-color: var(--gb-bright-purple);
+  color: var(--gb-dark);
 }
 
 /* Button styling */

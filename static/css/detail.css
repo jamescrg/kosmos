@@ -82,6 +82,9 @@ Detail Layout (header / subnav / body)
   background: var(--selected-background);
   border: solid 1px var(--selected-border);
   border-radius: var(--radius-md);
+}
+
+.subnav .active a {
   color: var(--selected-color);
 }
 
