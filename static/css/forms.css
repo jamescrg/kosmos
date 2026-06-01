@@ -31,6 +31,7 @@ textarea {
   background: var(--input-background);
   border: solid 1px var(--border-medium);
   border-radius: var(--radius-sm);
+  color: var(--color-primary);
   font-family: inherit;
   font-size: 1rem;
   line-height: 1.5;

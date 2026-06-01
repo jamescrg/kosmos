@@ -66,6 +66,9 @@
   --button-secondary-background: var(--background-section);
   --button-secondary-color: var(--color-primary);
   --button-toolbar: var(--color-primary);
+  --btn-secondary-bg: var(--blue-50);
+  --btn-success-bg: var(--lime-100);
+  --btn-danger-bg: var(--red-100);
 
   /* ==========================================================================
      Forms & Inputs
@@ -247,10 +250,13 @@
   --button-secondary-background: var(--background-section);
   --button-secondary-color: var(--gb-light4);
   --button-toolbar: var(--gb-light3);
+  --btn-secondary-bg: var(--gb-dark2);
+  --btn-success-bg: oklch(0.405 0.096 138);
+  --btn-danger-bg: var(--red-900);
 
-  /* Forms & Inputs */
-  --input-border: var(--gb-dark3);
-  --input-background: var(--gb-dark1);
+  /* Forms & Inputs — inset well effect (input bg distinct from container) */
+  --input-border: var(--gb-dark4);
+  --input-background: var(--gb-dark-soft);
   --input-placeholder: var(--gb-dark4);
 
   /* Borders & Dividers */
@@ -278,7 +284,7 @@
   --label-gray: var(--gb-dark1);
   --label-green: var(--lime-950);
   --label-orange: var(--orange-950);
-  --label-purple: var(--violet-950);
+  --label-purple: var(--violet-900);
   --label-red: var(--red-950);
   --label-yellow: var(--yellow-950);
 

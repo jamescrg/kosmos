@@ -169,6 +169,13 @@
   --fc-neutral-bg-color: var(--background-light);
 }
 
+[data-theme="dark"] .fc {
+  --fc-today-bg-color: var(--gb-dark2);
+  --fc-event-bg-color: var(--gb-faded-aqua);
+  --fc-event-border-color: var(--gb-aqua);
+  --fc-event-text-color: var(--gb-light);
+}
+
 /* Button styling */
 .fc .fc-button {
   border-radius: var(--radius-sm);

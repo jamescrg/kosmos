@@ -39,7 +39,7 @@
 .btn-secondary,
 .btn-secondary:focus,
 .btn-secondary:active {
-  background: var(--blue-50);
+  background: var(--btn-secondary-bg);
   border-color: var(--border-medium);
   box-shadow: none;
   color: var(--button-secondary-color);
@@ -56,14 +56,14 @@
 }
 
 .btn-danger {
-  background: var(--red-100);
+  background: var(--btn-danger-bg);
   border-color: var(--border-medium);
   box-shadow: none;
   color: var(--button-secondary-color);
 }
 
 .btn-success {
-  background: var(--lime-100);
+  background: var(--btn-success-bg);
   border-color: var(--border-medium);
   box-shadow: none;
   color: var(--button-secondary-color);
