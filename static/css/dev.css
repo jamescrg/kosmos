@@ -5,7 +5,7 @@ Development Environment Styles
 /* Dev environment banner */
 .dev-banner {
   background-color: var(--hl-red);
-  border-bottom: 1px solid var(--stone-300);
+  border-bottom: 1px solid var(--border-medium-dark);
   color: var(--orange-700);
   font-size: 0.75rem;
   font-weight: 600;
@@ -20,7 +20,7 @@ Development Environment Styles
 }
 
 .env-dev .sidebar {
-  top: 0.75rem;
+  top: 1.75rem;
 }
 
 .env-dev .main-content {
