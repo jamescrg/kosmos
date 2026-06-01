@@ -360,6 +360,87 @@ tr > td.importance.complete .button-link {
   /* opacity: 0.8; */
 }
 
+/* Dark-mode overrides — flatpickr's CDN CSS hardcodes light-palette
+   colors for day numbers, weekday labels, month nav, and faded-day
+   states, none of which adapt to the dark canvas. */
+[data-theme="dark"] .flatpickr-calendar {
+  background: var(--gb-dark1);
+  border: 1px solid var(--gb-dark2);
+  box-shadow: 0 3px 13px rgb(0 0 0 / 40%);
+  color: var(--color-primary);
+}
+
+[data-theme="dark"] .flatpickr-calendar.arrowTop::before,
+[data-theme="dark"] .flatpickr-calendar.arrowTop::after,
+[data-theme="dark"] .flatpickr-calendar.arrowBottom::before,
+[data-theme="dark"] .flatpickr-calendar.arrowBottom::after {
+  border-bottom-color: var(--gb-dark2);
+  border-top-color: var(--gb-dark2);
+}
+
+[data-theme="dark"] .flatpickr-months,
+[data-theme="dark"] .flatpickr-current-month,
+[data-theme="dark"] .flatpickr-current-month input.cur-year,
+[data-theme="dark"] .flatpickr-monthDropdown-months {
+  background: transparent;
+  color: var(--color-primary);
+}
+
+[data-theme="dark"] .flatpickr-monthDropdown-months .flatpickr-monthDropdown-month {
+  background: var(--gb-dark1);
+  color: var(--color-primary);
+}
+
+[data-theme="dark"] .flatpickr-weekday {
+  color: var(--color-muted);
+}
+
+[data-theme="dark"] .flatpickr-day {
+  color: var(--color-primary);
+}
+
+[data-theme="dark"] .flatpickr-day:hover {
+  background: var(--gb-dark2);
+  border-color: var(--gb-dark3);
+}
+
+[data-theme="dark"] .flatpickr-day.prevMonthDay,
+[data-theme="dark"] .flatpickr-day.nextMonthDay {
+  color: var(--color-muted-more);
+}
+
+[data-theme="dark"] .flatpickr-day.flatpickr-disabled,
+[data-theme="dark"] .flatpickr-day.flatpickr-disabled:hover {
+  color: var(--gb-dark4);
+}
+
+[data-theme="dark"] .flatpickr-day.today:not(.selected) {
+  border-color: var(--gb-bright-purple);
+}
+
+[data-theme="dark"] .flatpickr-day.today:not(.selected):hover {
+  background: var(--gb-dark2);
+  border-color: var(--gb-bright-purple);
+  color: var(--color-primary);
+}
+
+[data-theme="dark"] .flatpickr-prev-month,
+[data-theme="dark"] .flatpickr-next-month {
+  color: var(--color-primary);
+  fill: var(--color-primary);
+}
+
+[data-theme="dark"] .flatpickr-prev-month:hover,
+[data-theme="dark"] .flatpickr-next-month:hover {
+  color: var(--gb-bright-aqua);
+  fill: var(--gb-bright-aqua);
+}
+
+[data-theme="dark"] .flatpickr-prev-month svg,
+[data-theme="dark"] .flatpickr-next-month svg {
+  fill: currentColor;
+}
+
 
 .tasks-table .menu {
   margin: 0;
