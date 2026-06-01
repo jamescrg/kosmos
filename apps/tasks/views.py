@@ -437,10 +437,11 @@ def tasks_filter_importance(request, importance_value):
 @login_required
 def tasks_filter_default(request):
     filter_data = {
-        "filter_label": "default",
+        "filter_label": "today",
         "status": "Pending",
-        "date_due_max": None,
-        "date_due_min": None,
+        "date_due_max": date.today().strftime("%Y-%m-%d"),
+        "date_due_min": "",
+        "has_due_date": "",
         "matter": None,
         "user": request.user.id,
         "order_by": "date_due",

@@ -22,15 +22,16 @@ def get_time_data(request):
 
     number_entries = entries.count()
 
+    today_str = datetime.now().date().strftime("%Y-%m-%d")
     default_filter = {
-        "date_min": "",
-        "date_max": "",
+        "filter_label": "today",
+        "date_min": today_str,
+        "date_max": today_str,
         "matter": None,
         "keyword": "",
         "comp": None,
-        "entered": 0,
-        "invoice": 0,
         "order_by": "-date",
+        "user": request.user.id,
     }
 
     filter_data = request.session.get("time_filter", {})
@@ -80,7 +81,10 @@ def get_time_data(request):
     else:
         filter = TimeEntryFilter(default_filter, queryset=entries)
         entries = filter.qs
-        user_id = None
+        user_id = request.user.id
+        filter_data = default_filter
+        request.session["time_filter"] = default_filter
+        request.session.modified = True
 
     # Admin (non-billable matter) entries are never invoiced, so they would
     # otherwise inflate the unbilled view. Exclude them from both the table

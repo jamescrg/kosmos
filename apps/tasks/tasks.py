@@ -54,11 +54,17 @@ def get_list_data(request):
 
     else:
         default_filter = {
+            "filter_label": "today",
             "status": "Pending",
+            "date_due_max": today.strftime("%Y-%m-%d"),
+            "date_due_min": "",
+            "has_due_date": "",
             "matter": None,
             "order_by": "date_due",
             "user": request.user.id,
         }
+        request.session["tasks_filter"] = default_filter
+        request.session.modified = True
 
         filter = TasksFilter(default_filter)
         tasks = filter.qs
@@ -66,6 +72,7 @@ def get_list_data(request):
         user_id = request.user.id
         matter_id = None
         importance_value = None
+        filter_data = default_filter
 
     # Force-show newly created tasks at the top regardless of filters
     new_task_ids = request.session.pop("new_task_ids", [])
