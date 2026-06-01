@@ -3,9 +3,10 @@ from datetime import datetime
 from itertools import chain
 
 from django.contrib.auth.decorators import login_required
-from django.http import HttpResponse
+from django.http import HttpResponse, HttpResponseForbidden
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse_lazy
+from django.views.decorators.http import require_POST
 
 from apps.activity.expenses.models import ExpenseEntry
 from apps.activity.expenses.summary import (
@@ -22,6 +23,15 @@ from apps.invoicing.invoices.functions import generate_ledes_98b
 from apps.invoicing.invoices.get_invoice_data import get_invoice_data
 from apps.invoicing.payments.forms import PaymentForm
 from apps.management.pagination import CustomPaginator
+from apps.management.selection import (
+    all_visible_selected,
+    clear_selected_ids,
+    get_selected_ids,
+    get_session_key,
+    select_all_ids,
+    selection_response,
+    toggle_id,
+)
 from apps.matters.models import Matter
 from apps.trust.models import Transaction
 
@@ -60,20 +70,54 @@ def invoices_list(request):
     return render(request, "invoicing/invoices/list.html", context)
 
 
+TIME_SORT_FIELDS = {"date", "actions"}
+EXPENSE_SORT_FIELDS = {"date", "description"}
+
+
+def _invoice_time_selection_key(pk):
+    """Session key for the per-invoice time-entry bulk selection."""
+    return get_session_key("invoice_selected_time", pk)
+
+
+def _invoice_time_order_key(pk):
+    """Session key for the per-invoice time-entry sort order."""
+    return get_session_key("invoice_time_order", pk)
+
+
+def _toggle_order(current, field):
+    """Return the next sort value when a column header is clicked."""
+    if current.lstrip("-") == field:
+        return field if current.startswith("-") else f"-{field}"
+    return field
+
+
 def _get_invoice_time_context(request, invoice):
     """Build context for the invoice time entries tab."""
     session_key = f"invoice_{invoice.pk}_time_pagination"
-    entries = TimeEntry.objects.filter(invoice=invoice).order_by("date", "id")
+    order = request.session.get(_invoice_time_order_key(invoice.pk), "date")
+    entries = TimeEntry.objects.filter(invoice=invoice).order_by(order, "id")
     summary = calculate_time_summary(entries)
     pagination = CustomPaginator(
         entries, per_page=10, request=request, session_key=session_key
     )
+    objects = pagination.get_object_list()
+
+    selected_time = get_selected_ids(request, _invoice_time_selection_key(invoice.pk))
+    visible_ids = [entry.id for entry in objects]
+    can_bulk_select = invoice.status == "DRAFT" and (
+        request.user.is_admin or request.user.perm_financial
+    )
+
     return {
-        "objects": pagination.get_object_list(),
+        "objects": objects,
         "pagination": pagination,
         "session_key": session_key,
         "trigger_key": "timeChanged",
         "summary": summary,
+        "selected_time": selected_time,
+        "all_selected": all_visible_selected(selected_time, visible_ids),
+        "can_bulk_select": can_bulk_select,
+        "current_order": order.lstrip("-"),
     }
 
 
@@ -120,40 +164,9 @@ def invoice_tab_content(request, pk, tab):
     }
 
     if tab == "time":
-        time_key = f"invoice_{pk}_time_pagination"
-        entries = TimeEntry.objects.filter(invoice=invoice).order_by("date", "id")
-        summary = calculate_time_summary(entries)
-        pagination = CustomPaginator(
-            entries, per_page=10, request=request, session_key=time_key
-        )
-        context.update(
-            {
-                "objects": pagination.get_object_list(),
-                "pagination": pagination,
-                "session_key": time_key,
-                "trigger_key": "timeChanged",
-                "summary": summary,
-            }
-        )
+        context.update(_get_invoice_time_context(request, invoice))
     elif tab == "expenses":
-        expenses_key = f"invoice_{pk}_expenses_pagination"
-        expenses = ExpenseEntry.objects.filter(invoice=invoice).order_by("date", "id")
-        summary = calculate_expense_summary(expenses)
-        pagination = CustomPaginator(
-            expenses,
-            per_page=10,
-            request=request,
-            session_key=expenses_key,
-        )
-        context.update(
-            {
-                "objects": pagination.get_object_list(),
-                "pagination": pagination,
-                "session_key": expenses_key,
-                "trigger_key": "expensesChanged",
-                "summary": summary,
-            }
-        )
+        context.update(_get_invoice_expense_context(request, invoice))
     elif tab == "flat-fees":
         flat_fees_key = f"invoice_{pk}_flat_fees_pagination"
         flat_fees = FlatFeeEntry.objects.filter(invoice=invoice).order_by("date", "id")
@@ -228,26 +241,14 @@ def pdf_preview(request, pk):
 @login_required
 def invoice_time_entries_index(request, pk):
     invoice = get_object_or_404(Invoice, pk=pk)
-    session_key = f"invoice_{pk}_time_pagination"
-
-    entries = TimeEntry.objects.filter(invoice=invoice).order_by("date", "id")
-    summary = calculate_time_summary(entries)
-
-    pagination = CustomPaginator(
-        entries, per_page=10, request=request, session_key=session_key
-    )
 
     context = {
         "app": "invoicing",
         "subapp": "time",
-        "objects": pagination.get_object_list(),
-        "pagination": pagination,
-        "session_key": session_key,
-        "trigger_key": "timeChanged",
         "invoice": invoice,
-        "summary": summary,
         "view": "detail",
     }
+    context.update(_get_invoice_time_context(request, invoice))
 
     return render(request, "invoicing/invoices/time/index.html", context)
 
@@ -255,36 +256,102 @@ def invoice_time_entries_index(request, pk):
 @login_required
 def invoice_time_entries(request, pk):
     invoice = get_object_or_404(Invoice, pk=pk)
-    session_key = f"invoice_{pk}_time_pagination"
-
-    entries = TimeEntry.objects.filter(invoice=invoice).order_by("date", "id")
-    summary = calculate_time_summary(entries)
-
-    pagination = CustomPaginator(
-        entries, per_page=10, request=request, session_key=session_key
-    )
 
     context = {
         "app": "invoicing",
         "subapp": "time",
-        "objects": pagination.get_object_list(),
-        "pagination": pagination,
-        "session_key": session_key,
-        "trigger_key": "timeChanged",
         "invoice": invoice,
-        "summary": summary,
         "view": "detail",
     }
+    context.update(_get_invoice_time_context(request, invoice))
 
     return render(request, "invoicing/invoices/time/list.html", context)
 
 
 @login_required
-def invoice_expense_entries_index(request, pk):
-    invoice = get_object_or_404(Invoice, pk=pk)
-    session_key = f"invoice_{pk}_expenses_pagination"
+@require_POST
+def invoice_time_toggle_select(request, pk, entry_id):
+    """Toggle selection of a single time entry on this invoice."""
+    get_object_or_404(TimeEntry, pk=entry_id, invoice_id=pk)
+    toggle_id(request, _invoice_time_selection_key(pk), entry_id)
 
-    expenses = ExpenseEntry.objects.filter(invoice=invoice).order_by("date", "id")
+    return selection_response("timeChanged")
+
+
+@login_required
+@require_POST
+def invoice_time_select_all(request, pk):
+    """Select or deselect all visible time entries on this invoice."""
+    invoice = get_object_or_404(Invoice, pk=pk)
+    context = _get_invoice_time_context(request, invoice)
+    visible_ids = [entry.id for entry in context["objects"]]
+
+    select_all_ids(request, _invoice_time_selection_key(pk), visible_ids)
+
+    return selection_response("timeChanged")
+
+
+@login_required
+@require_POST
+def invoice_time_clear_selection(request, pk):
+    """Clear the time-entry selection for this invoice."""
+    clear_selected_ids(request, _invoice_time_selection_key(pk))
+
+    return selection_response("timeChanged")
+
+
+@login_required
+@require_POST
+def invoice_time_bulk_update_comp(request, pk):
+    """Bulk-apply comp (non-billable) status to selected invoice time entries."""
+    if not request.user.is_admin and not request.user.perm_financial:
+        return HttpResponseForbidden()
+
+    invoice = get_object_or_404(Invoice, pk=pk)
+    key = _invoice_time_selection_key(pk)
+    selected_time = get_selected_ids(request, key)
+
+    if not selected_time:
+        return HttpResponse(status=400, content="No time entries selected.")
+
+    comp_value = request.POST.get("comp")
+    if comp_value in ["true", "false"]:
+        comp_bool = comp_value == "true"
+        entries = TimeEntry.objects.filter(id__in=selected_time, invoice=invoice)
+
+        for entry in entries:
+            entry.comp = comp_bool
+            entry.save()
+
+        clear_selected_ids(request, key)
+
+    return HttpResponse(status=204, headers={"HX-Trigger": "timeChanged"})
+
+
+@login_required
+@require_POST
+def invoice_time_order_by(request, pk, order):
+    """Toggle the sort order of an invoice's time entries by column."""
+    if order not in TIME_SORT_FIELDS:
+        return HttpResponse(status=400)
+
+    key = _invoice_time_order_key(pk)
+    current = request.session.get(key, "")
+    request.session[key] = _toggle_order(current, order)
+
+    return HttpResponse(status=204, headers={"HX-Trigger": "timeChanged"})
+
+
+def _invoice_expense_order_key(pk):
+    """Session key for the per-invoice expense sort order."""
+    return get_session_key("invoice_expense_order", pk)
+
+
+def _get_invoice_expense_context(request, invoice):
+    """Build context for the invoice expense entries tab."""
+    session_key = f"invoice_{invoice.pk}_expenses_pagination"
+    order = request.session.get(_invoice_expense_order_key(invoice.pk), "date")
+    expenses = ExpenseEntry.objects.filter(invoice=invoice).order_by(order, "id")
     summary = calculate_expense_summary(expenses)
 
     pagination = CustomPaginator(
@@ -294,17 +361,41 @@ def invoice_expense_entries_index(request, pk):
         session_key=session_key,
     )
 
-    context = {
-        "app": "invoicing",
-        "subapp": "expenses",
+    return {
         "objects": pagination.get_object_list(),
         "pagination": pagination,
         "session_key": session_key,
         "trigger_key": "expensesChanged",
-        "invoice": invoice,
         "summary": summary,
+        "current_order": order.lstrip("-"),
+    }
+
+
+@login_required
+@require_POST
+def invoice_expense_order_by(request, pk, order):
+    """Toggle the sort order of an invoice's expense entries by column."""
+    if order not in EXPENSE_SORT_FIELDS:
+        return HttpResponse(status=400)
+
+    key = _invoice_expense_order_key(pk)
+    current = request.session.get(key, "")
+    request.session[key] = _toggle_order(current, order)
+
+    return HttpResponse(status=204, headers={"HX-Trigger": "expensesChanged"})
+
+
+@login_required
+def invoice_expense_entries_index(request, pk):
+    invoice = get_object_or_404(Invoice, pk=pk)
+
+    context = {
+        "app": "invoicing",
+        "subapp": "expenses",
+        "invoice": invoice,
         "view": "detail",
     }
+    context.update(_get_invoice_expense_context(request, invoice))
 
     return render(request, "invoicing/invoices/expenses/index.html", context)
 
@@ -312,29 +403,14 @@ def invoice_expense_entries_index(request, pk):
 @login_required
 def invoice_expense_entries(request, pk):
     invoice = get_object_or_404(Invoice, pk=pk)
-    session_key = f"invoice_{pk}_expenses_pagination"
-
-    expenses = ExpenseEntry.objects.filter(invoice=invoice).order_by("date", "id")
-    summary = calculate_expense_summary(expenses)
-
-    pagination = CustomPaginator(
-        expenses,
-        per_page=10,
-        request=request,
-        session_key=session_key,
-    )
 
     context = {
         "app": "invoicing",
         "subapp": "expenses",
-        "objects": pagination.get_object_list(),
-        "pagination": pagination,
-        "session_key": session_key,
-        "trigger_key": "expensesChanged",
         "invoice": invoice,
-        "summary": summary,
         "view": "detail",
     }
+    context.update(_get_invoice_expense_context(request, invoice))
 
     return render(request, "invoicing/invoices/expenses/list.html", context)
 

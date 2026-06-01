@@ -1,25 +1,69 @@
 {% block subcontent %}
+  {% load humanize %}
+  {% if can_bulk_select and selected_time %}
+    <div class="toolbar">
+      <div class="toolbar-left">
+        <div class="filter-tools">
+          <button type="button"
+                  class="btn-icon toggle-active"
+                  hx-post="{% url 'invoicing:invoice-time-clear-selection' invoice.id %}"
+                  hx-swap="none">
+            {{ selected_time|length }} <i class="icon-x bulk-clear-icon"></i>
+          </button>
+          <div class="dropdown" x-data="dropdown()">
+            <button type="button"
+                    class="btn-icon"
+                    x-ref="button"
+                    @click="toggle()"
+                    :aria-expanded="open">
+              <span><i class="icon-check with-text"></i> Comp</span>
+              <small><i class="icon-chevron-down"></i></small>
+            </button>
+            <ul class="dropdown-menu" x-ref="menu" x-show="open" @click="close()">
+              <li>
+                <a class="dropdown-item"
+                   href="#"
+                   hx-post="{% url 'invoicing:invoice-time-bulk-update-comp' invoice.id %}"
+                   hx-vals='{"comp": "true"}'
+                   hx-swap="none"><i class="icon-check"></i> Comp</a>
+              </li>
+              <li>
+                <a class="dropdown-item"
+                   href="#"
+                   hx-post="{% url 'invoicing:invoice-time-bulk-update-comp' invoice.id %}"
+                   hx-vals='{"comp": "false"}'
+                   hx-swap="none"><i class="icon-x"></i> Not Comp</a>
+              </li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+  {% endif %}
   <div class="table-container">
     <table class="table activity">
       <tr>
+        {% if can_bulk_select %}
+          <th class="col-select">
+            {% url 'invoicing:invoice-time-select-all' invoice.id as select_all_url %}
+            {% include "selection/select-all-btn.html" with select_all_url=select_all_url all_selected=all_selected %}
+          </th>
+        {% endif %}
         <th class="date">
           Date
-          <a href={% url 'activity:time-order-by' 'date' %}>
+          <button class="btn-sort {% if current_order == 'date' %}active{% endif %}"
+                  hx-post="{% url 'invoicing:invoice-time-order-by' invoice.id 'date' %}">
             <i class="icon-chevrons-up-down"></i>
-          </a>
+          </button>
         </th>
         <th class="user">User</th>
-        <th class="matter">
-          Matter
-          <a href={% url 'activity:time-order-by' 'matter' %}>
-            <i class="icon-chevrons-up-down"></i>
-          </a>
-        </th>
+        <th class="matter">Matter</th>
         <th class="actions">
           Actions
-          <a href={% url 'activity:time-order-by' 'actions' %}>
+          <button class="btn-sort {% if current_order == 'actions' %}active{% endif %}"
+                  hx-post="{% url 'invoicing:invoice-time-order-by' invoice.id 'actions' %}">
             <i class="icon-chevrons-up-down"></i>
-          </a>
+          </button>
         </th>
         <th class="numeric hours">Hours</th>
         <th class="numeric rate">Rate</th>
@@ -27,10 +71,19 @@
       </tr>
       <tr id="time-table"></tr>
       {% for entry in objects %}
-        <tr id="time-{{ entry.id }}">{% include "activity/time/table-row.html" %}</tr>
+        <tr id="time-{{ entry.id }}">
+          {% if can_bulk_select %}
+            <td class="col-select">
+              {% url 'invoicing:invoice-time-toggle-select' invoice.id entry.id as toggle_url %}
+              {% include "selection/checkbox.html" with toggle_url=toggle_url obj_id=entry.id selected_ids=selected_time %}
+            </td>
+          {% endif %}
+          {% include "activity/time/table-row.html" %}
+        </tr>
       {% empty %}
         <tr>
-          <td colspan="7" class="empty-message">No time entries found for this invoice.</td>
+          <td colspan="{% if can_bulk_select %}8{% else %}7{% endif %}"
+              class="empty-message">No time entries found for this invoice.</td>
         </tr>
       {% endfor %}
     </table>

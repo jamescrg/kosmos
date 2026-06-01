@@ -4,22 +4,19 @@
       <tr>
         <th class="date">
           Date
-          <a href={% url 'activity:expenses-order-by' 'date' %}>
+          <button class="btn-sort {% if current_order == 'date' %}active{% endif %}"
+                  hx-post="{% url 'invoicing:invoice-expense-order-by' invoice.id 'date' %}">
             <i class="icon-chevrons-up-down"></i>
-          </a>
+          </button>
         </th>
         <th class="user">User</th>
-        <th class="matter">
-          Matter
-          <a href={% url 'activity:expenses-order-by' 'matter' %}>
-            <i class="icon-chevrons-up-down"></i>
-          </a>
-        </th>
+        <th class="matter">Matter</th>
         <th class="actions">
           Description
-          <a href={% url 'activity:expenses-order-by' 'description' %}>
+          <button class="btn-sort {% if current_order == 'description' %}active{% endif %}"
+                  hx-post="{% url 'invoicing:invoice-expense-order-by' invoice.id 'description' %}">
             <i class="icon-chevrons-up-down"></i>
-          </a>
+          </button>
         </th>
         <th class="numeric amount">Amount</th>
       </tr>
