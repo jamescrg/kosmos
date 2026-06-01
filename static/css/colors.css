@@ -41,6 +41,7 @@
   --background-td: var(--stone-125);
   --background-medium-light: var(--stone-75);
   --background-light: var(--stone-50);
+  --background-table-header: var(--background-control);
 
   /* ==========================================================================
      Navigation
@@ -234,6 +235,7 @@
   --background-td: var(--gb-dark);
   --background-medium-light: var(--gb-dark-soft);
   --background-light: var(--gb-dark-soft);
+  --background-table-header: var(--gb-dark2);
 
   /* Navigation */
   --background-nav-tab-active: var(--background-body);
@@ -308,4 +310,4 @@
   --hl-yellow: var(--yellow-950);
 }
 
-[data-theme="dark"] .past-due td { background: var(--yellow-950); }
+[data-theme="dark"] .past-due td { background: var(--gb-dark1); }
