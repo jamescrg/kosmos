@@ -19,18 +19,20 @@
   color: var(--link);
 }
 
-/* Dark mode — render the highlight colour on a slug as a bright underline
-   (matching how the highlighter looks in the source document) instead of a dark
-   fill. Scoped to the slug containers so the generic .hl-* cell/row fills used
-   elsewhere (invoices, activity reports, calendar) are untouched. */
-[data-theme="dark"] :is(.highlight-card-slug, .highlight-slug) .hl-yellow { --hl-line: var(--yellow-400); }
-[data-theme="dark"] :is(.highlight-card-slug, .highlight-slug) .hl-red    { --hl-line: var(--red-400); }
-[data-theme="dark"] :is(.highlight-card-slug, .highlight-slug) .hl-orange { --hl-line: var(--orange-400); }
-[data-theme="dark"] :is(.highlight-card-slug, .highlight-slug) .hl-green  { --hl-line: var(--lime-400); }
-[data-theme="dark"] :is(.highlight-card-slug, .highlight-slug) .hl-blue   { --hl-line: var(--blue-400); }
-[data-theme="dark"] :is(.highlight-card-slug, .highlight-slug) :is(.hl-violet, .hl-purple) { --hl-line: var(--violet-400); }
-[data-theme="dark"] :is(.highlight-card-slug, .highlight-slug) :is(.hl-slate, .hl-gray) { --hl-line: var(--slate-400); }
+/* Dark mode — map each highlight colour class to its bright "line" colour, then
+   render it as a bright underline on the slug and a solid fill on the detail
+   swatch (matching how the highlighter looks in the source document). The custom
+   prop is harmless on the generic .hl-* cell/row fills used elsewhere (invoices,
+   activity reports, calendar), which keep their fills. */
+[data-theme="dark"] .hl-yellow { --hl-line: var(--yellow-400); }
+[data-theme="dark"] .hl-red    { --hl-line: var(--red-400); }
+[data-theme="dark"] .hl-orange { --hl-line: var(--orange-400); }
+[data-theme="dark"] .hl-green  { --hl-line: var(--lime-400); }
+[data-theme="dark"] .hl-blue   { --hl-line: var(--blue-400); }
+[data-theme="dark"] :is(.hl-violet, .hl-purple) { --hl-line: var(--violet-400); }
+[data-theme="dark"] :is(.hl-slate, .hl-gray) { --hl-line: var(--slate-400); }
 
+/* Slug: bright underline instead of a dark fill (scoped to the slug containers). */
 [data-theme="dark"] :is(.highlight-card-slug, .highlight-slug) span[class^="hl-"] {
   background: transparent !important;
   border-radius: 0;
@@ -39,6 +41,11 @@
   text-decoration-skip-ink: none;
   text-decoration-thickness: 0.2em;
   text-underline-offset: 0.18em;
+}
+
+/* Detail-view swatch: solid fill in the same bright colour as the underline. */
+[data-theme="dark"] .highlight-detail-swatch {
+  background: var(--hl-line) !important;
 }
 
 /* Keyword input */
