@@ -73,6 +73,77 @@
   color: inherit;
 }
 
+/* ==========================================================================
+   Dark mode — outlined buttons
+   Drop the semantic fill for a uniform --background-control surface; each
+   variant signals its purpose through border + text colour instead, and
+   fills with its accent on hover for affordance.
+   ========================================================================== */
+[data-theme="dark"] .btn-primary,
+[data-theme="dark"] .btn-primary:focus {
+  background: var(--background-control);
+  border-color: var(--link);
+  color: var(--link);
+}
+
+[data-theme="dark"] .btn-primary:hover {
+  background: var(--link);
+  border-color: var(--link);
+  color: var(--gb-dark);
+}
+
+[data-theme="dark"] .btn-primary:disabled {
+  background: var(--background-control);
+  border-color: var(--background-control);
+  color: var(--color-muted-more);
+}
+
+[data-theme="dark"] .btn-secondary,
+[data-theme="dark"] .btn-secondary:focus,
+[data-theme="dark"] .btn-secondary:active {
+  background: var(--background-control);
+  border-color: var(--border-medium-dark);
+  color: var(--color-darker);
+}
+
+[data-theme="dark"] .btn-secondary:hover {
+  background: var(--background-subnav-contrast);
+  border-color: var(--border-dark);
+  color: var(--color-darker);
+}
+
+[data-theme="dark"] .btn-danger {
+  background: var(--background-control);
+  border-color: var(--gb-bright-red);
+  color: var(--gb-bright-red);
+}
+
+[data-theme="dark"] .btn-danger:hover {
+  background: var(--gb-bright-red);
+  border-color: var(--gb-bright-red);
+  color: var(--gb-dark);
+}
+
+/* Success/submit reads as the brand action — track the link green (gb-bright-aqua),
+   not the limier --success token used for checkmarks/true indicators. */
+[data-theme="dark"] .btn-success {
+  background: var(--background-control);
+  border-color: var(--link);
+  color: var(--link);
+}
+
+[data-theme="dark"] .btn-success:hover {
+  background: var(--link);
+  border-color: var(--link);
+  color: var(--gb-dark);
+}
+
+/* Icons inherit the button's semantic colour (base already does this for success). */
+[data-theme="dark"] .btn-primary i,
+[data-theme="dark"] .btn-danger i {
+  color: inherit;
+}
+
 .accent-link {
   color: var(--accent-link) !important;
 }
