@@ -1,3 +1,22 @@
+/* ==========================================================================
+   THEMING CONVENTION (light + dark)
+   --------------------------------------------------------------------------
+   Theming is token-first. `:root` below defines every semantic token in its
+   LIGHT value; the `[data-theme="dark"]` block further down RE-DEFINES those
+   same tokens with dark (gb-*) values. Component CSS consumes var(--token)
+   and stays theme-agnostic — it flips automatically when the tokens change.
+
+   RULE OF THUMB:
+   1. If dark only needs a different *value*, add/repoint a token here. Do NOT
+      write a scoped rule.
+   2. Only when dark needs a structurally *different rule* (e.g. filled vs
+      outline buttons, accent rail vs fill — where the colour moves to a
+      different property) add a `[data-theme="dark"] .component` block,
+      co-located at the bottom of that component's own CSS file under a
+      "Dark mode —" comment. Keep the colour decision in a token, the
+      structural rule in the component. Do not start a monolithic dark.css.
+   ========================================================================== */
+
 :root {
   /* ==========================================================================
      Design System - Semantic Colors
