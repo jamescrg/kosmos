@@ -179,6 +179,28 @@
 .hl-red { background: var(--hl-red) !important; }
 .hl-yellow { background: var(--hl-yellow) !important; }
 
+/* Dark mode — bright "line" colour per highlight class, for contexts that show
+   the colour as an accent (underline / rail / swatch) rather than a muddy dark
+   fill. Harmless on the generic .hl-* fills, which ignore it. */
+[data-theme="dark"] .hl-yellow { --hl-line: var(--yellow-400); }
+[data-theme="dark"] .hl-red    { --hl-line: var(--red-400); }
+[data-theme="dark"] .hl-orange { --hl-line: var(--orange-400); }
+[data-theme="dark"] .hl-green  { --hl-line: var(--lime-400); }
+[data-theme="dark"] .hl-blue   { --hl-line: var(--blue-400); }
+[data-theme="dark"] :is(.hl-violet, .hl-purple) { --hl-line: var(--violet-400); }
+[data-theme="dark"] :is(.hl-slate, .hl-gray) { --hl-line: var(--slate-400); }
+
+/* Dark mode — any table row flagged with a highlight colour shows it as a bright
+   left rail on the first cell, never a full-row fill (dark fills go muddy and
+   dominate). Covers facts/timeline, calendar & event rows, dash totals, etc. */
+[data-theme="dark"] tr[class*="hl-"],
+[data-theme="dark"] tr[class*="hl-"] > td {
+  background: transparent !important;
+}
+[data-theme="dark"] tr[class*="hl-"] > td:first-child {
+  box-shadow: inset 3px 0 0 0 var(--hl-line);
+}
+
 .past-due td { background: var(--past-due-bg); }
 
 /* ==========================================================================

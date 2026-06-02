@@ -19,21 +19,11 @@
   color: var(--link);
 }
 
-/* Dark mode — map each highlight colour class to its bright "line" colour, then
-   render it as a bright underline on the slug and a solid fill on the detail
-   swatch (matching how the highlighter looks in the source document). The custom
-   prop is harmless on the generic .hl-* cell/row fills used elsewhere (invoices,
-   activity reports, calendar), which keep their fills. */
-[data-theme="dark"] .hl-yellow { --hl-line: var(--yellow-400); }
-[data-theme="dark"] .hl-red    { --hl-line: var(--red-400); }
-[data-theme="dark"] .hl-orange { --hl-line: var(--orange-400); }
-[data-theme="dark"] .hl-green  { --hl-line: var(--lime-400); }
-[data-theme="dark"] .hl-blue   { --hl-line: var(--blue-400); }
-[data-theme="dark"] :is(.hl-violet, .hl-purple) { --hl-line: var(--violet-400); }
-[data-theme="dark"] :is(.hl-slate, .hl-gray) { --hl-line: var(--slate-400); }
-
-/* Slug: bright underline instead of a dark fill (scoped to the slug containers). */
-[data-theme="dark"] :is(.highlight-card-slug, .highlight-slug) span[class^="hl-"] {
+/* Dark mode — render the highlight colour as a bright underline (matching the
+   highlighter look) instead of a dark fill, on the slug labels and the assign-
+   sources results. The --hl-line colour map lives in colors.css. Scoped to these
+   containers so the generic .hl-* cell/row fills used elsewhere keep their fills. */
+[data-theme="dark"] :is(.highlight-card-slug, .highlight-slug, .assign-results) span[class^="hl-"] {
   background: transparent !important;
   border-radius: 0;
   text-decoration: underline;
