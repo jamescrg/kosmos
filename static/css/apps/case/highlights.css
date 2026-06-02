@@ -11,6 +11,36 @@
   white-space: nowrap;
 }
 
+/* Dark mode — the document indicator badge should use the standard link green,
+   not the lime badge palette (scoped to the file icon so the lime "Positive"
+   citation badge keeps its green). */
+[data-theme="dark"] .app-badge.badge-lime:has(.icon-file-text) {
+  border-color: var(--link);
+  color: var(--link);
+}
+
+/* Dark mode — render the highlight colour on a slug as a bright underline
+   (matching how the highlighter looks in the source document) instead of a dark
+   fill. Scoped to the slug containers so the generic .hl-* cell/row fills used
+   elsewhere (invoices, activity reports, calendar) are untouched. */
+[data-theme="dark"] :is(.highlight-card-slug, .highlight-slug) .hl-yellow { --hl-line: var(--yellow-400); }
+[data-theme="dark"] :is(.highlight-card-slug, .highlight-slug) .hl-red    { --hl-line: var(--red-400); }
+[data-theme="dark"] :is(.highlight-card-slug, .highlight-slug) .hl-orange { --hl-line: var(--orange-400); }
+[data-theme="dark"] :is(.highlight-card-slug, .highlight-slug) .hl-green  { --hl-line: var(--lime-400); }
+[data-theme="dark"] :is(.highlight-card-slug, .highlight-slug) .hl-blue   { --hl-line: var(--blue-400); }
+[data-theme="dark"] :is(.highlight-card-slug, .highlight-slug) :is(.hl-violet, .hl-purple) { --hl-line: var(--violet-400); }
+[data-theme="dark"] :is(.highlight-card-slug, .highlight-slug) :is(.hl-slate, .hl-gray) { --hl-line: var(--slate-400); }
+
+[data-theme="dark"] :is(.highlight-card-slug, .highlight-slug) span[class^="hl-"] {
+  background: transparent !important;
+  border-radius: 0;
+  text-decoration: underline;
+  text-decoration-color: var(--hl-line);
+  text-decoration-skip-ink: none;
+  text-decoration-thickness: 0.2em;
+  text-underline-offset: 0.18em;
+}
+
 /* Keyword input */
 .keyword-input.filter-input {
   width: 16rem;

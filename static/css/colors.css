@@ -353,5 +353,5 @@
   --hl-orange: var(--orange-950);
   --hl-violet: var(--violet-950);
   --hl-red: var(--red-950);
-  --hl-yellow: var(--yellow-950);
+  --hl-yellow: oklch(0.31 0.075 92);  /* true-yellow hue so it reads mustard, not the red-brown of yellow-950 */
 }
