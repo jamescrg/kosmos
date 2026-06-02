@@ -116,6 +116,12 @@ table.matter-contacts {
   background: var(--hl-blue);
 }
 
+/* Dark mode — focused result gets a neutral lift + blue rail, not a blue fill. */
+[data-theme="dark"] .matter-contacts .assign-results li a.focused {
+  background: var(--background-subnav-contrast);
+  box-shadow: inset 3px 0 0 0 var(--blue-400);
+}
+
 .assign-role {
   margin: 1rem 0 0 1rem;
   max-width: 44rem;

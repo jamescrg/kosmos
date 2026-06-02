@@ -293,6 +293,13 @@
   padding: 0.125rem 0.25rem;
 }
 
+/* Dark mode — outline the reference chip instead of a grey fill (inset ring
+   keeps the inline layout from shifting). */
+[data-theme="dark"] .note-ref {
+  background: transparent;
+  box-shadow: inset 0 0 0 1px var(--border-medium-dark);
+}
+
 .note-ref:hover {
   text-decoration: underline;
 }
