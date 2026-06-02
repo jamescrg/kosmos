@@ -289,13 +289,24 @@
   --error-background: var(--red-950);
   --error-border: var(--urgent);
 
-  /* Labels & Badges (mid-dark tints, readable under cream text) */
+  /* Labels & Badges (mid-dark tints, readable under cream text) — still used as
+     fills for text highlights in the case viewer (ai.css / highlights.css). */
   --label-gray: var(--gb-dark1);
   --label-green: var(--lime-950);
   --label-orange: var(--orange-950);
   --label-purple: var(--violet-900);
   --label-red: var(--red-950);
   --label-yellow: var(--yellow-950);
+  /* Outline pill line colours — for badge/label chips the hue lives in the
+     border + text instead of a fill (see badges.css). */
+  --label-blue-line: var(--blue-400);
+  --label-gray-line: var(--color-darker);
+  --label-green-line: var(--green-400);
+  --label-lime-line: var(--lime-400);
+  --label-orange-line: var(--orange-400);
+  --label-purple-line: var(--violet-400);
+  --label-red-line: var(--red-400);
+  --label-yellow-line: var(--yellow-400);
 
   /* Icons */
   --icon-default: var(--color-primary);
