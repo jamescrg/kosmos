@@ -60,6 +60,11 @@
   --background-td: var(--stone-125);
   --background-medium-light: var(--stone-75);
   --background-light: var(--stone-50);
+  /* AI chat standalone surface ramp — its own light palette (frame darker than
+     the panels on top); the dark values invert it into a proper dark ramp. */
+  --ai-frame: var(--stone-300);
+  --ai-surface: var(--stone-50);
+  --ai-raised: var(--stone-100);
   --past-due-bg: var(--yellow-50);
   --task-highlight-bg: var(--selected-background);
 
@@ -255,6 +260,10 @@
   --background-td: var(--gb-dark);
   --background-medium-light: var(--gb-dark-soft);
   --background-light: var(--gb-dark-soft);
+  /* AI chat surface ramp — frame darkest, panels lift above it. */
+  --ai-frame: var(--gb-dark);
+  --ai-surface: var(--gb-dark-soft);
+  --ai-raised: var(--gb-dark1);
   /* Dark mode signals task state with a left accent rail, not a row fill: a small
      saturated bar carries the hue without touching the elevation ladder or cell grid.
      Fills are neutralised to the normal cell background; the rail tokens do the work. */
