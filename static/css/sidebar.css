@@ -289,3 +289,172 @@
     margin-left: 0;
   }
 }
+
+
+/* ==========================================================================
+   Horizontal Layout (top bar)
+
+   Opt-in via data-nav="horizontal" on <html>, stored per-device in
+   localStorage (mirrors the theme toggle). Desktop only — scoped above the
+   768px breakpoint so mobile keeps the existing off-canvas drawer for free.
+
+   These rules sit last in the file so they win on source order over the
+   equal-specificity .sidebar-collapsed rules above: collapse is a
+   vertical-only affordance, but its class may persist on <html> from a
+   previous session.
+   ========================================================================== */
+
+@media (width > 768px) {
+  /* In normal flow (not fixed): the bar takes real space and scrolls with
+     the page, so content can't slide under it — this is what kept the page
+     scrolling up behind a fixed bar on load (htmx show:window:top). */
+  [data-nav="horizontal"] .sidebar {
+    align-items: center;
+    box-shadow: inset 0 -1px 0 var(--border-medium-dark);
+    flex-direction: row;
+    height: var(--topnav-height);
+    position: static;
+    transition: none;
+    width: auto;
+  }
+
+  [data-nav="horizontal"] .sidebar-header {
+    padding: 0 1rem 0 1.5rem;
+  }
+
+  [data-nav="horizontal"] .sidebar-nav {
+    align-items: center;
+    flex-direction: row;
+    overflow: visible;
+    padding: 0 0.5rem;
+  }
+
+  [data-nav="horizontal"] .sidebar-nav-main,
+  [data-nav="horizontal"] .sidebar-nav-utils {
+    align-items: center;
+    display: flex;
+    gap: 1px;
+  }
+
+  /* Main items are text-only here — the icons read as visual noise on a
+     horizontal bar — with clear spacing between the labels. */
+  [data-nav="horizontal"] .sidebar-nav-main {
+    gap: 0.5rem;
+  }
+
+  [data-nav="horizontal"] .sidebar-nav-main li a i {
+    display: none;
+  }
+
+  /* .sidebar-nav-main keeps flex: 1 from the base rule, pushing the utils
+     group (Search/Settings/Shortcuts) to the right edge of the bar. */
+  [data-nav="horizontal"] .sidebar-nav-utils {
+    border-top: none;
+    margin: 0;
+    padding: 0;
+  }
+
+  [data-nav="horizontal"] .sidebar-nav li {
+    margin-bottom: 0;
+  }
+
+  [data-nav="horizontal"] .sidebar-nav li a {
+    justify-content: flex-start;
+    padding: 0.5rem 0.75rem;
+    white-space: nowrap;
+  }
+
+  /* Main-nav labels always show, regardless of a lingering .sidebar-collapsed
+     class. The brand and the utils group (Search/Settings/Shortcuts) collapse
+     to icons to keep the bar narrow. */
+  [data-nav="horizontal"] .sidebar-label {
+    display: inline;
+  }
+
+  [data-nav="horizontal"] .sidebar-brand .sidebar-label,
+  [data-nav="horizontal"] .sidebar-nav-utils .sidebar-label {
+    display: none;
+  }
+
+  [data-nav="horizontal"] .sidebar-nav-utils li a {
+    justify-content: center;
+    padding: 0.5rem;
+  }
+
+  [data-nav="horizontal"] .sidebar-toggle {
+    display: none;
+  }
+
+  /* Suppress the vertical (collapsed) left-side tooltips... */
+  [data-nav="horizontal"] .sidebar-nav li a::after {
+    content: none;
+  }
+
+  /* ...but give the icon-only utils items a tooltip below the bar so they
+     stay identifiable. Nav uses overflow: visible so these aren't clipped. */
+  [data-nav="horizontal"] .sidebar-nav-utils li {
+    position: relative;
+  }
+
+  [data-nav="horizontal"] .sidebar-nav-utils li a::after {
+    background: var(--stone-700);
+    border-radius: var(--radius-md);
+    color: var(--stone-100);
+    content: attr(data-tooltip);
+    left: 50%;
+    opacity: 0;
+    padding: 0.25rem 0.5rem;
+    pointer-events: none;
+    position: absolute;
+    top: 100%;
+    transform: translateX(-50%);
+    transition: opacity 150ms ease;
+    white-space: nowrap;
+    z-index: 200;
+  }
+
+  [data-nav="horizontal"] .sidebar-nav-utils li a:hover::after {
+    opacity: 1;
+  }
+
+  [data-nav="horizontal"] .main-content {
+    margin-left: 0;
+  }
+
+  /* A page subnav sitting directly under the bar should read as a matching
+     second bar: same height (min-height so wrapping tabs can still grow it;
+     box-border, so the token is the outer height), and no top border — the
+     bar's own bottom border is the divider, so the two together would
+     otherwise double up.
+
+     Only the top-of-content case (.detail > .subnav as direct first child)
+     drops the border. When a header sits above the subnav it keeps its
+     border, whether the header is a preceding sibling (contact detail) or
+     the subnav is nested a level down in #mode-content (matters detail). */
+  [data-nav="horizontal"] .subnav {
+    align-items: center;
+    display: flex;
+    min-height: var(--topnav-height);
+  }
+
+  [data-nav="horizontal"] .subnav ul {
+    margin-block: 0;
+  }
+
+  [data-nav="horizontal"] .detail > .subnav:first-child {
+    border-top: none;
+  }
+
+  /* Dev only: the banner is fixed for the vertical layout (whose sidebar is
+     also fixed). The horizontal layout is fully in-flow, so put the banner in
+     flow too — otherwise htmx's show:window:top tucks the top of the content
+     under the fixed banner on load. The .env-dev content offset (for the fixed
+     banner) is then redundant and removed. */
+  [data-nav="horizontal"] .dev-banner {
+    position: static;
+  }
+
+  [data-nav="horizontal"] .env-dev .main-content {
+    padding-top: 0;
+  }
+}
