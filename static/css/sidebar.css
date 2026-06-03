@@ -425,8 +425,12 @@
      second bar: same height (min-height so wrapping tabs can still grow it;
      box-border, so the token is the outer height), and no top border — the
      bar's own bottom border is the divider, so the two together would
-     otherwise double up. A subnav preceded by a header (e.g. contact detail)
-     is not :first-child, so it keeps its top border. */
+     otherwise double up.
+
+     Only the top-of-content case (.detail > .subnav as direct first child)
+     drops the border. When a header sits above the subnav it keeps its
+     border, whether the header is a preceding sibling (contact detail) or
+     the subnav is nested a level down in #mode-content (matters detail). */
   [data-nav="horizontal"] .subnav {
     align-items: center;
     display: flex;
@@ -437,7 +441,7 @@
     margin-block: 0;
   }
 
-  [data-nav="horizontal"] .subnav:first-child {
+  [data-nav="horizontal"] .detail > .subnav:first-child {
     border-top: none;
   }
 
