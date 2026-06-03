@@ -336,6 +336,16 @@
     gap: 1px;
   }
 
+  /* Main items are text-only here — the icons read as visual noise on a
+     horizontal bar — with clear spacing between the labels. */
+  [data-nav="horizontal"] .sidebar-nav-main {
+    gap: 0.5rem;
+  }
+
+  [data-nav="horizontal"] .sidebar-nav-main li a i {
+    display: none;
+  }
+
   /* .sidebar-nav-main keeps flex: 1 from the base rule, pushing the utils
      group (Search/Settings/Shortcuts) to the right edge of the bar. */
   [data-nav="horizontal"] .sidebar-nav-utils {
