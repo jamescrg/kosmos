@@ -8,9 +8,22 @@
     <meta name="keywords" content="pdf, viewer, document">
     <title>PDF Viewer</title>
     <link rel="stylesheet" href="pdf_viewer.css">
+    <!-- App design tokens so the viewer chrome can theme with the rest of the app -->
+    <link rel="stylesheet" href="../../css/palette.css">
+    <link rel="stylesheet" href="../../css/colors.css">
     <link rel="stylesheet" href="viewer-custom.css">
     <link rel="stylesheet"
           href="https://unpkg.com/lucide-static@latest/font/lucide.css">
+    <script>
+      /* Same-origin iframe — shares the app's localStorage, so mirror its theme
+         (set before paint to avoid a flash). */
+      (function () {
+        var setting = localStorage.getItem('theme') || 'auto';
+        var dark = setting === 'dark' || (setting === 'auto' &&
+          window.matchMedia('(prefers-color-scheme: dark)').matches);
+        document.documentElement.setAttribute('data-theme', dark ? 'dark' : 'light');
+      })();
+    </script>
   </head>
   <body>
     <div id="toolbar">

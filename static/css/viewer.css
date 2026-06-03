@@ -55,6 +55,11 @@ body {
   width: 280px;
 }
 
+/* Dark mode — strengthen the divider now that the document panel is also dark. */
+[data-theme="dark"] #highlights-sidebar {
+  border-left-color: var(--border-medium-dark);
+}
+
 #highlights-header {
   align-items: center;
   background: var(--background-subnav-contrast);

@@ -148,6 +148,47 @@ body {
   color: #dc2626;
 }
 
+/* Dark mode — theme the viewer chrome (toolbar + canvas around the page) to
+   match the app. The page itself and the multiply highlight overlays are left
+   alone, so highlights still read on the (bright) document. */
+[data-theme="dark"] #viewerContainer {
+  background: var(--background-body);
+}
+
+[data-theme="dark"] #toolbar {
+  background: var(--background-subnav-contrast);
+  border-bottom-color: var(--border-medium);
+}
+
+[data-theme="dark"] #toolbar button {
+  color: var(--color-primary);
+}
+
+[data-theme="dark"] #toolbar button:hover {
+  background: var(--background-control);
+  color: var(--color-darker);
+}
+
+[data-theme="dark"] #toolbar span,
+[data-theme="dark"] #searchResults {
+  color: var(--color-primary);
+}
+
+[data-theme="dark"] #pageNumber,
+[data-theme="dark"] #zoomSelect,
+[data-theme="dark"] #searchInput {
+  background: var(--input-background);
+  color: var(--color-primary);
+}
+
+[data-theme="dark"] #searchInput::placeholder {
+  color: var(--input-placeholder);
+}
+
+[data-theme="dark"] #searchResults.no-results {
+  color: var(--urgent);
+}
+
 /* Highlight overlay styles */
 .highlight-container {
   position: absolute;
