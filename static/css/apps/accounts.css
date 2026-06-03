@@ -85,13 +85,19 @@ body {
 }
 
 .account-form input {
-  border: solid 1px var(--background-nav);
+  background: var(--input-background);
+  border: solid 1px var(--input-border);
   border-radius: var(--radius-sm);
+  color: var(--color-primary);
   display: block;
   font-size: inherit;
   margin-top: 0.25rem;
   padding: 0.5rem;
   width: 100%;
+}
+
+.account-form input::placeholder {
+  color: var(--input-placeholder);
 }
 
 .account-form ul {
