@@ -570,6 +570,13 @@
         htmx.process(item);
       }
 
+      // Initialize Alpine on the inserted node so its dropdowns (Apply Labels,
+      // Link Witnesses, importance) work. Alpine does not auto-init DOM that we
+      // inject manually, so without this the menus stay dead until a reload.
+      if (typeof Alpine !== 'undefined') {
+        Alpine.initTree(item);
+      }
+
       // Re-sort using current preference and update count
       sortHighlights(currentSort);
       updateHighlightCount();
@@ -630,6 +637,18 @@
       if (deleteBtn) {
         const highlightId = parseInt(deleteBtn.dataset.highlightId);
         deleteHighlight(highlightId);
+      }
+    });
+
+    // After applying a label/witness, the card is re-rendered via an OOB swap.
+    // Re-initialize Alpine on the swapped-in card so its dropdowns keep working
+    // (Alpine doesn't auto-init swapped-in DOM here), letting users add another
+    // label without reloading.
+    document.body.addEventListener('htmx:oobAfterSwap', function(e) {
+      if (typeof Alpine === 'undefined') return;
+      const card = (e.detail && e.detail.target) || e.target;
+      if (card && card.classList && card.classList.contains('highlight-item')) {
+        Alpine.initTree(card);
       }
     });
 
@@ -796,9 +815,10 @@
       const impEl = item.querySelector('.highlight-importance');
       if (impEl) {
         impEl.outerHTML = importanceDropdownHTML(highlightId, data.importance);
-        if (window.htmx) {
-          const fresh = item.querySelector('.highlight-importance');
-          if (fresh) htmx.process(fresh);
+        const fresh = item.querySelector('.highlight-importance');
+        if (fresh) {
+          if (window.htmx) htmx.process(fresh);
+          if (typeof Alpine !== 'undefined') Alpine.initTree(fresh);
         }
       }
     }
