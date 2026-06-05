@@ -1141,12 +1141,15 @@
 
 /* Highlighted text (==text==) */
 .ai-markdown mark {
-  background: var(--yellow-200);
-  border-radius: 0.125rem;
-  /* Fixed dark text: the highlight is always bright yellow in both themes, so
-     the text must stay dark (theme-aware --color-darker flips to near-white). */
-  color: var(--stone-900);
-  padding: 0.125rem 0.25rem;
+  /* Underline highlight instead of a fill: a bright yellow line (the shared
+     "line" yellow, fixed in both themes) under text that keeps its normal
+     theme-aware colour. */
+  background: none;
+  color: inherit;
+  text-decoration: underline;
+  text-decoration-color: var(--yellow-400);
+  text-decoration-thickness: 0.125em;
+  text-underline-offset: 0.2em;
 }
 
 /* Task lists (GitHub-style checkboxes) */
