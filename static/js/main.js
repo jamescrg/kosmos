@@ -708,6 +708,20 @@ document.body.addEventListener('htmx:afterSwap', function(e) {
   }
 });
 
+// Autofocus the "Find Matter" search whenever the matters list (re)renders.
+// Scoped to the matters list (identified by its #matter-list table) so other
+// .toolbar-search inputs aren't affected. Skip if focus is already elsewhere.
+document.body.addEventListener('htmx:afterSwap', function(e) {
+  const root = e.target;
+  if (!root.querySelector || !root.querySelector('#matter-list')) return;
+  const input = root.querySelector('.toolbar-search');
+  if (!input) return;
+  const active = document.activeElement;
+  if (!active || active === document.body) {
+    input.focus();
+  }
+});
+
 // Show toast when a command palette modal form is successfully submitted
 // (only if the backend didn't already send a custom toast via HX-Toast header)
 document.body.addEventListener('htmx:afterRequest', function(e) {

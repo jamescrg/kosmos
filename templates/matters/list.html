@@ -25,6 +25,7 @@
                name="q"
                class="toolbar-search"
                placeholder="Find Matter . . ."
+               autofocus
                hx-get="{% url 'matters:quick-search' %}"
                hx-trigger="keyup changed delay:300ms, search"
                hx-target="#matter-list-body"
