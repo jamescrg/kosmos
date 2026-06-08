@@ -110,8 +110,20 @@ def _list_args():
 
 
 def _changes_args():
-    """Params for changes().list / changes().getStartPageToken."""
+    """Params for changes().list (accepts includeItemsFromAllDrives)."""
     args = {"supportsAllDrives": True, "includeItemsFromAllDrives": True}
+    if settings.DRIVE_SHARED_DRIVE_ID:
+        args["driveId"] = settings.DRIVE_SHARED_DRIVE_ID
+    return args
+
+
+def _page_token_args():
+    """Params for changes().getStartPageToken.
+
+    getStartPageToken does NOT accept includeItemsFromAllDrives — only
+    supportsAllDrives (and driveId for a Shared Drive).
+    """
+    args = {"supportsAllDrives": True}
     if settings.DRIVE_SHARED_DRIVE_ID:
         args["driveId"] = settings.DRIVE_SHARED_DRIVE_ID
     return args
@@ -467,7 +479,7 @@ def sync(dry_run=False, full=False, debug_dir=None):
     # First run or forced full: crawl everything, then capture a start token.
     if full or not state.page_token:
         stats, unmatched = bootstrap(service, root_id, matters, debug_dir, dry_run)
-        token = service.changes().getStartPageToken(**_changes_args()).execute()
+        token = service.changes().getStartPageToken(**_page_token_args()).execute()
         if not dry_run:
             state.page_token = token["startPageToken"]
             state.unmatched_folders = sorted(unmatched)
