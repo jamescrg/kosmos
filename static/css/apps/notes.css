@@ -928,16 +928,6 @@ body:has(.note-page.standalone) {
   font-family: monospace;
 }
 
-/* Drive sync health panel (Settings > Integrations) */
-.drive-sync-status {
-  margin-top: 0.75rem;
-}
-
-.drive-unmatched {
-  margin: 0.25rem 0 0 1.25rem;
-  color: var(--color-muted);
-}
-
 /* Drive folder picker (Notes tab "Link Drive Folder" modal) */
 .drive-folder-list {
   display: flex;

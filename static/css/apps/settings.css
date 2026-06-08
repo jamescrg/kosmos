@@ -168,6 +168,23 @@ Settings Contacts - Two Column Layout
   padding: 0.5rem 1.25rem;
 }
 
+/* An integration row that carries a status note under its label/button line. */
+.integrations-item-stacked {
+  align-items: stretch;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.integrations-item-row {
+  align-items: center;
+  display: flex;
+  justify-content: space-between;
+}
+
+.drive-sync-note {
+  margin: 0;
+}
+
 /* Notifications */
 .notifications-list {
   border: 1px solid var(--border-medium);

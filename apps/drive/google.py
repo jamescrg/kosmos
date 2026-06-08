@@ -524,14 +524,16 @@ def sync(dry_run=False, full=False, debug_dir=None):
 
 
 def get_sync_status():
-    """Summary for the Settings > Integrations health panel."""
-    state = DriveSyncState.objects.first()
+    """Summary for the Settings > Integrations health panel (DB-only)."""
+    linked_matters = (
+        Matter.objects.exclude(drive_folder__isnull=True)
+        .exclude(drive_folder="")
+        .count()
+    )
     return {
         "linked": check_credentials(),
-        "last_sync_at": state.last_sync_at if state else None,
         "synced_count": Note.objects.filter(drive_file_id__isnull=False).count(),
-        "unmatched_folders": (state.unmatched_folders if state else []) or [],
-        "bootstrapped": bool(state and state.page_token),
+        "linked_matters": linked_matters,
     }
 
 
@@ -547,18 +549,27 @@ def _find_child_folder(service, parent_id, name):
 
 
 def list_matter_folders():
-    """Return sorted folder names directly under the notes root (or [])."""
+    """Return sorted folder names directly under the notes root.
+
+    Fails soft (returns []) if Drive is unlinked, the root is missing, or the
+    Drive API errors (e.g. API not enabled / transient) so the picker modal
+    degrades to an empty list instead of a 500.
+    """
     if not check_credentials():
         return []
-    service = build_service()
-    root_id = _find_root_folder(service)
-    if not root_id:
+    try:
+        service = build_service()
+        root_id = _find_root_folder(service)
+        if not root_id:
+            return []
+        return sorted(
+            child["name"]
+            for child in _list_children(service, root_id)
+            if child.get("mimeType") == FOLDER_MIME
+        )
+    except HttpError:
+        logger.exception("Failed to list Drive matter folders")
         return []
-    return sorted(
-        child["name"]
-        for child in _list_children(service, root_id)
-        if child.get("mimeType") == FOLDER_MIME
-    )
 
 
 def _delete_synced_for_matter(matter, debug_dir, keep_ids, stats):
