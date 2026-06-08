@@ -1,18 +1,17 @@
 [Unit]
 Description=VimLaw Google Drive case-notes sync (oneshot)
-After=network.target postgresql.service
+After=network.target
 
 [Service]
 Type=oneshot
 User=<user>
 Group=<user>
 WorkingDirectory=/home/<user>/law
-ExecStart=/home/<user>/.venvs/law/bin/python manage.py sync_drive_notes
-
-# Environment variables (adjust path if using .env differently)
-EnvironmentFile=/home/<user>/law/config/.env
+ExecStart=/home/<user>/law/.venv/bin/python manage.py sync_drive_notes
 
 # Notes:
+# - Django loads config/.env itself (settings.read_env), so no EnvironmentFile
+#   is needed. pandoc must be on PATH (default /usr/bin/pandoc is fine).
 # - This is the incremental sync. It no-ops cleanly until an admin links a
 #   Drive account at /settings/integrations/.
 # - Driven by drive-notes-sync.timer (every ~30s). The oneshot type means the

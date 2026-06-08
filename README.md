@@ -18,6 +18,10 @@ selector evaluates which documents, case law, and prior conversations are
 relevant to each question, staying within the model's context budget.
 Supports Claude and Gemini models.
 
+**Google Drive Notes** — Case notes kept in Google Drive are mirrored into each
+matter as read-only notes and made available to the AI context, kept current
+automatically.
+
 Emphasis on a clean, simple UI and the efficient execution of core
 functionality.
 
@@ -46,6 +50,11 @@ functionality.
   - [Step 1: Create a Google Cloud Project](#step-1-create-a-google-cloud-project)
   - [Step 2: Add the credentials file to the project](#step-2-add-the-credentials-file-to-the-project)
   - [Step 3: Set up the environment variables](#step-3-set-up-the-environment-variables)
+- [Google Drive Case Notes](#google-drive-case-notes)
+  - [Prerequisites](#prerequisites)
+  - [Connecting Drive and linking matters](#connecting-drive-and-linking-matters)
+  - [Configuration](#configuration)
+  - [Keeping notes in sync (systemd)](#keeping-notes-in-sync-systemd)
 
 ## Getting Started
 
@@ -470,3 +479,104 @@ settings.
 
 After finishing these steps, the Google Calendar and Contacts
 integration should be set up and working correctly.
+
+## Google Drive Case Notes
+
+The application can mirror case notes kept in Google Drive into each matter.
+Notes stored under `Matters - Open/<Matter>/Notes/` (as `.docx`, `.odt`, or
+`.md`) are converted to Markdown and stored as **read-only** notes on the
+matter, where they appear in the Notes tab and feed the AI context builder.
+
+Drive is the source of truth: edits are made in Drive and synced one way. Each
+user's Google Drive desktop client keeps Drive current, and the server pulls
+changes through the Drive Changes API.
+
+### Prerequisites
+
+- **pandoc** installed on the server (see
+  [Additional Machine Requirements](#additional-machine-requirements)) —
+  required to convert `.docx`/`.odt` notes to Markdown.
+- A Google Cloud project (the same one used for Calendar/Contacts) with:
+  - the **Google Drive API** enabled,
+  - `https://<your-host>/settings/google/store` registered as an **Authorized
+    redirect URI** on the OAuth client, and
+  - the `https://www.googleapis.com/auth/drive.readonly` scope (already
+    requested by the app — adding it requires re-consenting on next connect).
+
+### Connecting Drive and linking matters
+
+1. As an admin, go to **Settings → Integrations** and click **Connect** on
+   _Google Drive (Case Notes)_ — the same OAuth flow used for Calendar/Contacts.
+2. Open a matter's **Notes** tab and click **Link Drive Folder**, then choose
+   the matter's Drive folder from the list. Linking immediately syncs that
+   matter's notes; re-linking to a different folder removes the old notes and
+   syncs the new ones.
+
+### Configuration
+
+These optional variables (in `.env`, documented in `config/.env.example`)
+control the sync:
+
+- `DRIVE_NOTES_ROOT` — the parent Drive folder to scan (default
+  `Matters - Open`).
+- `DRIVE_NOTES_DEBUG_DIR` — if set, also writes the converted Markdown to this
+  local directory for inspection (off by default; the database is canonical).
+- `DRIVE_SHARED_DRIVE_ID` — set only if the root folder lives in a Shared Drive.
+
+### Keeping notes in sync (systemd)
+
+Linking a matter syncs it once. To keep notes current as they change in Drive,
+run the sync on a timer (a `oneshot` service driven by a `.timer`). Django reads
+`config/.env` itself, so no `EnvironmentFile` is needed; pandoc must be on the
+service's `PATH` (it is by default at `/usr/bin/pandoc`).
+
+Create `/etc/systemd/system/drive-notes-sync.service`:
+
+```ini
+[Unit]
+Description=VimLaw Google Drive case-notes sync (oneshot)
+After=network.target
+
+[Service]
+Type=oneshot
+User=<your_user>
+Group=<your_group>
+WorkingDirectory=/path/to/law
+ExecStart=/path/to/law/.venv/bin/python manage.py sync_drive_notes
+```
+
+Create `/etc/systemd/system/drive-notes-sync.timer`:
+
+```ini
+[Unit]
+Description=Run VimLaw Google Drive case-notes sync every ~30s
+
+[Timer]
+OnBootSec=30s
+OnUnitActiveSec=30s
+AccuracySec=5s
+Persistent=true
+Unit=drive-notes-sync.service
+
+[Install]
+WantedBy=timers.target
+```
+
+Then enable and start the timer:
+
+```bash
+sudo systemctl daemon-reload
+sudo systemctl enable --now drive-notes-sync.timer
+```
+
+The first run performs a one-time crawl of all linked matters and stores a
+Changes-API cursor; later runs process only the delta. You can also sync
+manually at any time:
+
+```bash
+python manage.py sync_drive_notes          # incremental
+python manage.py sync_drive_notes --full   # force a full re-crawl
+```
+
+`python manage.py link_drive_folders` is a headless alternative to the in-app
+folder picker for linking matters to Drive folders.
