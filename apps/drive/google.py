@@ -327,7 +327,7 @@ def _remove_note(file_id, debug_dir, dry_run, stats):
 # Bootstrap (full crawl) + incremental sync
 # --------------------------------------------------------------------------- #
 def _new_stats():
-    return {"converted": 0, "skipped": 0, "removed": 0, "would-convert": 0}
+    return {"converted": 0, "skipped": 0, "removed": 0, "would-convert": 0, "failed": 0}
 
 
 def bootstrap(service, root_id, matters, debug_dir, dry_run=False):
@@ -368,17 +368,23 @@ def bootstrap(service, root_id, matters, debug_dir, dry_run=False):
                     continue
                 if not _is_allowed(child):
                     continue
-                _ingest(
-                    service,
-                    child,
-                    prefix + [child["name"]],
-                    matters,
-                    debug_dir,
-                    dry_run,
-                    stats,
-                    unmatched,
-                )
+                # Mark seen before converting so a conversion failure doesn't
+                # delete a previously-synced note as "stale".
                 seen.add(child["id"])
+                try:
+                    _ingest(
+                        service,
+                        child,
+                        prefix + [child["name"]],
+                        matters,
+                        debug_dir,
+                        dry_run,
+                        stats,
+                        unmatched,
+                    )
+                except Exception:
+                    stats["failed"] += 1
+                    logger.exception("Failed to sync note %s", child.get("name"))
 
     # Any synced Note not seen in the crawl is stale.
     stale = Note.objects.filter(drive_file_id__isnull=False).exclude(
@@ -427,7 +433,13 @@ def _process_change(
         _remove_note(file_id, debug_dir, dry_run, stats)
         return
 
-    _ingest(service, file_meta, parts, matters, debug_dir, dry_run, stats, unmatched)
+    try:
+        _ingest(
+            service, file_meta, parts, matters, debug_dir, dry_run, stats, unmatched
+        )
+    except Exception:
+        stats["failed"] += 1
+        logger.exception("Failed to sync note %s", file_meta.get("name"))
 
 
 def sync(dry_run=False, full=False, debug_dir=None):
@@ -629,6 +641,9 @@ def resync_matter(matter, debug_dir=None):
                     continue
                 if not _is_allowed(child):
                     continue
+                # Mark seen before converting so a conversion failure doesn't
+                # delete a previously-synced note as "stale".
+                seen.add(child["id"])
                 try:
                     _ingest(
                         service,
@@ -640,8 +655,8 @@ def resync_matter(matter, debug_dir=None):
                         stats,
                         unmatched,
                     )
-                    seen.add(child["id"])
                 except Exception:
+                    stats["failed"] += 1
                     logger.exception(
                         "Failed to sync note %s for matter %s",
                         child.get("name"),

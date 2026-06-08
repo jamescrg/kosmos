@@ -36,10 +36,16 @@ def to_markdown(content: bytes, ext: str) -> str:
         tmp_path = tmp.name
 
     try:
-        result = subprocess.run(
-            ["pandoc", tmp_path, "-t", "gfm", "--wrap=none"],
-            capture_output=True,
-        )
+        try:
+            result = subprocess.run(
+                ["pandoc", tmp_path, "-t", "gfm", "--wrap=none"],
+                capture_output=True,
+            )
+        except FileNotFoundError as e:
+            raise ConversionError(
+                "pandoc is not installed — it is required to convert "
+                ".docx/.odt notes (install with `apt-get install pandoc`)."
+            ) from e
         if result.returncode != 0:
             stderr = result.stderr.decode("utf-8", errors="replace")
             raise ConversionError(f"pandoc failed for {ext} file: {stderr}")

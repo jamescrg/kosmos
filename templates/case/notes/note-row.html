@@ -42,7 +42,15 @@
       </ul>
     </div>
   </td>
-  <td class="user">{{ note.author.get_short_name|default:note.author.username }}</td>
+  <td class="user">
+    {% if note.author %}
+      {{ note.author.get_short_name|default:note.author.username }}
+    {% elif note.is_synced %}
+      Drive
+    {% else %}
+      —
+    {% endif %}
+  </td>
   <td class="created">{{ note.created_at|date:"Y-m-d" }}</td>
   <td class="updated">{{ note.updated_at|date:"Y-m-d" }}</td>
   <td class="importance dropdown-cell">
