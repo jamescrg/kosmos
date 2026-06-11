@@ -308,6 +308,12 @@ def tasks_filter(request, user=None):
                 continue
             filter_data[key] = val
         filter_data["status"] = request.POST.getlist("status")
+        # The has_due_date NullBooleanSelect posts "unknown" for its empty
+        # state; normalize it to "" so it reads as "no preference" rather than
+        # a real value (which would flip the date dropdown to Custom range and
+        # light the Filter button).
+        if filter_data.get("has_due_date") == "unknown":
+            filter_data["has_due_date"] = ""
         filter_data["filter_label"] = _detect_filter_label(filter_data, date.today())
         request.session["tasks_filter"] = filter_data
         return HttpResponse(status=204, headers={"HX-Trigger": "tasksListChanged"})

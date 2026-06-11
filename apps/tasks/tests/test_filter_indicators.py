@@ -139,3 +139,19 @@ def test_modal_apply_preserves_other_session_state(client):
     # Merge preserves the prior date setting.
     assert post.get("date_due_max") == date_due_max
     assert post.get("status") == ["Complete"]
+
+
+def test_modal_apply_keeps_preset_label_despite_unknown_has_due_date(client):
+    """The modal's has_due_date select posts "unknown" for its empty state;
+    that must not flip the date dropdown off the active preset."""
+    today = date.today()
+    client.post(reverse("tasks:filter-quick", args=["today"]))
+    # Mirror what the rendered modal posts: status, the date, and the
+    # NullBooleanSelect's "unknown" sentinel.
+    client.post(
+        reverse("tasks:filter"),
+        {"status": "Pending", "date_due_max": str(today), "has_due_date": "unknown"},
+    )
+    post = _session_for(client, "tasks_filter")
+    assert post.get("has_due_date") == ""
+    assert post.get("filter_label") == "today"
