@@ -81,7 +81,10 @@ sudo apt-get install -y libpangocairo-1.0-0 tesseract-ocr ghostscript poppler-ut
 - **Poppler** (`poppler-utils`) - Required by pdf2image for PDF to image
   conversion
 - **Pandoc** (`pandoc`) - Converts Google Drive case notes (`.docx`/`.odt`) to
-  Markdown for the case-notes sync (`manage.py sync_drive_notes`)
+  Markdown for the case-notes sync (`manage.py sync_drive_notes`). Spreadsheets
+  (Google Sheets / `.xlsx` / `.csv`) in the same `Notes` folder are also synced,
+  rendered as Markdown tables (one per sheet) via the `openpyxl` Python package —
+  no extra system binary required.
 
 ### Setting up PostgreSQL
 

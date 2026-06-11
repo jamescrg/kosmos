@@ -53,9 +53,11 @@ DRIVE_TOKEN_PATH = "google/drive_tokens.json"
 
 FOLDER_MIME = "application/vnd.google-apps.folder"
 GOOGLE_DOC_MIME = "application/vnd.google-apps.document"
+GOOGLE_SHEET_MIME = "application/vnd.google-apps.spreadsheet"
 DOCX_MIME = "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+XLSX_MIME = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
 
-ALLOWED_EXTENSIONS = (".docx", ".odt", ".md")
+ALLOWED_EXTENSIONS = (".docx", ".odt", ".md", ".xlsx", ".csv")
 NOTES_FOLDER_NAME = "Notes"
 
 # Fields requested for a file in changes/listing responses.
@@ -208,15 +210,22 @@ def _in_notes_scope(parts):
 
 
 def _effective_ext(file_meta):
-    """Return the source extension to convert from (Google Docs -> .docx)."""
-    if file_meta.get("mimeType") == GOOGLE_DOC_MIME:
+    """Return the source extension to convert from.
+
+    Google-native files are exported: Docs -> .docx, Sheets -> .xlsx (XLSX
+    preserves every tab, whereas a CSV export would only yield the first sheet).
+    """
+    mime = file_meta.get("mimeType")
+    if mime == GOOGLE_DOC_MIME:
         return ".docx"
+    if mime == GOOGLE_SHEET_MIME:
+        return ".xlsx"
     return os.path.splitext(file_meta.get("name", ""))[1].lower()
 
 
 def _is_allowed(file_meta):
-    """True if the file is a convertible note (by extension or Google Doc)."""
-    if file_meta.get("mimeType") == GOOGLE_DOC_MIME:
+    """True if the file is a convertible note (by extension or Google native)."""
+    if file_meta.get("mimeType") in (GOOGLE_DOC_MIME, GOOGLE_SHEET_MIME):
         return True
     return os.path.splitext(file_meta.get("name", ""))[1].lower() in ALLOWED_EXTENSIONS
 
@@ -259,8 +268,11 @@ def _delete_debug(debug_dir, rel_path):
 def _download(service, file_meta):
     """Download a file's bytes (exporting Google Docs to .docx)."""
     file_id = file_meta["id"]
-    if file_meta.get("mimeType") == GOOGLE_DOC_MIME:
+    mime = file_meta.get("mimeType")
+    if mime == GOOGLE_DOC_MIME:
         request = service.files().export_media(fileId=file_id, mimeType=DOCX_MIME)
+    elif mime == GOOGLE_SHEET_MIME:
+        request = service.files().export_media(fileId=file_id, mimeType=XLSX_MIME)
     else:
         request = service.files().get_media(fileId=file_id, supportsAllDrives=True)
 

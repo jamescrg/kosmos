@@ -29,6 +29,8 @@ dependencies = [
     # Markdown processing
     "Markdown==3.8.1",
     "pymdown-extensions==10.18",
+    # Spreadsheet parsing (Drive notes -> Markdown tables)
+    "openpyxl==3.1.5",
     # PDF generation and processing
     "weasyprint==68.0",
     "pytesseract==0.3.13",
