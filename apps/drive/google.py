@@ -57,7 +57,7 @@ GOOGLE_SHEET_MIME = "application/vnd.google-apps.spreadsheet"
 DOCX_MIME = "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
 XLSX_MIME = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
 
-ALLOWED_EXTENSIONS = (".docx", ".odt", ".md", ".xlsx", ".csv")
+ALLOWED_EXTENSIONS = (".docx", ".odt", ".md", ".xlsx", ".ods", ".csv")
 NOTES_FOLDER_NAME = "Notes"
 
 # Fields requested for a file in changes/listing responses.

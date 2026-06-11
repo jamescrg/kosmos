@@ -4,10 +4,10 @@ Word-processor files go through pandoc (a system binary — see README): `.md`
 passes through unchanged; `.docx`/`.odt` (and exported Google Docs, which we
 hand off as `.docx`) are converted to GitHub-flavored Markdown.
 
-Spreadsheets are handled in-process (no pandoc): `.xlsx` via openpyxl and `.csv`
-via the stdlib, each rendered as one GFM table per sheet so the row/column/sheet
-relationships survive for the AI context builder. Very large sheets are capped
-with a visible truncation note to protect the AI token budget.
+Spreadsheets are handled in-process (no pandoc): `.xlsx` via openpyxl, `.ods`
+via odfpy, and `.csv` via the stdlib, each rendered as one GFM table per sheet so
+the row/column/sheet relationships survive for the AI context builder. Very large
+sheets are capped with a visible truncation note to protect the AI token budget.
 """
 
 import csv
@@ -34,7 +34,7 @@ def to_markdown(content: bytes, ext: str) -> str:
     Args:
         content: the raw bytes of the source file.
         ext: lowercase file extension including the dot (".docx", ".odt", ".md",
-            ".xlsx", ".csv").
+            ".xlsx", ".ods", ".csv").
 
     Returns:
         The Markdown text.
@@ -43,6 +43,8 @@ def to_markdown(content: bytes, ext: str) -> str:
         return content.decode("utf-8", errors="replace")
     if ext == ".xlsx":
         return _xlsx_to_markdown(content)
+    if ext == ".ods":
+        return _ods_to_markdown(content)
     if ext == ".csv":
         return _csv_to_markdown(content)
 
@@ -165,6 +167,53 @@ def _xlsx_to_markdown(content: bytes) -> str:
         if table:
             sections.append(table)
     wb.close()
+    return "\n\n".join(sections)
+
+
+def _ods_repeat(element, name: str, cap: int = 4096) -> int:
+    """Read an ODS row/column repeat count, clamped to avoid runaway expansion.
+
+    ODS pads sheets with huge repeat counts on trailing empty rows/columns; the
+    cap keeps memory bounded (trailing empties are trimmed away afterwards).
+    """
+    raw = element.getAttribute(name)
+    try:
+        n = int(raw) if raw else 1
+    except (TypeError, ValueError):
+        n = 1
+    return max(1, min(n, cap))
+
+
+def _ods_to_markdown(content: bytes) -> str:
+    """Convert an .ods workbook to one GFM table section per non-empty sheet."""
+    try:
+        from odf import teletype
+        from odf.opendocument import load
+        from odf.table import Table, TableCell, TableRow
+    except ImportError as e:  # pragma: no cover - dependency is declared
+        raise ConversionError(
+            "odfpy is not installed — it is required to convert .ods notes "
+            "(install with `pip install odfpy`)."
+        ) from e
+
+    try:
+        doc = load(io.BytesIO(content))
+    except Exception as e:
+        raise ConversionError(f"could not read .ods file: {e}") from e
+
+    sections = []
+    for table in doc.spreadsheet.getElementsByType(Table):
+        rows = []
+        for tr in table.getElementsByType(TableRow):
+            cells = []
+            for tc in tr.getElementsByType(TableCell):
+                text = teletype.extractText(tc)
+                cells.extend([text] * _ods_repeat(tc, "numbercolumnsrepeated"))
+            row_repeat = _ods_repeat(tr, "numberrowsrepeated")
+            rows.extend([list(cells) for _ in range(row_repeat)])
+        table_md = _render_table(rows, sheet_name=table.getAttribute("name"))
+        if table_md:
+            sections.append(table_md)
     return "\n\n".join(sections)
 
 
