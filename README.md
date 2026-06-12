@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="static/images/aletheia-mark.svg" alt="Aletheia logo" width="96" height="96">
+</p>
+
 # Aletheia
 
 A web-based law practice management application with integrated case
