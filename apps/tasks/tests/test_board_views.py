@@ -2,6 +2,7 @@ import json
 
 import pytest
 
+from apps.accounts.models import CustomUser
 from apps.checklists.models import Checklist, ChecklistItem
 
 
@@ -76,6 +77,29 @@ def test_board_move_to_complete_sets_completed_date(client, task):
 def test_view_mode_rejects_unknown(client):
     resp = client.post("/tasks/view-mode/bogus/")
     assert resp.status_code == 404
+
+
+@pytest.mark.django_db
+def test_toolbar_has_user_quick_buttons(client, user):
+    client.post("/tasks/view-mode/board/")
+    body = client.get("/").content.decode()
+    # "My tasks" button selects the current user; cycle button advances users.
+    assert f"/tasks/filter/user/{user.id}/" in body
+    assert "/tasks/cycle-user/" in body
+
+
+@pytest.mark.django_db
+def test_cycle_user_advances_and_wraps(client, user):
+    second = CustomUser.objects.create(
+        username="Zara", email="zara@example.com", user_rate=100
+    )
+    # Ordered by username: Ollie (the `user` fixture) then Zara.
+    client.post("/tasks/cycle-user/")
+    assert client.session["tasks_filter"]["user"] == user.id
+    client.post("/tasks/cycle-user/")
+    assert client.session["tasks_filter"]["user"] == second.id
+    client.post("/tasks/cycle-user/")  # wraps back to the first
+    assert client.session["tasks_filter"]["user"] == user.id
 
 
 @pytest.mark.django_db
