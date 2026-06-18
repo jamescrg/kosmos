@@ -55,6 +55,17 @@ def _tasks_view_context(request):
     return "tasks/list.html", context
 
 
+def _render_tasks(request):
+    """Render the current tasks fragment (list or board) for the #tasks target.
+
+    Shared by tasks_list and by every mutation endpoint that used to
+    redirect("tasks:list"); returning the fragment directly drops the extra
+    POST -> 302 -> GET round-trip.
+    """
+    inner_template, context = _tasks_view_context(request)
+    return render(request, inner_template, context)
+
+
 @login_required
 def tasks_index(request):
     inner_template, context = _tasks_view_context(request)
@@ -67,8 +78,7 @@ def tasks_index(request):
 
 @login_required
 def tasks_list(request):
-    inner_template, context = _tasks_view_context(request)
-    return render(request, inner_template, context)
+    return _render_tasks(request)
 
 
 @login_required
@@ -500,8 +510,7 @@ def tasks_filter_quick(request, quick_filter):
 
     # Honour the active view mode so a date filter doesn't bounce a board
     # user back to the list.
-    inner_template, context = _tasks_view_context(request)
-    return render(request, inner_template, context)
+    return _render_tasks(request)
 
 
 @login_required
@@ -511,7 +520,7 @@ def tasks_filter_matter(request, matter_id):
 
     request.session["tasks_filter"] = filter_data
 
-    return redirect("tasks:list")
+    return _render_tasks(request)
 
 
 @login_required
@@ -528,7 +537,7 @@ def tasks_filter_user(request, user_id):
 
     request.session["tasks_filter"] = filter_data
 
-    return redirect("tasks:list")
+    return _render_tasks(request)
 
 
 @login_required
@@ -546,7 +555,7 @@ def tasks_cycle_user(request):
         .values_list("id", flat=True)
     )
     if not user_ids:
-        return redirect("tasks:list")
+        return _render_tasks(request)
 
     filter_data = request.session.get("tasks_filter", {})
     current = filter_data.get("user")
@@ -560,7 +569,7 @@ def tasks_cycle_user(request):
     filter_data["user"] = next_id
     request.session["tasks_filter"] = filter_data
 
-    return redirect("tasks:list")
+    return _render_tasks(request)
 
 
 @login_required
@@ -571,7 +580,7 @@ def tasks_filter_importance(request, importance_value):
 
     request.session["tasks_filter"] = filter_data
 
-    return redirect("tasks:list")
+    return _render_tasks(request)
 
 
 @login_required
@@ -589,7 +598,7 @@ def tasks_filter_default(request):
     request.session["tasks_filter"] = filter_data
     request.session.modified = True
     if request.headers.get("HX-Request"):
-        return redirect("tasks:list")
+        return _render_tasks(request)
     return redirect("tasks:index")
 
 
@@ -610,7 +619,7 @@ def tasks_status(request, id):
             return response
         task.status = STATUS_COMPLETE
     task.save()
-    return redirect("tasks:list")
+    return _render_tasks(request)
 
 
 @login_required
@@ -632,7 +641,7 @@ def tasks_set_status(request, task_id, status):
         return response
     task.status = status
     task.save()
-    return redirect("tasks:list")
+    return _render_tasks(request)
 
 
 @login_required
@@ -656,7 +665,7 @@ def tasks_importance(request, task_id, importance):
     task.importance = importance
     task.save()
     request.session["edited_task_ids"] = [task.id]
-    return redirect("tasks:list")
+    return _render_tasks(request)
 
 
 @login_required
@@ -671,7 +680,7 @@ def tasks_date(request, task_id):
         task.date_due = date_due
         task.save()
         request.session["edited_task_ids"] = [task.id]
-        return redirect("tasks:list")
+        return _render_tasks(request)
 
     else:
         context = {
@@ -686,7 +695,7 @@ def tasks_user(request, task_id, user):
     user = get_object_or_404(CustomUser, pk=user)
     task.user = user
     task.save()
-    return redirect("tasks:list")
+    return _render_tasks(request)
 
 
 @login_required
@@ -698,7 +707,7 @@ def tasks_matter(request, task_id, matter_id):
         matter = get_object_or_404(Matter, pk=matter_id)
         task.matter = matter
     task.save()
-    return redirect("tasks:list")
+    return _render_tasks(request)
 
 
 @login_required
@@ -715,7 +724,7 @@ def tasks_filter_sort(request, order):
     filter_data["order_by"] = new_order
     request.session["tasks_filter"] = filter_data
 
-    return redirect("tasks:list")
+    return _render_tasks(request)
 
 
 @login_required
@@ -727,7 +736,7 @@ def clear_tasks(request):
     filter_data["status"] = coerce_status(filter_data.get("status")) or ACTIVE_STATUSES
     filter = TasksFilter(filter_data)
     filter.qs.filter(status=STATUS_COMPLETE).delete()
-    return redirect("tasks:list")
+    return _render_tasks(request)
 
 
 @login_required
