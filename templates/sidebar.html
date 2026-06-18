@@ -114,6 +114,15 @@
           <span class="sidebar-label">Settings</span>
         </a>
       </li>
+      <li>
+        <a href="#"
+           hx-get="{% url 'settings:keyboard-shortcuts' %}"
+           hx-target="#htmx-modal-container"
+           data-tooltip="Shortcuts">
+          <i class="icon-keyboard"></i>
+          <span class="sidebar-label">Shortcuts</span>
+        </a>
+      </li>
     </ul>
   </nav>
   <button class="sidebar-toggle"

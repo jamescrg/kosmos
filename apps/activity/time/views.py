@@ -2,6 +2,7 @@ from datetime import date, datetime, timedelta
 
 from django.contrib.auth.decorators import login_required
 from django.core.exceptions import ObjectDoesNotExist
+from django.db import models
 from django.http import HttpResponse, HttpResponseForbidden
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
@@ -20,6 +21,7 @@ from apps.management.selection import (
 )
 from apps.matters.models import Matter
 from apps.matters.rates.models import Rate
+from utils.toasts import toast_success
 
 from .export import write_clio_csv, write_standard_csv
 from .filter import TimeEntryFilter
@@ -297,6 +299,22 @@ def time_add(request, id=None, request_app="activity"):
                 response = HttpResponse(
                     status=204, headers={"HX-Trigger": "timeChanged"}
                 )
+                if request.GET.get("from") == "palette":
+                    today_total = (
+                        TimeEntry.objects.filter(
+                            user=request.user, date=date.today()
+                        ).aggregate(total=models.Sum("hours"))["total"]
+                        or 0
+                    )
+                    toast_success(
+                        response,
+                        f"Total time for today: {today_total}h",
+                        duration=8000,
+                        link={
+                            "url": reverse("activity:time-index"),
+                            "text": "View activity",
+                        },
+                    )
                 return response
             elif request_app in ("matters", "case"):
                 url = reverse("activity:time-index")

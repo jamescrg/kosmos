@@ -35,7 +35,7 @@ from apps.tasks.models import (
 )
 from apps.tasks.services import process_quick_task_description
 from apps.tasks.tasks import get_board_data, get_list_data
-from utils.toasts import toast_warning
+from utils.toasts import toast_success, toast_warning
 
 TASKS_TRIGGER = "tasksListChanged"
 
@@ -162,6 +162,8 @@ def tasks_add(request):
             response = HttpResponse(
                 status=204, headers={"HX-Trigger": "tasksListChanged"}
             )
+            if request.GET.get("from") == "palette":
+                toast_success(response, f"Task created for {task.user.full_name}.")
             return response
 
     else:
