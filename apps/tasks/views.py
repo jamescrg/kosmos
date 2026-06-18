@@ -541,38 +541,6 @@ def tasks_filter_user(request, user_id):
 
 
 @login_required
-@require_POST
-def tasks_cycle_user(request):
-    """Advance the user filter to the next active user, wrapping around.
-
-    Powers the toolbar's cycle button. Starts at the first user when nothing
-    (or "All Users") is selected. The re-render refreshes the user dropdown
-    label too, since the toolbar is part of the list/board response.
-    """
-    user_ids = list(
-        CustomUser.objects.filter(is_active=True)
-        .order_by("username")
-        .values_list("id", flat=True)
-    )
-    if not user_ids:
-        return _render_tasks(request)
-
-    filter_data = request.session.get("tasks_filter", {})
-    current = filter_data.get("user")
-    current = int(current) if current not in (None, "", 0, "0") else None
-
-    if current in user_ids:
-        next_id = user_ids[(user_ids.index(current) + 1) % len(user_ids)]
-    else:
-        next_id = user_ids[0]
-
-    filter_data["user"] = next_id
-    request.session["tasks_filter"] = filter_data
-
-    return _render_tasks(request)
-
-
-@login_required
 def tasks_filter_importance(request, importance_value):
     filter_data = request.session.get("tasks_filter", {})
     # Set to empty string when 0 (All) is selected, otherwise use the value
