@@ -13,6 +13,7 @@ from apps.management.selection import (
 from apps.matters.models import Matter
 from apps.tasks.constants import (
     ACTIVE_STATUSES,
+    BOARD_STATUS_ORDER,
     STATUS_BY_SLUG,
     STATUS_CHOICES,
     coerce_status,
@@ -249,9 +250,9 @@ def get_board_data(request):
 
     Honours the same session filters as the list view (user, matter,
     importance, date) but ignores the saved *status* filter — the board's
-    columns are the status dimension, so every status is always shown. Tasks
-    are grouped into one column per STATUS_CHOICES entry and ordered within a
-    column by custom_order (manual drag order) then due date.
+    columns are the status dimension, so every status is always shown. Columns
+    are laid out in BOARD_STATUS_ORDER and tasks within a column are ordered by
+    custom_order (manual drag order) then due date.
     """
     today = date.today()
 
@@ -277,14 +278,15 @@ def get_board_data(request):
             grouped[task.status].append(task)
 
     slug_by_status = {value: slug for slug, value in STATUS_BY_SLUG.items()}
+    status_labels = dict(STATUS_CHOICES)
     columns = [
         {
-            "label": label,
+            "label": status_labels[value],
             "slug": slug_by_status[value],
             "tasks": grouped[value],
             "count": len(grouped[value]),
         }
-        for value, label in STATUS_CHOICES
+        for value in BOARD_STATUS_ORDER
     ]
 
     selected_matter = Matter.objects.filter(id=matter_id).first() if matter_id else None

@@ -20,9 +20,11 @@ def test_board_view_renders(client, task):
     assert 'id="tasks-board"' in body
     assert 'data-status-slug="pending"' in body
     assert f'data-task-id="{task.id}"' in body
-    # All four columns present
-    for slug in ("pending", "in-progress", "on-hold", "complete"):
-        assert f'data-status-slug="{slug}"' in body
+    # All four columns present, in board order: the forward flow stays
+    # contiguous and On hold is parked on the right.
+    order = ["pending", "in-progress", "complete", "on-hold"]
+    positions = [body.index(f'data-status-slug="{slug}"') for slug in order]
+    assert positions == sorted(positions)
 
 
 @pytest.mark.django_db

@@ -18,6 +18,16 @@ STATUS_CHOICES = (
     (STATUS_COMPLETE, STATUS_COMPLETE),
 )
 
+# Left-to-right column order for the Kanban board. Distinct from STATUS_CHOICES
+# (which orders the filter/form widgets): the board keeps the forward flow
+# Pending -> In progress -> Complete contiguous and parks On hold on the right.
+BOARD_STATUS_ORDER = (
+    STATUS_PENDING,
+    STATUS_IN_PROGRESS,
+    STATUS_COMPLETE,
+    STATUS_ON_HOLD,
+)
+
 # Everything except Complete. This is the default task-list filter and the
 # definition of an "active" (not-done) task for digests/reminders/dashboards.
 # It's a list because the filter session value is a list and order is preserved.
