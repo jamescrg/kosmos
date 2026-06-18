@@ -23,6 +23,17 @@
     });
   }
 
+  // Fill the viewport: the board runs from its top edge to the bottom of the
+  // window (less a small gutter), so columns are full-height and scroll
+  // internally. Measured rather than hard-coded so it survives the dev banner,
+  // toolbar height changes, and the collapsible sidebar.
+  function sizeBoard() {
+    var board = document.getElementById("tasks-board");
+    if (!board) return;
+    var top = board.getBoundingClientRect().top;
+    board.style.height = Math.max(240, window.innerHeight - top - 24) + "px";
+  }
+
   function persistMove(board, item, to) {
     var statusSlug = to.dataset.statusSlug;
     var orderedIds = Array.from(to.querySelectorAll(".kanban-card")).map(function (c) {
@@ -94,7 +105,13 @@
         // (under 5px of movement) never registers as a drag.
         forceFallback: true,
         fallbackTolerance: 5,
+        // Show the grabbing cursor only once a drag is actually under way,
+        // not on hover.
+        onStart: function () {
+          document.body.classList.add("kanban-dragging");
+        },
         onEnd: function (evt) {
+          document.body.classList.remove("kanban-dragging");
           board._suppressClick = true;
           setTimeout(function () {
             board._suppressClick = false;
@@ -103,9 +120,12 @@
         },
       });
     });
+
+    sizeBoard();
   }
 
   document.addEventListener("DOMContentLoaded", initTaskBoard);
+  window.addEventListener("resize", sizeBoard);
   document.body.addEventListener("htmx:afterSwap", function (event) {
     if (event.target.id === "tasks") {
       initTaskBoard();

@@ -814,12 +814,14 @@ tr > td.importance.complete .button-link {
  Kanban Board
 ========================================================================== */
 
+/* Board height is set in JS (tasks-board.js) so columns fill the viewport;
+   align-items: stretch makes every column that full height regardless of how
+   many cards it holds. */
 .kanban-board {
-  align-items: flex-start;
+  align-items: stretch;
   display: flex;
   gap: 1rem;
   overflow-x: auto;
-  padding-bottom: 1rem;
 }
 
 .kanban-column {
@@ -829,7 +831,7 @@ tr > td.importance.complete .button-link {
   display: flex;
   flex: 1 0 0;
   flex-direction: column;
-  max-height: calc(100vh - 12rem);
+  min-height: 0;
   min-width: 15rem;
 }
 
@@ -872,20 +874,29 @@ tr > td.importance.complete .button-link {
   text-align: center;
 }
 
+/* Hide the placeholder the moment a card is present — including a card
+   dragged in, since :has re-evaluates live. */
+.kanban-column-cards:has(.kanban-card) .kanban-column-empty {
+  display: none;
+}
+
 .kanban-card {
   background: var(--background-body);
   border: solid 1px var(--border-medium);
   border-left-width: 3px;
   border-radius: var(--radius-md);
   box-shadow: 0 1px 2px rgb(0 0 0 / 6%);
-  cursor: grab;
+  cursor: pointer;
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
   padding: 0.625rem 0.75rem;
 }
 
-.kanban-card:active {
+/* Grabbing cursor only while a drag is actually in progress (body class set
+   by tasks-board.js on drag start), not on hover. */
+body.kanban-dragging,
+body.kanban-dragging .kanban-card {
   cursor: grabbing;
 }
 
