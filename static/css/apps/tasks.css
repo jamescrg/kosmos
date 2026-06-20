@@ -891,6 +891,11 @@ tr > td.importance.complete .button-link {
   flex-direction: column;
   gap: 0.5rem;
   padding: 0.625rem 0.75rem;
+  /* The whole card is the drag handle, so suppress text selection — otherwise a
+     drag (or a shift-click to select, the browser's native extend-selection
+     gesture) highlights the card's text. */
+  user-select: none;
+  -webkit-user-select: none;
 }
 
 /* Grabbing cursor only while a drag is actually in progress (body class set
@@ -930,10 +935,12 @@ body.kanban-dragging .kanban-card {
   background: var(--past-due-bg);
 }
 
-/* Selected for a bulk action — tint matches the checkbox's checked colour.
-   After past-due so selection wins the fill; the importance rail is untouched. */
+/* Selected for a bulk action (shift-click). After past-due so selection wins the
+   fill; the importance rail is untouched. A ring makes the selection legible for
+   stacked bulk drag, since the checkbox affordance is gone. */
 .kanban-card.selected {
   background: var(--selected-background);
+  box-shadow: inset 0 0 0 1px var(--selected-border);
 }
 
 .kanban-card.complete .kanban-card-description {
@@ -1042,6 +1049,40 @@ body.kanban-dragging .kanban-card {
 .kanban-card.sortable-fallback {
   box-shadow: 0 6px 16px rgb(0 0 0 / 18%);
   cursor: grabbing;
+}
+
+/* Bulk drag — dragging one of several selected cards moves the whole set. The
+   other selected cards dim in place while the grabbed clone carries a stacked
+   shadow + a count badge, so it reads as a pile of cards moving together. */
+.kanban-card.bulk-drag-source {
+  opacity: 0.4;
+}
+
+body.kanban-bulk-dragging .kanban-card.sortable-fallback {
+  box-shadow:
+    0 6px 16px rgb(0 0 0 / 18%),
+    5px 5px 0 -1px var(--background-body),
+    6px 6px 0 0 var(--border-medium),
+    10px 10px 0 -1px var(--background-body),
+    11px 11px 0 0 var(--border-medium);
+}
+
+.bulk-drag-count {
+  position: absolute;
+  top: -0.625rem;
+  right: -0.625rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 1.5rem;
+  height: 1.5rem;
+  padding: 0 0.375rem;
+  border-radius: var(--radius-full);
+  background: var(--link);
+  color: var(--background-body);
+  font-size: 1rem;
+  font-weight: 600;
+  box-shadow: 0 1px 2px rgb(0 0 0 / 25%);
 }
 
 /* Dark mode — board. Match the table's dark importance hue, and signal

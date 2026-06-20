@@ -83,6 +83,17 @@ def tasks_list(request):
 
 
 @login_required
+def tasks_toolbar(request):
+    """Render just the tasks toolbar (bulk actions + selection count).
+
+    Used after a shift-click selection change so the board doesn't have to be
+    re-rendered and its Sortables re-initialised on every click.
+    """
+    _, context = _tasks_view_context(request)
+    return render(request, "tasks/toolbar.html", context)
+
+
+@login_required
 @require_POST
 def tasks_set_view_mode(request, mode):
     """Toggle between the list and board (Kanban) views; persist in session."""
@@ -137,6 +148,47 @@ def tasks_board_move(request):
             t.save(update_fields=["custom_order"])
 
     return JsonResponse({"ok": True})
+
+
+@login_required
+@require_POST
+def tasks_board_bulk_move(request):
+    """Move every selected task to a status (Kanban stacked bulk drag).
+
+    Body JSON: {status_slug}. Reads the selection from the session, mirrors the
+    single-card move's completion guard per task, and skips any that can't be
+    completed. Returns {ok, skipped, message}; the client refreshes the board and
+    shows a warning toast when tasks were skipped (a fetch can't read HX-Toast).
+    """
+    try:
+        payload = json.loads(request.body)
+    except (ValueError, TypeError):
+        return JsonResponse({"ok": False, "message": "Invalid request."}, status=400)
+
+    status = STATUS_BY_SLUG.get(payload.get("status_slug"))
+    if status is None:
+        return JsonResponse({"ok": False, "message": "Unknown status."}, status=400)
+
+    key = get_session_key("selected_tasks")
+    selected = get_selected_ids(request, key)
+    if not selected:
+        return JsonResponse({"ok": False, "message": "No tasks selected."}, status=400)
+
+    skipped = 0
+    for task in Task.objects.filter(id__in=selected):
+        if status == STATUS_COMPLETE and not can_complete_task(task):
+            skipped += 1
+            continue
+        if task.status != status:
+            task.status = status
+            task.save()
+
+    clear_selected_ids(request, key)
+
+    message = ""
+    if skipped:
+        message = f"{skipped} task(s) skipped — complete their checklists first."
+    return JsonResponse({"ok": True, "skipped": skipped, "message": message})
 
 
 @login_required

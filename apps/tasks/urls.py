@@ -5,6 +5,7 @@ from apps.tasks.views import (
     tasks_add,
     tasks_add_note,
     tasks_add_quick,
+    tasks_board_bulk_move,
     tasks_board_move,
     tasks_bulk_clear_due_date,
     tasks_bulk_delete,
@@ -39,6 +40,7 @@ from apps.tasks.views import (
     tasks_set_view_mode,
     tasks_status,
     tasks_toggle_select,
+    tasks_toolbar,
     tasks_user,
 )
 
@@ -87,6 +89,8 @@ urlpatterns = [
     path("tasks/list/", tasks_list, name="list"),
     path("tasks/view-mode/<str:mode>/", tasks_set_view_mode, name="view-mode"),
     path("tasks/board/move/", tasks_board_move, name="board-move"),
+    path("tasks/board/bulk-move/", tasks_board_bulk_move, name="board-bulk-move"),
+    path("tasks/toolbar/", tasks_toolbar, name="toolbar"),
     path(
         "tasks/filter/quick/<str:quick_filter>",
         tasks_filter_quick,
