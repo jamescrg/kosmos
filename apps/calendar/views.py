@@ -621,6 +621,7 @@ def events_api(request):
             "extendedProps": {
                 "matter": event.matter.name if event.matter else "",
                 "matter_id": event.matter.id if event.matter else None,
+                "event_type": event.event_type or "",
                 "location": event.location or "",
                 "party": event.party or "",
                 "status": event.status or "",

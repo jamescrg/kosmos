@@ -7,7 +7,7 @@ from utils.models import AuditMixin
 
 
 class Event(AuditMixin, models.Model):
-    LOCATION_CHOICES = [
+    EVENT_TYPE_CHOICES = [
         ("Zoom", "Zoom"),
         ("Virtual", "Virtual"),
         ("Phone", "Phone"),
@@ -30,9 +30,10 @@ class Event(AuditMixin, models.Model):
     end_time = models.TimeField(blank=True, null=True)
     party = models.CharField(max_length=50, blank=True, null=True)
     description = models.CharField(max_length=255, blank=True, null=True)
-    location = models.CharField(
-        max_length=50, choices=LOCATION_CHOICES, blank=True, null=True
+    event_type = models.CharField(
+        max_length=50, choices=EVENT_TYPE_CHOICES, blank=True, null=True
     )
+    location = models.TextField(blank=True, null=True)
     status = models.CharField(max_length=50, blank=True, null=True)
     google_id = models.CharField(max_length=255, blank=True, null=True)
     history = HistoricalRecords(table_name="agenda_historicalevent")

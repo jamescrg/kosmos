@@ -82,7 +82,7 @@
             </button>
           </th>
           <th class="duration">Duration</th>
-          <th class="location">Location</th>
+          <th class="location">Type</th>
           <th class="status">
             Status
             <button class="btn-sort {% if current_order == 'status' %}active{% endif %}"
@@ -112,7 +112,7 @@
                 {% if event.duration != 1 %}s{% endif %}
               {% endif %}
             </td>
-            <td class="location">{{ event.location|default:"" }}</td>
+            <td class="location">{{ event.event_type|default:"" }}</td>
             <td class="status">{{ event.status }}</td>
           </tr>
         {% empty %}

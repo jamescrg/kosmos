@@ -83,9 +83,12 @@ def add_event(event):
                 "timeZone": "US/Eastern",
             }
 
-        # Add location if provided
+        # Map the free-text location to Google's location field; fall back to
+        # the meeting type so type-only events still show something there.
         if event.location:
             new_event["location"] = event.location
+        elif event.event_type:
+            new_event["location"] = event.event_type
 
         google_event = (
             service.events().insert(calendarId=CALENDAR_ID, body=new_event).execute()
@@ -226,9 +229,12 @@ def edit_event(event):
                 "date": str(event.date + timedelta(days=1)),
             }
 
-        # Add location if provided
+        # Map the free-text location to Google's location field; fall back to
+        # the meeting type so type-only events still show something there.
         if event.location:
             revised_event["location"] = event.location
+        elif event.event_type:
+            revised_event["location"] = event.event_type
 
         result = (
             service.events()
@@ -387,7 +393,7 @@ def _process_google_event(google_event):
 def _parse_google_event(google_event):
     """
     Parse Google Calendar event into local Event model fields.
-    Extracts: date, start_time, end_time, description, location
+    Extracts: date, start_time, end_time, description, event_type, location
     Note: matter, party, status, user_id cannot be determined from Google data
     """
     from apps.matters.models import Matter
@@ -426,9 +432,12 @@ def _parse_google_event(google_event):
         event_data["start_time"] = start_dt.time()
         event_data["end_time"] = end_dt.time()
 
-    # Parse location
+    # Parse location: a bare meeting-type value maps to event_type (legacy
+    # data), anything else is treated as a free-text location.
     location = google_event.get("location", "")
     if location in ["Zoom", "Virtual", "Phone", "In-person"]:
+        event_data["event_type"] = location
+    elif location:
         event_data["location"] = location
 
     return event_data

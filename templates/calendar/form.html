@@ -1,4 +1,4 @@
-<div class="modal-dialog modal-md">
+<div class="modal-dialog modal-lg">
   <div class="modal-content">
     <div class="modal-header">
       <h1 class="modal-title">
@@ -26,7 +26,7 @@
       <form id="event-form"
             hx-post="{{ action }}"
             hx-target="#htmx-modal-container"
-            class="form-compact events-form col2"
+            class="form-compact events-form col3"
             role="form">
         {% csrf_token %}
         {{ form }}
