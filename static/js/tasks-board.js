@@ -148,7 +148,7 @@
           }
           return;
         }
-        // Let the checklist/notes buttons handle their own clicks.
+        // Let the checklist/notes buttons + the column "+" self-handle.
         if (e.target.closest("a, button")) return;
         if (!card) return;
         var url = card.dataset.editUrl;

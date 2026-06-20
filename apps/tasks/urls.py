@@ -7,6 +7,7 @@ from apps.tasks.views import (
     tasks_add_quick,
     tasks_board_bulk_move,
     tasks_board_move,
+    tasks_board_show_more,
     tasks_bulk_clear_due_date,
     tasks_bulk_delete,
     tasks_bulk_set_due_date,
@@ -90,6 +91,11 @@ urlpatterns = [
     path("tasks/view-mode/<str:mode>/", tasks_set_view_mode, name="view-mode"),
     path("tasks/board/move/", tasks_board_move, name="board-move"),
     path("tasks/board/bulk-move/", tasks_board_bulk_move, name="board-bulk-move"),
+    path(
+        "tasks/board/show-more/<str:slug>/",
+        tasks_board_show_more,
+        name="board-show-more",
+    ),
     path("tasks/toolbar/", tasks_toolbar, name="toolbar"),
     path(
         "tasks/filter/quick/<str:quick_filter>",

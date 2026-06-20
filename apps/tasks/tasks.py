@@ -13,6 +13,7 @@ from apps.management.selection import (
 from apps.matters.models import Matter
 from apps.tasks.constants import (
     ACTIVE_STATUSES,
+    BOARD_PAGE_SIZE,
     BOARD_STATUS_ORDER,
     STATUS_BY_SLUG,
     STATUS_CHOICES,
@@ -279,15 +280,34 @@ def get_board_data(request):
 
     slug_by_status = {value: slug for slug, value in STATUS_BY_SLUG.items()}
     status_labels = dict(STATUS_CHOICES)
-    columns = [
-        {
-            "label": status_labels[value],
-            "slug": slug_by_status[value],
-            "tasks": grouped[value],
-            "count": len(grouped[value]),
-        }
-        for value in BOARD_STATUS_ORDER
-    ]
+    # Cap each column at its session limit (default BOARD_PAGE_SIZE) so a column
+    # with hundreds of cards — typically Completed — doesn't bloat the board.
+    # "Show more" bumps the limit (see tasks_board_show_more). count stays the
+    # true total; tasks is the visible slice. Just-created tasks (custom_order is
+    # null, so they'd sort to the bottom) are pulled to the front so a card added
+    # via the column quick-add is always visible, even past the cap.
+    limits = request.session.get("tasks_board_limits", {})
+    new_ids = set(request.session.pop("new_task_ids", []))
+    columns = []
+    for value in BOARD_STATUS_ORDER:
+        slug = slug_by_status[value]
+        col_tasks = grouped[value]
+        if new_ids and any(t.id in new_ids for t in col_tasks):
+            fresh = [t for t in col_tasks if t.id in new_ids]
+            col_tasks = fresh + [t for t in col_tasks if t.id not in new_ids]
+        total = len(col_tasks)
+        limit = limits.get(slug, BOARD_PAGE_SIZE)
+        visible = col_tasks[:limit]
+        columns.append(
+            {
+                "label": status_labels[value],
+                "slug": slug,
+                "tasks": visible,
+                "count": total,
+                "has_more": total > len(visible),
+                "remaining": total - len(visible),
+            }
+        )
 
     selected_matter = Matter.objects.filter(id=matter_id).first() if matter_id else None
     selected_user = CustomUser.objects.filter(id=user_id).first() if user_id else None

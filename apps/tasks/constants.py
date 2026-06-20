@@ -28,6 +28,11 @@ BOARD_STATUS_ORDER = (
     STATUS_ON_HOLD,
 )
 
+# How many cards a board column renders at a time: the initial load shows this
+# many, and each "Show more" reveals another page. Keeps big columns (e.g.
+# Completed, which can hold hundreds of tasks) from bloating the board.
+BOARD_PAGE_SIZE = 20
+
 # Everything except Complete. This is the default task-list filter and the
 # definition of an "active" (not-done) task for digests/reminders/dashboards.
 # It's a list because the filter session value is a list and order is preserved.

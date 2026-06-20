@@ -22,6 +22,7 @@ from apps.management.user_filter import cycle_user_filter
 from apps.matters.models import Matter
 from apps.tasks.constants import (
     ACTIVE_STATUSES,
+    BOARD_PAGE_SIZE,
     STATUS_BY_SLUG,
     STATUS_COMPLETE,
     STATUS_PENDING,
@@ -69,12 +70,28 @@ def _render_tasks(request):
 
 @login_required
 def tasks_index(request):
+    # Start each full board load with every column collapsed to one page; the
+    # per-column "Show more" expansions are only meant to last within a session
+    # of working on the board, not to persist a 350-card Completed column.
+    request.session.pop("tasks_board_limits", None)
     inner_template, context = _tasks_view_context(request)
     context = context | {
         "app": "tasks",
         "inner_template": inner_template,
     }
     return render(request, "tasks/tasks.html", context)
+
+
+@login_required
+@require_POST
+def tasks_board_show_more(request, slug):
+    """Reveal another page of cards in a board column (raise its render limit)."""
+    if slug in STATUS_BY_SLUG:
+        limits = request.session.get("tasks_board_limits", {})
+        limits[slug] = limits.get(slug, BOARD_PAGE_SIZE) + BOARD_PAGE_SIZE
+        request.session["tasks_board_limits"] = limits
+        request.session.modified = True
+    return HttpResponse(status=204, headers={"HX-Trigger": TASKS_TRIGGER})
 
 
 @login_required
@@ -202,7 +219,9 @@ def tasks_add(request):
         form = TaskForm(request.POST, user=request.user, use_required_attribute=False)
         if form.is_valid():
             task = form.save(commit=False)
-            task.status = STATUS_PENDING
+            # The board's per-column "+" opens this modal with ?status=<slug> so
+            # the card lands in that column; elsewhere it defaults to Pending.
+            task.status = STATUS_BY_SLUG.get(request.GET.get("status"), STATUS_PENDING)
             task.save()
 
             # Store new task ID for force-show in filtered lists

@@ -852,6 +852,7 @@ tr > td.importance.complete .button-link {
   background: var(--background-control);
   border-radius: var(--radius-full);
   color: var(--color-muted);
+  margin-left: auto; /* title + "+" pack left; count sits at the right */
   min-width: 1.75rem;
   padding: 0.1rem 0.5rem;
   text-align: center;
@@ -878,6 +879,44 @@ tr > td.importance.complete .button-link {
    dragged in, since :has re-evaluates live. */
 .kanban-column-cards:has(.kanban-card) .kanban-column-empty {
   display: none;
+}
+
+/* Column footer: "Show more" pager + inline quick-add. Sits below the scrolling
+   card list so it's always reachable. */
+.kanban-column-footer {
+  border-top: solid 1px var(--border-light);
+  display: flex;
+  flex-direction: column;
+  gap: 0.375rem;
+  padding: 0.5rem 0.75rem;
+}
+
+.kanban-show-more {
+  background: none;
+  border: none;
+  color: var(--link);
+  cursor: pointer;
+  padding: 0.25rem;
+  text-align: center;
+  width: 100%;
+}
+
+.kanban-show-more:hover {
+  text-decoration: underline;
+}
+
+/* Faint "+" beside the column label opens the add modal pre-set to that status. */
+.kanban-column-add-btn {
+  background: none;
+  border: none;
+  color: var(--color-muted-more);
+  cursor: pointer;
+  display: inline-flex;
+  padding: 0;
+}
+
+.kanban-column-add-btn:hover {
+  color: var(--link);
 }
 
 .kanban-card {

@@ -4,6 +4,13 @@
     <div class="kanban-column" data-status-slug="{{ column.slug }}">
       <div class="kanban-column-header">
         <span class="kanban-column-title">{{ column.label }}</span>
+        <button type="button"
+                class="kanban-column-add-btn"
+                title="Add a task"
+                hx-get="{% url 'tasks:add' %}?status={{ column.slug }}"
+                hx-target="#htmx-modal-container">
+          <i class="icon-plus"></i>
+        </button>
         <span class="kanban-column-count">{{ column.count }}</span>
       </div>
       <div class="kanban-column-cards" data-status-slug="{{ column.slug }}">
@@ -47,6 +54,14 @@
         {% endfor %}
         <p class="kanban-column-empty">No tasks</p>
       </div>
+      {% if column.has_more %}
+        <div class="kanban-column-footer">
+          <button type="button"
+                  class="kanban-show-more"
+                  hx-post="{% url 'tasks:board-show-more' column.slug %}"
+                  hx-swap="none">Show {{ column.remaining }} more</button>
+        </div>
+      {% endif %}
     </div>
   {% endfor %}
 </div>
