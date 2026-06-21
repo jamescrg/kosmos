@@ -61,7 +61,7 @@ window.AletheiaActivityChart = (function () {
       const { ctx, scales } = chart;
       ctx.save();
       ctx.fillStyle = opts.color || "#666";
-      ctx.font = "12px " + ((Chart.defaults.font && Chart.defaults.font.family) || "sans-serif");
+      ctx.font = "600 12px " + ((Chart.defaults.font && Chart.defaults.font.family) || "sans-serif");
       ctx.textAlign = "center";
       ctx.textBaseline = "bottom";
       const n = chart.data.labels.length;
