@@ -41,6 +41,43 @@ window.AletheiaActivityChart = (function () {
     return Number(value).toLocaleString(undefined, { maximumFractionDigits: 1 }) + "h";
   }
 
+  // Compact label for the per-column total drawn atop each stacked bar.
+  function formatTotal(value, metric) {
+    if (metric === "fees") {
+      if (value >= 1e6) return "$" + (value / 1e6).toFixed(1) + "M";
+      if (value >= 1e3) return "$" + (value / 1e3).toFixed(1) + "k";
+      return "$" + Math.round(value);
+    }
+    return Math.round(value) + "h";
+  }
+
+  // Draws the stack total (across visible series) above each bar.
+  const stackTotalsPlugin = {
+    id: "stackTotals",
+    afterDatasetsDraw(chart) {
+      const opts = (chart.options.plugins && chart.options.plugins.stackTotals) || {};
+      const meta0 = chart.getDatasetMeta(0);
+      if (!meta0 || !meta0.data || !meta0.data.length) return;
+      const { ctx, scales } = chart;
+      ctx.save();
+      ctx.fillStyle = opts.color || "#666";
+      ctx.font = "600 12px " + ((Chart.defaults.font && Chart.defaults.font.family) || "sans-serif");
+      ctx.textAlign = "center";
+      ctx.textBaseline = "bottom";
+      const n = chart.data.labels.length;
+      for (let i = 0; i < n; i++) {
+        let total = 0;
+        chart.data.datasets.forEach(function (ds, di) {
+          if (chart.isDatasetVisible(di)) total += Number(ds.data[i]) || 0;
+        });
+        if (!total) continue;
+        const bar = meta0.data[i];
+        ctx.fillText(formatTotal(total, opts.metric), bar.x, scales.y.getPixelForValue(total) - 4);
+      }
+      ctx.restore();
+    },
+  };
+
   function buildDatasets(payload, state, theme) {
     const series = (payload.series && payload.series[state.dimension]) || [];
     const isMatter = state.dimension === "matter";
@@ -64,7 +101,7 @@ window.AletheiaActivityChart = (function () {
     if (!payload) return;
 
     const prev = registry[canvasId] && registry[canvasId].state;
-    const state = Object.assign({ dimension: "user", metric: "hours" }, prev, opts);
+    const state = Object.assign({ dimension: "user", metric: "fees" }, prev, opts);
     registry[canvasId] = { dataElId, state };
 
     const theme = currentTheme();
@@ -76,6 +113,7 @@ window.AletheiaActivityChart = (function () {
 
     new Chart(canvas, {
       type: "bar",
+      plugins: [stackTotalsPlugin],
       data: {
         labels: payload.months,
         datasets: buildDatasets(payload, state, theme),
@@ -84,6 +122,8 @@ window.AletheiaActivityChart = (function () {
         responsive: true,
         maintainAspectRatio: false,
         interaction: { mode: "index", intersect: false },
+        // Headroom so the per-column total labels aren't clipped at the top.
+        layout: { padding: { top: 18 } },
         scales: {
           x: {
             stacked: true,
@@ -119,6 +159,7 @@ window.AletheiaActivityChart = (function () {
               },
             },
           },
+          stackTotals: { metric: state.metric, color: themed.tick },
         },
       },
     });

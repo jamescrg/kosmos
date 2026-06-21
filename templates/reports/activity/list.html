@@ -1,113 +1,104 @@
 {% load humanize %}
-{% load dict_extras %}
-<div class="toolbar">
+<div class="toolbar" x-data="activityChartToggle()">
   <div class="toolbar-left">
-    <h1>Activity Report</h1>
-    <div class="filter-tools">
+    <div class="dropdown year-dropdown" x-data="dropdown()">
       <button type="button"
-              class="btn-icon"
-              hx-get="{% url 'reports:activity-filter' %}"
-              hx-target="#htmx-modal-container"
-              hx-trigger="click"
-              data-bs-toggle="modal"
-              data-bs-target="#htmx-modal-container">
-        <i class="icon-list-filter with-text"></i> Filter
+              class="year-dropdown-button"
+              x-ref="button"
+              @click="toggle()"
+              :aria-expanded="open">
+        {{ selected_year }} <i class="icon-chevron-down"></i>
       </button>
+      <ul class="dropdown-menu" x-ref="menu" x-show="open">
+        {% for y in available_years %}
+          <li>
+            <a class="dropdown-item {% if y == selected_year %}active{% endif %}"
+              href="#"
+              hx-post="{% url 'reports:activity-year' %}"
+            hx-vals='{"year": "{{ y }}"}">{{ y }}</a>
+          </li>
+        {% endfor %}
+      </ul>
     </div>
-  </div>
-  <div class="toolbar-right">
-    {% if date_from or date_to %}
-      <div class="date-range-display">
-        <strong>Date Range:</strong>
-        {% if date_from and date_to %}
-          {{ date_from }} to {{ date_to }}
-        {% elif date_from %}
-          From {{ date_from }}
-        {% elif date_to %}
-          Up to {{ date_to }}
-        {% endif %}
-      </div>
-    {% endif %}
+    <div class="chart-toggle" role="group" aria-label="Stack by">
+      <button type="button"
+              :class="{ 'toggle-active': dimension === 'user' }"
+              @click="setDimension('user')">By User</button>
+      <button type="button"
+              :class="{ 'toggle-active': dimension === 'matter' }"
+              @click="setDimension('matter')">By Matter</button>
+    </div>
+    <div class="chart-toggle" role="group" aria-label="Metric">
+      <button type="button"
+              :class="{ 'toggle-active': metric === 'fees' }"
+              @click="setMetric('fees')">Fees</button>
+      <button type="button"
+              :class="{ 'toggle-active': metric === 'hours' }"
+              @click="setMetric('hours')">Hours</button>
+    </div>
   </div>
 </div>
-{% if date_from or date_to %}
-  <div class="activity-chart-panel" x-data="activityChartToggle()">
-    <div class="activity-chart-controls">
-      <div class="chart-toggle" role="group" aria-label="Stack by">
-        <button type="button"
-                :class="{ 'toggle-active': dimension === 'user' }"
-                @click="setDimension('user')">By User</button>
-        <button type="button"
-                :class="{ 'toggle-active': dimension === 'matter' }"
-                @click="setDimension('matter')">By Matter</button>
-      </div>
-      <div class="chart-toggle" role="group" aria-label="Metric">
-        <button type="button"
-                :class="{ 'toggle-active': metric === 'hours' }"
-                @click="setMetric('hours')">Hours</button>
-        <button type="button"
-                :class="{ 'toggle-active': metric === 'fees' }"
-                @click="setMetric('fees')">Fees</button>
-      </div>
-    </div>
-    <div class="activity-chart-canvas-wrap">
-      <canvas id="activity-chart" data-chart-data="activity-chart-data"></canvas>
-    </div>
-  </div>
-  {{ chart_payload|json_script:"activity-chart-data" }}
-  <script>
-    window.AletheiaActivityChart &&
-      window.AletheiaActivityChart.render('activity-chart', 'activity-chart-data');
-  </script>
-  <div class="table-container">
-    <table class="table">
+<div class="activity-chart-canvas-wrap">
+  <canvas id="activity-chart" data-chart-data="activity-chart-data"></canvas>
+</div>
+{{ chart_payload|json_script:"activity-chart-data" }}
+<script>
+  window.AletheiaActivityChart &&
+    window.AletheiaActivityChart.render('activity-chart', 'activity-chart-data');
+</script>
+<br />
+<div class="table-container">
+  <table class="table activity-table">
+    <thead>
       <tr>
-        <th>Month</th>
-        {% for user in users %}<th class="numeric">{{ user.first_name }} {{ user.last_name }}</th>{% endfor %}
-        <th class="numeric">Month Total</th>
+        <th>User</th>
+        {% for m in months %}<th class="numeric">{{ m.name }}</th>{% endfor %}
+        <th class="numeric">Total</th>
       </tr>
-      {% for month_data in activity_data %}
+    </thead>
+    <tbody>
+      {% for row in user_rows %}
         <tr>
           <td>
-            <strong>{{ month_data.name }}</strong>
+            <strong>{{ row.label }}</strong>
           </td>
-          {% for user_activity in month_data.users %}
+          {% for cell in row.cells %}
             <td class="numeric">
-              {% if user_activity.hours > 0 %}
-                {{ user_activity.hours|floatformat:1 }}h
+              {% if cell.hours > 0 %}
+                {{ cell.hours|floatformat:1 }}h
                 <br>
-                <small class="text-muted">({{ user_activity.entries_count }} entries)</small>
+                <small class="text-muted">({{ cell.entries_count }} entries)</small>
                 <br>
-                <small class="text-muted">${{ user_activity.fees|floatformat:2|intcomma }}</small>
+                <small class="text-muted">${{ cell.fees|floatformat:2|intcomma }}</small>
               {% else %}
                 -
               {% endif %}
             </td>
           {% endfor %}
           <td class="numeric">
-            <strong>{{ month_data.total_hours|floatformat:1 }}h</strong>
+            <strong>{{ row.total_hours|floatformat:1 }}h</strong>
             <br>
-            <small class="text-muted">${{ month_data.total_fees|floatformat:2|intcomma }}</small>
+            <small class="text-muted">${{ row.total_fees|floatformat:2|intcomma }}</small>
           </td>
         </tr>
       {% empty %}
         <tr>
-          <td colspan="{{ users|length|add:2 }}">No activity data available.</td>
+          <td colspan="{{ months|length|add:2 }}" class="empty-entries">No activity for {{ selected_year }}.</td>
         </tr>
       {% endfor %}
-      {% if users %}
+    </tbody>
+    {% if user_rows %}
+      <tfoot>
         <tr class="table-total">
           <td>
             <strong>Total</strong>
           </td>
-          {% for user in users %}
-            {% with user_data=user_totals|get_item:user.id %}
-              <td class="numeric">
-                <strong>{{ user_data.hours|floatformat:1 }}h</strong>
-                <br>
-                <small class="text-muted">${{ user_data.fees|floatformat:2|intcomma }}</small>
-              </td>
-            {% endwith %}
+          {% for mt in month_totals %}
+            <td class="numeric">
+              <strong>{{ mt.hours|floatformat:1 }}h</strong>
+              <br>
+              <small class="text-muted">${{ mt.fees|floatformat:2|intcomma }}</small>
+            </td>
           {% endfor %}
           <td class="numeric">
             <strong>{{ grand_total_hours|floatformat:1 }}h</strong>
@@ -115,42 +106,7 @@
             <small class="text-muted">${{ grand_total_fees|floatformat:2|intcomma }}</small>
           </td>
         </tr>
-        <tr class="table-average">
-          <td>
-            <strong>Average per Month</strong>
-          </td>
-          {% for user in users %}
-            {% with user_avg=user_averages|get_item:user.id %}
-              <td class="numeric">
-                <strong>{{ user_avg.hours|floatformat:1 }}h</strong>
-                <br>
-                <small class="text-muted">${{ user_avg.fees|floatformat:2|intcomma }}</small>
-              </td>
-            {% endwith %}
-          {% endfor %}
-          <td class="numeric">
-            <strong>{{ grand_average_hours|floatformat:1 }}h</strong>
-            <br>
-            <small class="text-muted">${{ grand_average_fees|floatformat:2|intcomma }}</small>
-          </td>
-        </tr>
-      {% endif %}
-    </table>
-  </div>
-{% else %}
-  <div class="no-filter-message">
-    <div class="alert alert-info">
-      <h4>Select a Date Range</h4>
-      <p>Please use the Filter button to select a date range to view activity data.</p>
-      <button type="button"
-              class="btn btn-success"
-              hx-get="{% url 'reports:activity-filter' %}"
-              hx-target="#htmx-modal-container"
-              hx-trigger="click"
-              data-bs-toggle="modal"
-              data-bs-target="#htmx-modal-container">
-        <i class="icon-list-filter with-text"></i> Select Date Range
-      </button>
-    </div>
-  </div>
-{% endif %}
+      </tfoot>
+    {% endif %}
+  </table>
+</div>

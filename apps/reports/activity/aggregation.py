@@ -1,85 +1,50 @@
 """Shared data aggregation for the Activity report.
 
 `build_activity_context` is the single source of truth for both `activity_index`
-and `activity_list` (previously ~190 lines of duplicated logic). It resolves the
-session date filter into a list of months, aggregates `TimeEntry` rows by user
-(for the table) and by matter (top-N + "Other"), and assembles `chart_payload`
-— a JSON-safe dict consumed by the stacked bar chart via `json_script`.
+and `activity_list`. It resolves the report's calendar year (Jan through the
+current month for the current year; the full Jan–Dec for a past year),
+aggregates `TimeEntry` rows per user per month for the inverted table (users as
+rows, months as columns, total on the far right), and assembles `chart_payload`
+— a JSON-safe dict consumed by the stacked bar chart via `json_script`. The year
+is held in the session and stepped by the `activity_year` view.
 """
 
-from datetime import date, datetime
+from datetime import date
 from decimal import Decimal
 
 from dateutil.relativedelta import relativedelta
-from django.db.models import F, Sum
+from django.db.models import Count, F, Sum
 
 from apps.accounts.models import CustomUser
 from apps.activity.time.models import TimeEntry
 
-# Number of distinct matters charted before the rest roll up into "Other".
-# Kept small: a stacked bar with many categories is both hard to colour
-# distinctly and hard to read, so beyond the top few "Other" is more honest.
+# Distinct matters charted before the rest roll up into "Other". Kept small: a
+# stacked bar with many categories is hard to colour distinctly and to read.
 TOP_MATTERS = 4
 
 
-def _resolve_months(filter_data):
-    """Return (months, date_from, date_to, date_from_obj, exclude_inactive).
+def resolve_year(session_year):
+    """Clamp the session's stored year to (–∞, current year]. Returns
+    (year, current_year)."""
+    current_year = date.today().year
+    try:
+        year = int(session_year)
+    except (TypeError, ValueError):
+        year = current_year
+    return min(year, current_year), current_year
 
-    Mirrors the original view logic: an explicit range drives the month list,
-    a single bound extends to today / back six months, and the empty case
-    defaults to the current calendar month.
-    """
-    date_from = filter_data.get("date_from")
-    date_to = filter_data.get("date_to")
 
-    exclude_inactive_str = filter_data.get("exclude_inactive", "on")
-    exclude_inactive = exclude_inactive_str in ["on", "true", "1"]
-
-    date_from_obj = None
-    date_to_obj = None
-    if date_from:
-        try:
-            date_from_obj = datetime.strptime(date_from, "%Y-%m-%d").date()
-        except ValueError:
-            date_from = None
-    if date_to:
-        try:
-            date_to_obj = datetime.strptime(date_to, "%Y-%m-%d").date()
-        except ValueError:
-            date_to = None
-
-    today = date.today()
+def _months_for_year(year, current_year):
+    """Calendar months to show: Jan through the current month for the current
+    year, otherwise the full Jan–Dec for a past year."""
+    last_month = date.today().month if year == current_year else 12
     months = []
-
-    def add_month(month_date):
+    for m in range(1, last_month + 1):
+        first = date(year, m, 1)
         months.append(
-            {
-                "date": month_date,
-                "name": month_date.strftime("%B %Y"),
-                "year": month_date.year,
-                "month": month_date.month,
-            }
+            {"date": first, "name": first.strftime("%b"), "year": year, "month": m}
         )
-
-    if date_from_obj and date_to_obj:
-        current_date = date_from_obj.replace(day=1)
-        while current_date <= date_to_obj:
-            add_month(current_date)
-            current_date = current_date + relativedelta(months=1)
-    elif date_from_obj:
-        current_date = date_from_obj.replace(day=1)
-        while current_date <= today:
-            add_month(current_date)
-            current_date = current_date + relativedelta(months=1)
-    elif date_to_obj:
-        for i in range(5, -1, -1):
-            add_month(date_to_obj - relativedelta(months=i))
-    else:
-        add_month(today)
-        date_from = today.replace(day=1).strftime("%Y-%m-%d")
-        date_from_obj = today.replace(day=1)
-
-    return months, date_from, date_to, date_from_obj, exclude_inactive
+    return months
 
 
 def _build_matter_series(months):
@@ -166,95 +131,82 @@ def _build_matter_series(months):
 
 def build_activity_context(request):
     """Full template context for the activity report, including `chart_payload`."""
-    filter_data = request.session.get("activity_filter", {})
-    (
-        months,
-        date_from,
-        date_to,
-        date_from_obj,
-        exclude_inactive,
-    ) = _resolve_months(filter_data)
+    year, current_year = resolve_year(request.session.get("activity_year"))
+    months = _months_for_year(year, current_year)
 
-    today = date.today()
-    filter_start = date_from_obj if date_from_obj else today.replace(day=1)
+    # Years that actually have time entries, oldest first, for the year dropdown.
+    available_years = sorted({d.year for d in TimeEntry.objects.dates("date", "year")})
 
-    users_query = CustomUser.objects.filter(timeentry__date__gte=filter_start)
-    if exclude_inactive:
-        users_query = users_query.filter(is_active=True)
-    users = users_query.distinct().order_by("first_name", "last_name")
+    user_rows = []
+    user_series = []  # chart datasets, aligned to `months`
+    month_totals = [{"hours": 0, "fees": Decimal(0)} for _ in months]
+    grand_total_hours = 0
+    grand_total_fees = Decimal(0)
 
-    # Month-by-user grid for the table, plus aligned per-user arrays for the chart.
-    activity_data = []
-    user_totals = {user.id: {"hours": 0, "fees": Decimal(0)} for user in users}
-    user_series = [
-        {
-            "label": f"{u.first_name} {u.last_name}".strip() or u.get_username(),
-            "hours": [],
-            "fees": [],
-        }
-        for u in users
-    ]
+    def add_row(label, entries):
+        """Aggregate `entries` per month into a table row + chart series, folding
+        the contribution into the month and grand totals. Skips rows with no
+        entries (returns without appending)."""
+        nonlocal grand_total_hours, grand_total_fees
+        cells = []
+        hours_series = []
+        fees_series = []
+        row_hours = 0
+        row_fees = Decimal(0)
+        any_entries = False
 
-    for month_info in months:
-        month_data = {
-            "name": month_info["name"],
-            "year": month_info["year"],
-            "month": month_info["month"],
-            "users": [],
-        }
-        month_total_hours = 0
-        month_total_fees = Decimal(0)
-
-        for idx, user in enumerate(users):
-            entries = TimeEntry.objects.filter(
-                user=user,
-                date__year=month_info["year"],
+        for idx, month_info in enumerate(months):
+            agg = entries.filter(
+                date__year=year,
                 date__month=month_info["month"],
+            ).aggregate(
+                hours_sum=Sum("hours"),
+                fees_sum=Sum(F("hours") * F("rate")),
+                count=Count("id"),
             )
-            billable_entries = entries.filter(matter__billable=True)
-            admin_entries = entries.filter(matter__billable=False)
+            hours = agg["hours_sum"] or 0
+            fees = agg["fees_sum"] or Decimal(0)
+            count = agg["count"] or 0
+            any_entries = any_entries or count > 0
 
-            hours = billable_entries.aggregate(Sum("hours"))["hours__sum"] or 0
-            fees = billable_entries.aggregate(total_fees=Sum(F("hours") * F("rate")))[
-                "total_fees"
-            ] or Decimal(0)
-            admin_hours = admin_entries.aggregate(Sum("hours"))["hours__sum"] or 0
+            cells.append({"hours": hours, "fees": fees, "entries_count": count})
+            hours_series.append(float(hours))
+            fees_series.append(round(float(fees), 2))
+            row_hours += hours
+            row_fees += fees
+            month_totals[idx]["hours"] += hours
+            month_totals[idx]["fees"] += fees
 
-            month_data["users"].append(
-                {
-                    "user": user,
-                    "hours": hours,
-                    "fees": fees,
-                    "admin_hours": admin_hours,
-                    "entries_count": billable_entries.count(),
-                }
-            )
+        if not any_entries:
+            return
 
-            user_totals[user.id]["hours"] += hours
-            user_totals[user.id]["fees"] += fees
-            month_total_hours += hours
-            month_total_fees += fees
+        user_rows.append(
+            {
+                "label": label,
+                "cells": cells,
+                "total_hours": row_hours,
+                "total_fees": row_fees,
+            }
+        )
+        user_series.append({"label": label, "hours": hours_series, "fees": fees_series})
+        grand_total_hours += row_hours
+        grand_total_fees += row_fees
 
-            user_series[idx]["hours"].append(float(hours))
-            user_series[idx]["fees"].append(round(float(fees), 2))
+    # Each active user is its own row, alphabetical.
+    active_users = (
+        CustomUser.objects.filter(timeentry__date__year=year, is_active=True)
+        .distinct()
+        .order_by("first_name", "last_name")
+    )
+    for user in active_users:
+        label = f"{user.first_name} {user.last_name}".strip() or user.get_username()
+        add_row(label, TimeEntry.objects.filter(user=user, matter__billable=True))
 
-        month_data["total_hours"] = month_total_hours
-        month_data["total_fees"] = month_total_fees
-        activity_data.append(month_data)
-
-    grand_total_hours = sum(totals["hours"] for totals in user_totals.values())
-    grand_total_fees = sum(totals["fees"] for totals in user_totals.values())
-
-    num_months = len(months) if months else 1
-    user_averages = {
-        user_id: {
-            "hours": totals["hours"] / num_months,
-            "fees": totals["fees"] / num_months,
-        }
-        for user_id, totals in user_totals.items()
-    }
-    grand_average_hours = grand_total_hours / num_months
-    grand_average_fees = grand_total_fees / num_months
+    # Inactive users are included, but rolled up into a single "Inactive" row.
+    add_row(
+        "Inactive",
+        TimeEntry.objects.filter(user__is_active=False, matter__billable=True),
+    )
 
     chart_payload = {
         "months": [m["name"] for m in months],
@@ -267,17 +219,12 @@ def build_activity_context(request):
     return {
         "app": "reports",
         "subapp": "activity",
-        "activity_data": activity_data,
-        "users": users,
-        "user_totals": user_totals,
-        "user_averages": user_averages,
+        "months": months,
+        "user_rows": user_rows,
+        "month_totals": month_totals,
         "grand_total_hours": grand_total_hours,
         "grand_total_fees": grand_total_fees,
-        "grand_average_hours": grand_average_hours,
-        "grand_average_fees": grand_average_fees,
-        "months": [m["name"] for m in months],
-        "date_from": date_from,
-        "date_to": date_to,
-        "exclude_inactive": exclude_inactive,
+        "selected_year": year,
+        "available_years": available_years,
         "chart_payload": chart_payload,
     }

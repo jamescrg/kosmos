@@ -294,7 +294,7 @@ document.addEventListener('alpine:init', () => {
    */
   Alpine.data('activityChartToggle', () => ({
     dimension: 'user',
-    metric: 'hours',
+    metric: 'fees',
 
     init() {
       const last = window.AletheiaActivityChart &&

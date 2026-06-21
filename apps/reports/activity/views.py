@@ -1,12 +1,11 @@
+from datetime import date
+
 from django.contrib.admin.views.decorators import staff_member_required
 from django.contrib.auth.decorators import login_required
 from django.http import HttpResponse
 from django.shortcuts import render
 
-from apps.management.filter_manager import FilterManager
-
 from .aggregation import build_activity_context
-from .filters import ActivityReportFilter
 
 
 @login_required
@@ -27,13 +26,15 @@ def activity_list(request):
 
 @login_required
 @staff_member_required
-def activity_filter(request):
-    filter_manager = FilterManager(request, ActivityReportFilter, "activity_filter")
+def activity_year(request):
+    """Set the report's calendar year (held in the session) from the year
+    dropdown, capped at the current year, then re-render the report."""
+    today = date.today()
+    try:
+        year = int(request.POST.get("year", today.year))
+    except (TypeError, ValueError):
+        year = today.year
 
-    if filter_manager.process_filter():
-        return HttpResponse(status=204, headers={"HX-Trigger": "activityChanged"})
-
-    # Get current filter data from session for display
-    filter_data = request.session.get("activity_filter", {})
-
-    return render(request, "reports/activity/filter.html", {"filter_data": filter_data})
+    request.session["activity_year"] = min(year, today.year)
+    request.session.modified = True
+    return HttpResponse(status=204, headers={"HX-Trigger": "activityChanged"})
