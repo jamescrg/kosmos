@@ -1,12 +1,12 @@
 """Shared data aggregation for the Activity report.
 
 `build_activity_context` is the single source of truth for both `activity_index`
-and `activity_list`. It resolves the report's calendar year (Jan through the
-current month for the current year; the full Jan–Dec for a past year),
-aggregates `TimeEntry` rows per user per month for the inverted table (users as
-rows, months as columns, total on the far right), and assembles `chart_payload`
-— a JSON-safe dict consumed by the stacked bar chart via `json_script`. The year
-is held in the session and stepped by the `activity_year` view.
+and `activity_list`. It resolves a rolling WINDOW_MONTHS window ending at a
+selected month, aggregates `TimeEntry` rows per user per month for the inverted
+table (users as rows, months as columns, total on the far right), and assembles
+`chart_payload` — a JSON-safe dict consumed by the stacked bar chart via
+`json_script`. The window's end month is held in the session and stepped by the
+`activity_period` view.
 """
 
 from datetime import date
@@ -23,26 +23,33 @@ from apps.activity.time.models import TimeEntry
 TOP_MATTERS = 4
 
 
-def resolve_year(session_year):
-    """Clamp the session's stored year to (–∞, current year]. Returns
-    (year, current_year)."""
-    current_year = date.today().year
+# Length of the rolling window shown in the table and chart.
+WINDOW_MONTHS = 6
+
+
+def resolve_end(session_value):
+    """Parse the session's stored end month ("YYYY-MM"), clamped to the current
+    month. Returns (end_first_of_month, current_first_of_month)."""
+    current_first = date.today().replace(day=1)
     try:
-        year = int(session_year)
-    except (TypeError, ValueError):
-        year = current_year
-    return min(year, current_year), current_year
+        year, month = (int(part) for part in session_value.split("-"))
+        end = date(year, month, 1)
+    except (AttributeError, TypeError, ValueError):
+        end = current_first
+    return min(end, current_first), current_first
 
 
-def _months_for_year(year, current_year):
-    """Calendar months to show: Jan through the current month for the current
-    year, otherwise the full Jan–Dec for a past year."""
-    last_month = date.today().month if year == current_year else 12
+def _window_months(end):
+    """The WINDOW_MONTHS months ending at `end` (inclusive), oldest first. Month
+    labels carry a 2-digit year on the first column and on each January, so a
+    window that crosses a year boundary stays unambiguous."""
     months = []
-    for m in range(1, last_month + 1):
-        first = date(year, m, 1)
+    for offset in range(WINDOW_MONTHS - 1, -1, -1):
+        first = end - relativedelta(months=offset)
+        show_year = offset == WINDOW_MONTHS - 1 or first.month == 1
+        name = first.strftime("%b ’%y") if show_year else first.strftime("%b")
         months.append(
-            {"date": first, "name": first.strftime("%b"), "year": year, "month": m}
+            {"date": first, "name": name, "year": first.year, "month": first.month}
         )
     return months
 
@@ -131,11 +138,10 @@ def _build_matter_series(months):
 
 def build_activity_context(request):
     """Full template context for the activity report, including `chart_payload`."""
-    year, current_year = resolve_year(request.session.get("activity_year"))
-    months = _months_for_year(year, current_year)
-
-    # Years that actually have time entries, oldest first, for the year dropdown.
-    available_years = sorted({d.year for d in TimeEntry.objects.dates("date", "year")})
+    end, current_first = resolve_end(request.session.get("activity_end"))
+    months = _window_months(end)
+    window_start = months[0]["date"]
+    window_end = months[-1]["date"] + relativedelta(months=1)
 
     user_rows = []
     user_series = []  # chart datasets, aligned to `months`
@@ -157,7 +163,7 @@ def build_activity_context(request):
 
         for idx, month_info in enumerate(months):
             agg = entries.filter(
-                date__year=year,
+                date__year=month_info["year"],
                 date__month=month_info["month"],
             ).aggregate(
                 hours_sum=Sum("hours"),
@@ -194,7 +200,11 @@ def build_activity_context(request):
 
     # Each active user is its own row, alphabetical.
     active_users = (
-        CustomUser.objects.filter(timeentry__date__year=year, is_active=True)
+        CustomUser.objects.filter(
+            timeentry__date__gte=window_start,
+            timeentry__date__lt=window_end,
+            is_active=True,
+        )
         .distinct()
         .order_by("first_name", "last_name")
     )
@@ -224,7 +234,7 @@ def build_activity_context(request):
         "month_totals": month_totals,
         "grand_total_hours": grand_total_hours,
         "grand_total_fees": grand_total_fees,
-        "selected_year": year,
-        "available_years": available_years,
+        "period_label": end.strftime("%b %Y"),
+        "can_go_next": end < current_first,
         "chart_payload": chart_payload,
     }

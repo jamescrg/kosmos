@@ -1,11 +1,10 @@
-from datetime import date
-
+from dateutil.relativedelta import relativedelta
 from django.contrib.admin.views.decorators import staff_member_required
 from django.contrib.auth.decorators import login_required
 from django.http import HttpResponse
 from django.shortcuts import render
 
-from .aggregation import build_activity_context
+from .aggregation import build_activity_context, resolve_end
 
 
 @login_required
@@ -26,15 +25,17 @@ def activity_list(request):
 
 @login_required
 @staff_member_required
-def activity_year(request):
-    """Set the report's calendar year (held in the session) from the year
-    dropdown, capped at the current year, then re-render the report."""
-    today = date.today()
-    try:
-        year = int(request.POST.get("year", today.year))
-    except (TypeError, ValueError):
-        year = today.year
+def activity_period(request):
+    """Step the rolling window's end month (held in the session) one month back
+    or forward, capped at the current month, then re-render the report."""
+    end, current_first = resolve_end(request.session.get("activity_end"))
 
-    request.session["activity_year"] = min(year, today.year)
+    direction = request.POST.get("direction")
+    if direction == "prev":
+        end = end - relativedelta(months=1)
+    elif direction == "next":
+        end = min(end + relativedelta(months=1), current_first)
+
+    request.session["activity_end"] = end.strftime("%Y-%m")
     request.session.modified = True
     return HttpResponse(status=204, headers={"HX-Trigger": "activityChanged"})

@@ -1,24 +1,23 @@
 {% load humanize %}
 <div class="toolbar" x-data="activityChartToggle()">
   <div class="toolbar-left">
-    <div class="dropdown year-dropdown" x-data="dropdown()">
+    <div class="period-nav">
       <button type="button"
-              class="year-dropdown-button"
-              x-ref="button"
-              @click="toggle()"
-              :aria-expanded="open">
-        {{ selected_year }} <i class="icon-chevron-down"></i>
+              class="period-nav-arrow"
+              hx-post="{% url 'reports:activity-period' %}"
+              hx-vals='{"direction": "prev"}'
+              aria-label="Previous month">
+        <i class="icon-chevron-left"></i>
       </button>
-      <ul class="dropdown-menu" x-ref="menu" x-show="open">
-        {% for y in available_years %}
-          <li>
-            <a class="dropdown-item {% if y == selected_year %}active{% endif %}"
-              href="#"
-              hx-post="{% url 'reports:activity-year' %}"
-            hx-vals='{"year": "{{ y }}"}">{{ y }}</a>
-          </li>
-        {% endfor %}
-      </ul>
+      <span class="period-nav-label">{{ period_label }}</span>
+      <button type="button"
+              class="period-nav-arrow"
+              hx-post="{% url 'reports:activity-period' %}"
+              hx-vals='{"direction": "next"}'
+              {% if not can_go_next %}disabled{% endif %}
+              aria-label="Next month">
+        <i class="icon-chevron-right"></i>
+      </button>
     </div>
     <div class="chart-toggle" role="group" aria-label="Stack by">
       <button type="button"
@@ -83,7 +82,7 @@
         </tr>
       {% empty %}
         <tr>
-          <td colspan="{{ months|length|add:2 }}" class="empty-entries">No activity for {{ selected_year }}.</td>
+          <td colspan="{{ months|length|add:2 }}" class="empty-entries">No activity in this period.</td>
         </tr>
       {% endfor %}
     </tbody>

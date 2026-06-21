@@ -19,7 +19,7 @@ urlpatterns = [
     # Activity
     path("reports/activity/", activity.activity_index, name="activity-index"),
     path("reports/activity/list/", activity.activity_list, name="activity"),
-    path("reports/activity/year/", activity.activity_year, name="activity-year"),
+    path("reports/activity/period/", activity.activity_period, name="activity-period"),
     # Revenue
     path("reports/revenue/", revenue.revenue_index, name="revenue-index"),
     path("reports/revenue/list/", revenue.revenue_list, name="revenue"),

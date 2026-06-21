@@ -1,9 +1,11 @@
 .table-total {
-  border-top: 2px solid var(--border-dark);
   font-weight: bold;
 }
 
+/* The table uses border-collapse: separate, so a row border won't render —
+   the rule has to live on the cells. */
 .table-total td {
+  border-top: 2px solid var(--border-dark);
   padding-top: 1rem;
 }
 
@@ -56,7 +58,26 @@
    Activity chart
    ========================================================================== */
 
-/* Chart toggles live in the toolbar, left-aligned next to the year dropdown.
+/* Rolling-window month stepper. The arrow buttons inherit the toolbar button
+   styling (toolbar.css); this only handles layout and the month label. */
+.period-nav {
+  align-items: center;
+  display: inline-flex;
+  gap: 0.5rem;
+}
+
+.period-nav-label {
+  font-weight: 600;
+  min-width: 6rem;
+  text-align: center;
+}
+
+.period-nav-arrow:disabled {
+  cursor: default;
+  opacity: 0.4;
+}
+
+/* Chart toggles live in the toolbar, left-aligned next to the month stepper.
    They follow the matter detail mode-pills (matters.css): a seamless segmented
    group with shared borders, rounded only on the outer edges, and the
    --selected-* convention for the active segment. Scoped under .toolbar so these
