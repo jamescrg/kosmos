@@ -30,9 +30,10 @@
          own <head>, mirroring the IIFE in base.html. */
       (function () {
         var setting = localStorage.getItem('theme') || 'auto';
-        var dark = setting === 'dark' || (setting === 'auto' &&
-          window.matchMedia('(prefers-color-scheme: dark)').matches);
-        document.documentElement.setAttribute('data-theme', dark ? 'dark' : 'light');
+        var resolved = setting === 'auto'
+          ? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light')
+          : setting;
+        document.documentElement.setAttribute('data-theme', resolved);
       })();
     </script>
     <script defer src="https://unpkg.com/alpinejs@3.14.3/dist/cdn.min.js"></script>
