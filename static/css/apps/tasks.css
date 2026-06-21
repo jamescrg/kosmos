@@ -635,26 +635,33 @@ tr > td.importance.complete .button-link {
     display: none;
   }
 
-  /* Card rows */
+  /* Card rows — mirror .kanban-card (board view). */
   .tasks-table tbody tr {
-    border-bottom: none;
-    border-left: none;
-    border-right: none;
-    border-top: solid 1px var(--border-dark);
+    background: var(--background-body);
+    border: solid 1px var(--border-medium);
+    border-left-width: 3px;
+    border-radius: var(--radius-md);
+    box-shadow: 0 1px 2px rgb(0 0 0 / 6%);
     cursor: pointer;
     display: flex;
     flex-wrap: wrap;
-    padding: 0.25rem 0;
+    gap: 0.4rem 0.5rem;
+    margin-bottom: 0.625rem;
+    padding: 0.625rem 0.75rem;
     position: relative;
   }
 
-  .tasks-table tbody tr:last-child {
-    border-bottom: solid 1px var(--border-dark);
-  }
+  /* Importance accent rail — same palette as the board's cards. */
+  .tasks-table tbody tr.importance-7,
+  .tasks-table tbody tr.importance-6 { border-left-color: var(--red-600); }
+  .tasks-table tbody tr.importance-5 { border-left-color: var(--violet-600); }
+  .tasks-table tbody tr.importance-4 { border-left-color: var(--border-medium); }
+  .tasks-table tbody tr.importance-3 { border-left-color: var(--slate-400); }
+  .tasks-table tbody tr.importance-2 { border-left-color: var(--slate-500); }
+  .tasks-table tbody tr.importance-1 { border-left-color: var(--slate-600); }
 
-  /* Overdue card highlight */
-  .tasks-table tbody tr:has(.hl-yellow) {
-    background: var(--hl-yellow);
+  .tasks-table tbody tr.past-due {
+    background: var(--past-due-bg);
   }
 
   /* Reset all td styles */
@@ -671,35 +678,23 @@ tr > td.importance.complete .button-link {
     background: transparent !important;
   }
 
-  /* Cell ordering */
+  /* Layout: matter + priority on top, description, then a meta row — the same
+     arrangement as a .kanban-card. */
   .tasks-table td.matter { order: 1; }
-  .tasks-table td.date { order: 2; }
+  .tasks-table td.importance { order: 2; }
   .tasks-table td.description { order: 3; }
-  .tasks-table td.importance { order: 4; }
-  .tasks-table td.status { order: 5; }
-  .tasks-table td.user { order: 6; }
+  .tasks-table td.user { order: 4; }
+  .tasks-table td.date { order: 5; }
+  .tasks-table td.status { order: 6; }
 
-  /* Date: upper right */
-  .tasks-table td.date {
-    flex: 0 0 auto;
-    margin-left: auto;
-    margin-top: 0.5rem;
-  }
-
-  /* Full-width rows */
-  .tasks-table td.matter {
-    flex: 1 1 0;
-  }
-
-  .tasks-table td.description {
-    flex: 0 0 100%;
-  }
-
-  /* Matter: context line, de-linked */
+  /* Matter: case name as plain text, ellipsised (like .kanban-card-matter). */
   .tasks-table td.matter {
     color: var(--color-primary);
-    margin-bottom: 0.25rem;
-    margin-top: 0.5rem;
+    flex: 1 1 auto;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
   }
 
   .tasks-table td.matter a {
@@ -708,12 +703,24 @@ tr > td.importance.complete .button-link {
     text-decoration: none;
   }
 
-  /* Description: prominent */
-  .tasks-table td.description {
-    margin-bottom: 0.5rem;
+  /* Priority: the colour accent, top-right (like .kanban-card-priority). The
+     icon keeps its importance colour via the tr.importance-* rules above. */
+  .tasks-table td.importance {
+    flex: 0 0 auto;
+    font-size: 1.125rem;
+    margin-left: auto;
+    position: relative;
+    z-index: 1;
   }
 
-  /* Stretched link: description's edit link covers the entire card */
+  /* Description: prominent, full width (like .kanban-card-description). */
+  .tasks-table td.description {
+    color: var(--color-primary);
+    flex: 0 0 100%;
+    font-weight: 500;
+  }
+
+  /* Stretched link: the edit link covers the whole card. */
   .tasks-table td.description > a:first-child::after {
     content: "";
     inset: 0;
@@ -721,30 +728,16 @@ tr > td.importance.complete .button-link {
     z-index: 0;
   }
 
-  /* Interactive elements sit above the stretched link */
-  .tasks-table td.importance,
-  .tasks-table td.status,
+  /* Meta row: user / due / status, muted (like .kanban-card-meta). */
   .tasks-table td.user,
-  .tasks-table td.date {
-    position: relative;
-    z-index: 1;
-  }
-
-  .task-notes-btn {
-    position: relative;
-    z-index: 1;
-  }
-
-  /* Metadata cells: inline row */
-  .tasks-table td.importance,
-  .tasks-table td.status,
-  .tasks-table td.user,
-  .tasks-table td.date {
+  .tasks-table td.date,
+  .tasks-table td.status {
     align-items: center;
-    color: var(--color-primary);
+    color: var(--color-muted);
     display: flex;
-    margin-bottom: 0.5rem;
-    margin-right: 1rem;
+    flex: 0 0 auto;
+    position: relative;
+    z-index: 1;
   }
 
 
@@ -797,10 +790,14 @@ tr > td.importance.complete .button-link {
     opacity: 1;
   }
 
-  /* Empty state */
+  /* Empty state — not a card. */
   .tasks-table tbody tr:has(.empty-message) {
+    background: none;
+    border: none;
+    box-shadow: none;
     cursor: default;
     display: block;
+    padding: 1rem 0;
     text-align: center;
   }
 
