@@ -22,7 +22,11 @@ from apps.invoicing.credits.models import Credit
 from apps.invoicing.invoices.models import Invoice
 from apps.invoicing.payments.models import Payment
 from apps.matters.models import Matter
-from apps.reports.wip.aggregation import wip_user_breakdown, wip_user_matters
+from apps.reports.wip.aggregation import (
+    wip_matter_breakdown,
+    wip_user_breakdown,
+    wip_user_matters,
+)
 from apps.trust.trust import get_confirmed_client_balance
 
 
@@ -57,13 +61,17 @@ def dash_index(request):
     )
     wip_user_rows = None
     wip_user_donut = None
+    wip_matter_rows = None
+    wip_matter_donut = None
     wip_self_matters = None
     wip_self_donut = None
     if wip_show_all:
+        # Admin view: by-user and by-matter breakdowns, toggled client-side.
         wip_user_rows, wip_user_donut, wip_totals = wip_user_breakdown()
+        wip_matter_rows, wip_matter_donut, _ = wip_matter_breakdown(top_n=5)
     else:
         # The user's own unbilled WIP by matter: donut (top 5 + Other, net) plus
-        # the full per-matter detail table beside it.
+        # the matching per-matter detail table beside it.
         wip_self_matters, wip_self_donut, wip_totals = wip_user_matters(
             request.user, top_n=5
         )
@@ -253,9 +261,10 @@ def dash_index(request):
         "app": "dash",
         "upcoming_events": upcoming_events,
         "wip_show_all": wip_show_all,
-        "wip_heading": "Unbilled Time",
         "user_rows": wip_user_rows,
         "user_donut": wip_user_donut,
+        "matter_rows": wip_matter_rows,
+        "matter_donut": wip_matter_donut,
         "user_self_matters": wip_self_matters,
         "user_self_donut": wip_self_donut,
         "totals": wip_totals,

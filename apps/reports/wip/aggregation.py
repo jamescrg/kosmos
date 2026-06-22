@@ -181,20 +181,30 @@ def _cap_rows(rows, top_n):
     return head
 
 
-def wip_user_matters(user, top_n=5):
-    """A user's own unbilled WIP grouped by matter: (rows, donut, totals).
-
-    `rows` is the top_n matters by gross + an "Other" bucket (matching the donut
-    slices); `totals` still reflects every matter.
-    """
+def _matter_rows(entries):
+    """Per-matter rows (label + matter_id + hours/gross/comp/net) for `entries`."""
     rows = []
-    for g in (
-        _wip_base()
-        .filter(user=user)
-        .values("matter_id", "matter__name")
-        .annotate(hours_sum=Sum("hours"), gross=Sum(_FEE), comp=Sum(_COMP_FEE))
+    for g in entries.values("matter_id", "matter__name").annotate(
+        hours_sum=Sum("hours"), gross=Sum(_FEE), comp=Sum(_COMP_FEE)
     ):
         rows.append(
             {**_row(g["matter__name"] or "Unknown", g), "matter_id": g["matter_id"]}
         )
+    return rows
+
+
+def _matter_breakdown(entries, top_n):
+    """(table_rows, donut, totals) for a by-matter breakdown: the table and donut
+    share the top_n-by-gross + "Other" buckets; totals reflect every matter."""
+    rows = _matter_rows(entries)
     return _cap_rows(rows, top_n), _donut(rows, top_n=top_n), _totals(rows)
+
+
+def wip_user_matters(user, top_n=5):
+    """A user's own unbilled WIP grouped by matter: (rows, donut, totals)."""
+    return _matter_breakdown(_wip_base().filter(user=user), top_n)
+
+
+def wip_matter_breakdown(top_n=5):
+    """Firm-wide unbilled WIP grouped by matter: (rows, donut, totals)."""
+    return _matter_breakdown(_wip_base(), top_n)

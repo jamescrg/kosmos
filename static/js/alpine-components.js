@@ -341,6 +341,21 @@ document.addEventListener('alpine:init', () => {
     },
   }));
 
+  /**
+   * WIP By User / By Matter toggle (admin dashboard). Switches which table is
+   * shown and re-renders the shared donut from the matching embedded payload.
+   */
+  Alpine.data('wipDimensionToggle', () => ({
+    dim: 'matter',
+
+    setDim(d) {
+      this.dim = d;
+      const dataId = d === 'matter' ? 'wip-admin-matter-data' : 'wip-admin-user-data';
+      window.AletheiaActivityChart &&
+        window.AletheiaActivityChart.renderDonut('wip-admin-chart', dataId, { metric: 'net' });
+    },
+  }));
+
 });
 
 
