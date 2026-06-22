@@ -11,6 +11,7 @@ from django.db.models import (
     Sum,
 )
 from django.db.models.functions import Coalesce
+from django.http import HttpResponse
 from django.shortcuts import render
 
 from apps.accounts.access import filter_matters_for_user
@@ -23,7 +24,9 @@ from apps.invoicing.invoices.models import Invoice
 from apps.invoicing.payments.models import Payment
 from apps.matters.models import Matter
 from apps.reports.wip.aggregation import (
+    WIP_PERIODS,
     wip_matter_breakdown,
+    wip_period_range,
     wip_user_breakdown,
     wip_user_matters,
 )
@@ -42,6 +45,62 @@ def _nth_working_day(start, count):
         day += timedelta(days=1)
 
 
+def dash_wip_context(request):
+    """Context for the dash 'Unbilled Time' section, filtered by the session
+    quick-period. Admins (reporting access) get by-user + by-matter breakdowns
+    toggled client-side; everyone else gets only their own WIP. `?view=user`
+    lets a privileged user preview the regular-user view."""
+    period = request.session.get("dash_wip_period", "this_month")
+    if period not in dict(WIP_PERIODS):
+        period = "this_month"
+    date_min, date_max = wip_period_range(period)
+    preview_user = request.GET.get("view") == "user"
+    wip_show_all = (
+        request.user.is_admin or request.user.perm_reports
+    ) and not preview_user
+
+    ctx = {
+        "wip_show_all": wip_show_all,
+        "wip_period": period,
+        "wip_period_label": dict(WIP_PERIODS).get(period, "All Dates"),
+        "wip_periods": WIP_PERIODS,
+        "wip_preview_user": preview_user,
+        "user_rows": None,
+        "user_donut": None,
+        "matter_rows": None,
+        "matter_donut": None,
+        "user_self_matters": None,
+        "user_self_donut": None,
+    }
+    if wip_show_all:
+        ctx["user_rows"], ctx["user_donut"], totals = wip_user_breakdown(
+            date_min=date_min, date_max=date_max
+        )
+        ctx["matter_rows"], ctx["matter_donut"], _ = wip_matter_breakdown(
+            top_n=5, date_min=date_min, date_max=date_max
+        )
+    else:
+        ctx["user_self_matters"], ctx["user_self_donut"], totals = wip_user_matters(
+            request.user, top_n=5, date_min=date_min, date_max=date_max
+        )
+    ctx["totals"] = totals
+    return ctx
+
+
+@login_required
+def wip_section(request):
+    """Render just the dash 'Unbilled Time' section (reloaded on period change)."""
+    return render(request, "dash/wip_section.html", dash_wip_context(request))
+
+
+@login_required
+def set_wip_period(request, period):
+    """Store the dash WIP quick-period and trigger a section reload."""
+    request.session["dash_wip_period"] = period
+    request.session.modified = True
+    return HttpResponse(status=204, headers={"HX-Trigger": "wipChanged"})
+
+
 @login_required
 def dash_index(request):
     today = date.today()
@@ -52,29 +111,6 @@ def dash_index(request):
     upcoming_events = Event.objects.filter(
         status="Pending", date__gte=today, date__lte=window_end
     ).order_by("date", "start_time", "party")
-
-    # Reporting access sees the full all-users section (identical to the WIP
-    # report); everyone else sees only their own WIP. `?view=user` lets a
-    # privileged user preview the regular-user view.
-    wip_show_all = (request.user.is_admin or request.user.perm_reports) and (
-        request.GET.get("view") != "user"
-    )
-    wip_user_rows = None
-    wip_user_donut = None
-    wip_matter_rows = None
-    wip_matter_donut = None
-    wip_self_matters = None
-    wip_self_donut = None
-    if wip_show_all:
-        # Admin view: by-user and by-matter breakdowns, toggled client-side.
-        wip_user_rows, wip_user_donut, wip_totals = wip_user_breakdown()
-        wip_matter_rows, wip_matter_donut, _ = wip_matter_breakdown(top_n=5)
-    else:
-        # The user's own unbilled WIP by matter: donut (top 5 + Other, net) plus
-        # the matching per-matter detail table beside it.
-        wip_self_matters, wip_self_donut, wip_totals = wip_user_matters(
-            request.user, top_n=5
-        )
 
     # Matters with low clearance (< $1000)
     # Use subqueries to calculate unbilled amounts
@@ -260,18 +296,11 @@ def dash_index(request):
     context = {
         "app": "dash",
         "upcoming_events": upcoming_events,
-        "wip_show_all": wip_show_all,
-        "user_rows": wip_user_rows,
-        "user_donut": wip_user_donut,
-        "matter_rows": wip_matter_rows,
-        "matter_donut": wip_matter_donut,
-        "user_self_matters": wip_self_matters,
-        "user_self_donut": wip_self_donut,
-        "totals": wip_totals,
         "low_clearance_matters": low_clearance_matters,
         "balance_due_matters": balance_due_matters,
         "open_intakes": open_intakes,
         "today": today,
+        **dash_wip_context(request),
     }
 
     return render(request, "dash/dash.html", context)

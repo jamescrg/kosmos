@@ -1,0 +1,212 @@
+{% load humanize %}
+{% if wip_show_all %}
+  <div x-data="wipDimensionToggle()">
+    <div class="toolbar">
+      <div class="toolbar-left">
+        <h2>Unbilled Time</h2>
+        <div class="chart-toggle" role="group" aria-label="Group by">
+          <button type="button"
+                  :class="{ 'toggle-active': dim === 'user' }"
+                  @click="setDim('user')">By User</button>
+          <button type="button"
+                  :class="{ 'toggle-active': dim === 'matter' }"
+                  @click="setDim('matter')">By Matter</button>
+        </div>
+        {% include "dash/wip_period_dropdown.html" %}
+      </div>
+    </div>
+    <div class="wip-section">
+      <div class="wip-donut">
+        <canvas id="wip-admin-chart" data-donut-data="wip-admin-matter-data"></canvas>
+      </div>
+      <div class="table-container wip-table">
+        <table class="table" x-cloak x-show="dim === 'user'">
+          <thead>
+            <tr>
+              <th>User</th>
+              <th class="numeric">Hours</th>
+              <th class="numeric">Gross</th>
+              <th class="numeric">Comp</th>
+              <th class="numeric">Net</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for row in user_rows %}
+              <tr>
+                <td>
+                  <strong>{{ row.label }}</strong>
+                </td>
+                <td class="numeric">{{ row.hours|floatformat:1 }}h</td>
+                <td class="numeric">${{ row.gross|floatformat:2|intcomma }}</td>
+                <td class="numeric">${{ row.comp|floatformat:2|intcomma }}</td>
+                <td class="numeric">
+                  <strong>${{ row.net|floatformat:2|intcomma }}</strong>
+                </td>
+              </tr>
+            {% empty %}
+              <tr>
+                <td colspan="5" class="empty-entries">No unbilled work in progress.</td>
+              </tr>
+            {% endfor %}
+          </tbody>
+          {% if user_rows %}
+            <tfoot>
+              <tr class="table-total">
+                <td>
+                  <strong>Total</strong>
+                </td>
+                <td class="numeric">
+                  <strong>{{ totals.hours|floatformat:1 }}h</strong>
+                </td>
+                <td class="numeric">
+                  <strong>${{ totals.gross|floatformat:2|intcomma }}</strong>
+                </td>
+                <td class="numeric">
+                  <strong>${{ totals.comp|floatformat:2|intcomma }}</strong>
+                </td>
+                <td class="numeric">
+                  <strong>${{ totals.net|floatformat:2|intcomma }}</strong>
+                </td>
+              </tr>
+            </tfoot>
+          {% endif %}
+        </table>
+        <table class="table" x-cloak x-show="dim === 'matter'">
+          <thead>
+            <tr>
+              <th>Matter</th>
+              <th class="numeric">Hours</th>
+              <th class="numeric">Gross</th>
+              <th class="numeric">Comp</th>
+              <th class="numeric">Net</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for row in matter_rows %}
+              <tr>
+                <td>
+                  {% if row.matter_id %}
+                    <a href="{% url 'matters:detail' id=row.matter_id %}"><strong>{{ row.label }}</strong></a>
+                  {% else %}
+                    <strong>{{ row.label }}</strong>
+                  {% endif %}
+                </td>
+                <td class="numeric">{{ row.hours|floatformat:1 }}h</td>
+                <td class="numeric">${{ row.gross|floatformat:2|intcomma }}</td>
+                <td class="numeric">${{ row.comp|floatformat:2|intcomma }}</td>
+                <td class="numeric">
+                  <strong>${{ row.net|floatformat:2|intcomma }}</strong>
+                </td>
+              </tr>
+            {% empty %}
+              <tr>
+                <td colspan="5" class="empty-entries">No unbilled work in progress.</td>
+              </tr>
+            {% endfor %}
+          </tbody>
+          {% if matter_rows %}
+            <tfoot>
+              <tr class="table-total">
+                <td>
+                  <strong>Total</strong>
+                </td>
+                <td class="numeric">
+                  <strong>{{ totals.hours|floatformat:1 }}h</strong>
+                </td>
+                <td class="numeric">
+                  <strong>${{ totals.gross|floatformat:2|intcomma }}</strong>
+                </td>
+                <td class="numeric">
+                  <strong>${{ totals.comp|floatformat:2|intcomma }}</strong>
+                </td>
+                <td class="numeric">
+                  <strong>${{ totals.net|floatformat:2|intcomma }}</strong>
+                </td>
+              </tr>
+            </tfoot>
+          {% endif %}
+        </table>
+      </div>
+    </div>
+    {{ user_donut|json_script:"wip-admin-user-data" }}
+    {{ matter_donut|json_script:"wip-admin-matter-data" }}
+    <script>
+      window.AletheiaActivityChart &&
+        window.AletheiaActivityChart.renderDonut('wip-admin-chart', 'wip-admin-matter-data', { metric: 'net' });
+    </script>
+  </div>
+{% else %}
+  <div class="toolbar">
+    <div class="toolbar-left">
+      <h2>Unbilled Time</h2>
+      {% include "dash/wip_period_dropdown.html" %}
+    </div>
+  </div>
+  <div class="wip-section">
+    <div class="wip-donut">
+      <canvas id="wip-self-chart" data-donut-data="wip-self-data"></canvas>
+    </div>
+    <div class="table-container wip-table">
+      <table class="table">
+        <thead>
+          <tr>
+            <th>Matter</th>
+            <th class="numeric">Hours</th>
+            <th class="numeric">Gross</th>
+            <th class="numeric">Comp</th>
+            <th class="numeric">Net</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for row in user_self_matters %}
+            <tr>
+              <td>
+                {% if row.matter_id %}
+                  <a href="{% url 'matters:detail' id=row.matter_id %}"><strong>{{ row.label }}</strong></a>
+                {% else %}
+                  <strong>{{ row.label }}</strong>
+                {% endif %}
+              </td>
+              <td class="numeric">{{ row.hours|floatformat:1 }}h</td>
+              <td class="numeric">${{ row.gross|floatformat:2|intcomma }}</td>
+              <td class="numeric">${{ row.comp|floatformat:2|intcomma }}</td>
+              <td class="numeric">
+                <strong>${{ row.net|floatformat:2|intcomma }}</strong>
+              </td>
+            </tr>
+          {% empty %}
+            <tr>
+              <td colspan="5" class="empty-entries">No unbilled work in progress.</td>
+            </tr>
+          {% endfor %}
+        </tbody>
+        {% if user_self_matters %}
+          <tfoot>
+            <tr class="table-total">
+              <td>
+                <strong>Total</strong>
+              </td>
+              <td class="numeric">
+                <strong>{{ totals.hours|floatformat:1 }}h</strong>
+              </td>
+              <td class="numeric">
+                <strong>${{ totals.gross|floatformat:2|intcomma }}</strong>
+              </td>
+              <td class="numeric">
+                <strong>${{ totals.comp|floatformat:2|intcomma }}</strong>
+              </td>
+              <td class="numeric">
+                <strong>${{ totals.net|floatformat:2|intcomma }}</strong>
+              </td>
+            </tr>
+          </tfoot>
+        {% endif %}
+      </table>
+    </div>
+  </div>
+  {{ user_self_donut|json_script:"wip-self-data" }}
+  <script>
+    window.AletheiaActivityChart &&
+      window.AletheiaActivityChart.renderDonut('wip-self-chart', 'wip-self-data', { metric: 'net' });
+  </script>
+{% endif %}

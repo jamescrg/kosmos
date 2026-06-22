@@ -7,6 +7,7 @@ billable WIP). `build_wip_context` groups this by user and by matter for the
 two donut charts + tables. It's a snapshot — no date window.
 """
 
+from datetime import date, timedelta
 from decimal import Decimal
 
 from django.conf import settings
@@ -55,10 +56,44 @@ def _row(label, group):
     }
 
 
-def _wip_base():
-    return TimeEntry.objects.filter(
+def _wip_base(date_min=None, date_max=None):
+    qs = TimeEntry.objects.filter(
         invoice__isnull=True, entered=False, matter__billable=True
     )
+    if date_min:
+        qs = qs.filter(date__gte=date_min)
+    if date_max:
+        qs = qs.filter(date__lte=date_max)
+    return qs
+
+
+# Quick-filter periods for the dashboard, mirroring the Activity tab.
+WIP_PERIODS = [
+    ("all", "All Dates"),
+    ("today", "Today"),
+    ("yesterday", "Yesterday"),
+    ("this_week", "This Week"),
+    ("last_week", "Last Week"),
+    ("this_month", "This Month"),
+]
+
+
+def wip_period_range(label):
+    """Map a quick-filter label to (date_min, date_max); (None, None) for all."""
+    today = date.today()
+    if label == "today":
+        return today, today
+    if label == "yesterday":
+        y = today - timedelta(days=1)
+        return y, y
+    if label == "this_week":
+        return today - timedelta(days=today.weekday()), today
+    if label == "last_week":
+        monday = today - timedelta(days=today.weekday())
+        return monday - timedelta(days=7), monday - timedelta(days=1)
+    if label == "this_month":
+        return today.replace(day=1), today
+    return None, None
 
 
 def _totals(rows):
@@ -68,11 +103,11 @@ def _totals(rows):
     }
 
 
-def wip_user_breakdown(user=None):
+def wip_user_breakdown(user=None, date_min=None, date_max=None):
     """The unbilled WIP by-user view: (user_rows, user_donut, totals). When
     `user` is given, the breakdown is scoped to just that user (for the
     non-admin dashboard); otherwise it spans every user."""
-    base = _wip_base()
+    base = _wip_base(date_min, date_max)
     if user is not None:
         base = base.filter(user=user)
 
@@ -200,11 +235,11 @@ def _matter_breakdown(entries, top_n):
     return _cap_rows(rows, top_n), _donut(rows, top_n=top_n), _totals(rows)
 
 
-def wip_user_matters(user, top_n=5):
+def wip_user_matters(user, top_n=5, date_min=None, date_max=None):
     """A user's own unbilled WIP grouped by matter: (rows, donut, totals)."""
-    return _matter_breakdown(_wip_base().filter(user=user), top_n)
+    return _matter_breakdown(_wip_base(date_min, date_max).filter(user=user), top_n)
 
 
-def wip_matter_breakdown(top_n=5):
+def wip_matter_breakdown(top_n=5, date_min=None, date_max=None):
     """Firm-wide unbilled WIP grouped by matter: (rows, donut, totals)."""
-    return _matter_breakdown(_wip_base(), top_n)
+    return _matter_breakdown(_wip_base(date_min, date_max), top_n)

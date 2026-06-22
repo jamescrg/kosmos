@@ -1,0 +1,24 @@
+{% comment %}
+Unbilled-time quick-period dropdown (mirrors the Activity tab). Posts to
+dash:wip-period, which stores the choice and triggers a section reload.
+Requires: wip_period, wip_period_label, wip_periods.
+{% endcomment %}
+<div class="dropdown" x-data="dropdown()">
+  <button type="button"
+          class="select-btn filter-dropdown-button {% if wip_period != 'all' %}toggle-active{% endif %}"
+          x-ref="button"
+          @click="toggle()"
+          :aria-expanded="open">
+    <span><i class="icon-calendar with-text"></i> {{ wip_period_label }}</span>
+    <small><i class="icon-chevron-down"></i></small>
+  </button>
+  <ul class="dropdown-menu" x-ref="menu" x-show="open">
+    {% for value, label in wip_periods %}
+      <li>
+        <a class="dropdown-item {% if value == wip_period %}active{% endif %}"
+           href="#"
+           hx-post="{% url 'dash:wip-period' period=value %}">{{ label }}</a>
+      </li>
+    {% endfor %}
+  </ul>
+</div>
