@@ -30,6 +30,16 @@
         <th>Balance Due</th>
         <td class="numeric">${{ balance_due|floatformat:2|intcomma }}</td>
       </tr>
+      {% if has_deferred %}
+        <tr>
+          <th>Deferred (recovery claim)</th>
+          <td class="numeric">${{ deferred_total|floatformat:2|intcomma }}</td>
+        </tr>
+        <tr>
+          <th>Currently owed (excl. deferred)</th>
+          <td class="numeric">${{ currently_owed|floatformat:2|intcomma }}</td>
+        </tr>
+      {% endif %}
     </table>
     <table class="ledger-totals">
       <tr>
@@ -53,7 +63,7 @@
       <tr>
         <th>Trust Clearance</th>
         <td class="numeric">
-          ${{ client_trust_balance|sub:balance_due|sub:matter.value.unbilled.net_fees_and_expenses|floatformat:2|intcomma }}
+          ${{ client_trust_balance|sub:currently_owed|sub:matter.value.unbilled.net_fees_and_expenses|floatformat:2|intcomma }}
         </td>
       </tr>
     </table>
@@ -76,7 +86,10 @@
             <td class="description dropdown-cell">
               {# invoices -------------------------------------- #}
               {% if 'Invoice' in transaction.description %}
-                <a href="{% url 'invoicing:invoices-detail-index' transaction.id %}">{{ transaction.description }}</a>
+                <div class="ledger-desc">
+                  <a href="{% url 'invoicing:invoices-detail-index' transaction.id %}">{{ transaction.description }}</a>
+                  {% if transaction.is_deferred %}<span class="app-badge">Deferred</span>{% endif %}
+                </div>
               {% elif 'Payment' in transaction.description %}
                 <div class="dropdown" x-data="dropdown()">
                   <button class="button-link"
@@ -128,7 +141,9 @@
               {% endif %}
             </td>
             {% if transaction.transaction_type == 'Charge' %}
-              <td class="numeric urgent">${{ transaction.amount|floatformat:2|intcomma }}</td>
+              <td class="numeric{% if not transaction.is_deferred %} urgent{% endif %}">
+                ${{ transaction.amount|floatformat:2|intcomma }}
+              </td>
             {% else %}
               <td class="numeric">-${{ transaction.amount|floatformat:2|intcomma }}</td>
             {% endif %}

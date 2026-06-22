@@ -3,6 +3,7 @@ from datetime import date, timedelta
 from django.contrib.auth.decorators import login_required
 from django.db.models import (
     DecimalField,
+    Exists,
     ExpressionWrapper,
     F,
     OuterRef,
@@ -159,8 +160,14 @@ def dash_collections_context(request):
                 0,
                 output_field=DecimalField(),
             ),
+            has_deferred=Exists(
+                Invoice.objects.filter(matter=OuterRef("pk"), status="DEFERRED")
+            ),
         )
         .filter(Q(unbilled_fees__gt=0) | Q(unbilled_expenses__gt=0))
+        # Matters on a deferred-fee arrangement have waived/irrelevant retainers,
+        # so the low-clearance alarm does not apply to them.
+        .exclude(has_deferred=True)
     )
 
     # Convert to list and calculate clearance

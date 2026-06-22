@@ -6,8 +6,28 @@ from apps.invoicing.payments.models import Payment
 
 
 def get_ledger_data(matter):
+    """Build the matter ledger.
+
+    ``balance_due`` is the full running balance and INCLUDES deferred invoices.
+
+    Deferred-fee arrangements (invoices manually marked ``DEFERRED``) are also
+    broken out so the ledger can distinguish the accumulated recovery claim from
+    what the client owes right now, and so trust clearance is not dragged down by
+    fees the client is not currently obligated to pay:
+
+    - ``deferred_total``   -- net recovery claim: sum of ``amount_remaining`` over
+      ``DEFERRED`` invoices (i.e. after the client's payments/credits applied to them).
+    - ``currently_owed``   -- sum of ``amount_remaining`` over non-deferred displayed
+      invoices: what the client owes now. Used for the trust-clearance figure.
+    - ``has_deferred``     -- whether this matter has any deferred recovery claim.
+
+    When payments/credits are fully applied to invoices,
+    ``currently_owed + deferred_total`` reconciles to ``balance_due``.
+    """
     transactions = []
     balance = 0  # Initialize balance to prevent UnboundLocalError
+    deferred_total = 0
+    currently_owed = 0
 
     # Only include invoices that should be displayed in ledger (exclude DRAFT and APPROVED)
     invoices = (
@@ -23,6 +43,7 @@ def get_ledger_data(matter):
     if invoices:
         for invoice in invoices:
             affects_balance = invoice.status not in ["DRAFT", "APPROVED", "VOID"]
+            is_deferred = invoice.status == "DEFERRED"
             invoice_dict = {
                 "id": invoice.id,
                 "date": invoice.date_issued,
@@ -30,9 +51,17 @@ def get_ledger_data(matter):
                 "description": f"Invoice {invoice.id}",
                 "amount": invoice.value["final_total"],
                 "invoice_status": invoice.status,
+                "is_deferred": is_deferred,
                 "affects_balance": affects_balance,
             }
             transactions.append(invoice_dict)
+
+            # Break out the deferred recovery claim vs. what is currently owed,
+            # netting payments/credits already applied to each invoice.
+            if is_deferred:
+                deferred_total += invoice.amount_remaining
+            else:
+                currently_owed += invoice.amount_remaining
 
     if payments:
         for payment in payments:
@@ -80,5 +109,8 @@ def get_ledger_data(matter):
     return {
         "transactions": transactions,
         "balance_due": balance,
+        "deferred_total": deferred_total,
+        "currently_owed": currently_owed,
+        "has_deferred": bool(deferred_total),
         "total_credits": total_credits,
     }

@@ -45,9 +45,14 @@
                 <tr>
                   <td class="date">{{ transaction.date|date:'Y-m-d' }}</td>
                   <td class="transaction-type">{{ transaction.transaction_type }}</td>
-                  <td>{{ transaction.description }}</td>
+                  <td>
+                    {{ transaction.description }}
+                    {% if transaction.is_deferred %}(Deferred){% endif %}
+                  </td>
                   {% if transaction.transaction_type == 'Charge' %}
-                    <td class="money urgent">${{ transaction.amount|floatformat:2|intcomma }}</td>
+                    <td class="money{% if not transaction.is_deferred %} urgent{% endif %}">
+                      ${{ transaction.amount|floatformat:2|intcomma }}
+                    </td>
                   {% else %}
                     <td class="money">-${{ transaction.amount|floatformat:2|intcomma }}</td>
                   {% endif %}
@@ -62,6 +67,16 @@
                 {% endif %}
                 <td class="money balance-due">${{ balance_due|abs|floatformat:2|intcomma }}</td>
               </tr>
+              {% if has_deferred %}
+                <tr>
+                  <td colspan="4">Deferred (recovery claim)</td>
+                  <td class="money">${{ deferred_total|floatformat:2|intcomma }}</td>
+                </tr>
+                <tr>
+                  <td colspan="4">Currently owed (excl. deferred)</td>
+                  <td class="money">${{ currently_owed|floatformat:2|intcomma }}</td>
+                </tr>
+              {% endif %}
             </table>
           </div>
         </div>

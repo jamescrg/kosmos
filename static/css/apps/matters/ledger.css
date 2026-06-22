@@ -1,7 +1,16 @@
 .ledger-summary {
   display: flex;
+  align-items: flex-start;
   gap: 1.25rem;
   margin-bottom: 1.5rem;
+}
+
+/* Deferred-fee invoices: description on the left, status badge on the right. */
+.ledger-desc {
+  align-items: center;
+  display: flex;
+  gap: 0.5rem;
+  justify-content: space-between;
 }
 
 .ledger-totals {

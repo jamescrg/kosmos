@@ -2,11 +2,37 @@ from decimal import Decimal
 
 import pytest
 
+from apps.activity.time.models import TimeEntry
+from apps.invoicing.applications.models import PaymentApplication
 from apps.invoicing.credits.models import Credit
 from apps.invoicing.invoices.models import Invoice
+from apps.invoicing.payments.models import Payment
 from apps.matters.ledger.get_ledger_data import get_ledger_data
 
 pytestmark = pytest.mark.django_db
+
+
+def _deferred_invoice(user, matter, total):
+    """A DEFERRED invoice whose ``final_total`` is ``total``."""
+    invoice = Invoice.objects.create(
+        created_by=user,
+        matter=matter,
+        date_limit="2024-02-28",
+        date_issued="2024-02-01",
+        status="DEFERRED",
+    )
+    TimeEntry.objects.create(
+        user=user,
+        matter=matter,
+        date="2024-02-01",
+        actions="Deferred work",
+        hours=Decimal("1.0"),
+        rate=int(total),
+        comp=False,
+        entered=False,
+        invoice=invoice,
+    )
+    return invoice
 
 
 class TestGetLedgerDataEmpty:
@@ -130,6 +156,65 @@ class TestGetLedgerDataSorting:
         result = get_ledger_data(matter)
         dates = [t["date"] for t in result["transactions"]]
         assert dates == sorted(dates)
+
+
+class TestGetLedgerDataDeferredBreakout:
+    def test_empty_matter_has_no_deferral(self, matter):
+        result = get_ledger_data(matter)
+        assert result["deferred_total"] == 0
+        assert result["currently_owed"] == 0
+        assert result["has_deferred"] is False
+
+    def test_deferred_invoice_breakout(self, user, matter):
+        _deferred_invoice(user, matter, 1000)
+        result = get_ledger_data(matter)
+        assert result["has_deferred"] is True
+        # Net recovery claim (no payments applied yet).
+        assert result["deferred_total"] == Decimal("1000.00")
+        # Nothing non-deferred is owed.
+        assert result["currently_owed"] == 0
+        # Balance Due is unchanged: it still INCLUDES the deferred invoice.
+        assert result["balance_due"] == Decimal("1000.00")
+
+    def test_deferred_charge_row_is_flagged(self, user, matter):
+        invoice = _deferred_invoice(user, matter, 1000)
+        result = get_ledger_data(matter)
+        row = next(
+            t
+            for t in result["transactions"]
+            if t["description"] == f"Invoice {invoice.id}"
+        )
+        assert row["is_deferred"] is True
+
+    def test_partially_paid_deferred_nets_payment(self, user, matter):
+        invoice = _deferred_invoice(user, matter, 1000)
+        payment = Payment.objects.create(
+            matter=matter,
+            date="2024-03-01",
+            amount=Decimal("400.00"),
+            payment_method="CHECK",
+        )
+        PaymentApplication.objects.create(
+            payment=payment, invoice=invoice, amount_applied=Decimal("400.00")
+        )
+        result = get_ledger_data(matter)
+        # Recovery claim is net of the applied payment.
+        assert result["deferred_total"] == Decimal("600.00")
+        # Running balance also nets the payment.
+        assert result["balance_due"] == Decimal("600.00")
+
+    def test_non_deferred_matter_currently_owed_equals_balance(
+        self, matter, sent_invoice
+    ):
+        result = get_ledger_data(matter)
+        assert result["has_deferred"] is False
+        assert result["deferred_total"] == 0
+        assert result["currently_owed"] == result["balance_due"]
+        # And non-deferred charge rows are not flagged.
+        charge = next(
+            t for t in result["transactions"] if t["transaction_type"] == "Charge"
+        )
+        assert charge["is_deferred"] is False
 
 
 class TestGetLedgerDataTotalCredits:
