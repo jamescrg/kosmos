@@ -22,7 +22,7 @@ from apps.invoicing.credits.models import Credit
 from apps.invoicing.invoices.models import Invoice
 from apps.invoicing.payments.models import Payment
 from apps.matters.models import Matter
-from apps.reports.wip.aggregation import wip_matter_donut, wip_user_breakdown
+from apps.reports.wip.aggregation import wip_user_breakdown, wip_user_matters
 from apps.trust.trust import get_confirmed_client_balance
 
 
@@ -55,15 +55,18 @@ def dash_index(request):
     wip_show_all = (request.user.is_admin or request.user.perm_reports) and (
         request.GET.get("view") != "user"
     )
+    wip_user_rows = None
+    wip_user_donut = None
+    wip_self_matters = None
     wip_self_donut = None
     if wip_show_all:
         wip_user_rows, wip_user_donut, wip_totals = wip_user_breakdown()
     else:
-        wip_user_rows, wip_user_donut, wip_totals = wip_user_breakdown(
-            user=request.user
+        # The user's own unbilled WIP by matter: donut (top 5 + Other, net) plus
+        # the full per-matter detail table beside it.
+        wip_self_matters, wip_self_donut, wip_totals = wip_user_matters(
+            request.user, top_n=5
         )
-        # The user's own unbilled WIP by matter (top 5 + Other), shown as net.
-        wip_self_donut = wip_matter_donut(request.user, top_n=5)
 
     # Matters with low clearance (< $1000)
     # Use subqueries to calculate unbilled amounts
@@ -253,6 +256,7 @@ def dash_index(request):
         "wip_heading": "Unbilled Time",
         "user_rows": wip_user_rows,
         "user_donut": wip_user_donut,
+        "user_self_matters": wip_self_matters,
         "user_self_donut": wip_self_donut,
         "totals": wip_totals,
         "low_clearance_matters": low_clearance_matters,

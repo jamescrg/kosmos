@@ -161,15 +161,21 @@ def _donut(rows, top_n=None):
     }
 
 
-def wip_matter_donut(user, top_n=5):
-    """Donut payload of `user`'s unbilled WIP grouped by matter (top_n + Other)."""
-    rows = [
-        _row(g["matter__name"] or "Unknown", g)
-        for g in (
-            _wip_base()
-            .filter(user=user)
-            .values("matter_id", "matter__name")
-            .annotate(hours_sum=Sum("hours"), gross=Sum(_FEE), comp=Sum(_COMP_FEE))
+def wip_user_matters(user, top_n=5):
+    """A user's own unbilled WIP grouped by matter: (rows, donut, totals).
+
+    `rows` covers every matter (sorted by net, each with matter_id); `donut`
+    caps at top_n + a trailing "Other" slice.
+    """
+    rows = []
+    for g in (
+        _wip_base()
+        .filter(user=user)
+        .values("matter_id", "matter__name")
+        .annotate(hours_sum=Sum("hours"), gross=Sum(_FEE), comp=Sum(_COMP_FEE))
+    ):
+        rows.append(
+            {**_row(g["matter__name"] or "Unknown", g), "matter_id": g["matter_id"]}
         )
-    ]
-    return _donut(rows, top_n=top_n)
+    rows.sort(key=lambda r: r["net"], reverse=True)
+    return rows, _donut(rows, top_n=top_n), _totals(rows)

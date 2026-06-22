@@ -18,32 +18,43 @@
           <table class="table">
             <thead>
               <tr>
-                <th>User</th>
+                <th>Matter</th>
                 <th class="numeric">Hours</th>
-                <th class="numeric">Gross</th>
-                <th class="numeric">Comp</th>
                 <th class="numeric">Net</th>
               </tr>
             </thead>
             <tbody>
-              {% for row in user_rows %}
+              {% for row in user_self_matters %}
                 <tr>
                   <td>
-                    <strong>{{ row.label }}</strong>
+                    <a href="{% url 'matters:detail' id=row.matter_id %}"><strong>{{ row.label }}</strong></a>
                   </td>
                   <td class="numeric">{{ row.hours|floatformat:1 }}h</td>
-                  <td class="numeric">${{ row.gross|floatformat:2|intcomma }}</td>
-                  <td class="numeric">${{ row.comp|floatformat:2|intcomma }}</td>
                   <td class="numeric">
                     <strong>${{ row.net|floatformat:2|intcomma }}</strong>
                   </td>
                 </tr>
               {% empty %}
                 <tr>
-                  <td colspan="5" class="empty-entries">No unbilled work in progress.</td>
+                  <td colspan="3" class="empty-entries">No unbilled work in progress.</td>
                 </tr>
               {% endfor %}
             </tbody>
+            {% if user_self_matters %}
+              <tfoot>
+                <tr class="table-total">
+                  <td>
+                    <strong>Total</strong>
+                  </td>
+                  <td class="numeric">
+                    <strong>{{ totals.hours|floatformat:1 }}h</strong>
+                  </td>
+                  <td class="numeric">
+                    <strong>${{ totals.net|floatformat:2|intcomma }}</strong>
+                  </td>
+                </tr>
+              </tfoot>
+            {% endif %}
           </table>
         </div>
       </div>
