@@ -5,7 +5,7 @@
 /* The table uses border-collapse: separate, so a row border won't render —
    the rule has to live on the cells. */
 .table-total td {
-  border-top: 1px solid var(--border-dark);
+  border-top: 1px solid var(--border-medium);
   padding-top: 1rem;
 }
 
@@ -136,6 +136,36 @@
   flex: none;
   width: 300px;
   height: 280px;
+}
+
+/* Stand-in that holds the donut's footprint when a period has no unbilled
+   time, so the section doesn't collapse (the table still frames out beside it). */
+.wip-placeholder {
+  align-items: center;
+  border: 1px solid var(--border-medium);
+  border-radius: var(--radius-md);
+  color: var(--color-muted);
+  display: flex;
+  font-style: italic;
+  height: 100%;
+  justify-content: center;
+  width: 100%;
+}
+
+/* When empty, the framed table fills the chart placeholder's height (the 280px
+   donut box) so the two columns stay the same height. The header keeps its
+   standard height (pinned to content via height:1px) and the single empty row
+   absorbs the remaining space, centring its message. */
+.wip-table.is-empty .table {
+  height: 280px;
+}
+
+.wip-table.is-empty thead th {
+  height: 1px;
+}
+
+.wip-table.is-empty .empty-entries {
+  vertical-align: middle;
 }
 
 .wip-section .wip-table {
