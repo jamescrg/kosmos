@@ -32,12 +32,20 @@ class PermissionMiddleware:
         ("/reports/", "perm_reports"),
     ]
 
+    # Paths only admins may access (page + all its endpoints), regardless of perms.
+    ADMIN_ONLY_PATHS = [
+        "/settings/users/",
+    ]
+
     def __init__(self, get_response):
         self.get_response = get_response
 
     def __call__(self, request):
         if request.user.is_authenticated and not request.user.is_admin:
             if request.path.startswith("/admin/"):
+                return HttpResponseForbidden()
+
+            if any(request.path.startswith(p) for p in self.ADMIN_ONLY_PATHS):
                 return HttpResponseForbidden()
 
             for path_prefix, perm_field in self.PERMISSION_PATHS:
