@@ -161,11 +161,31 @@ def _donut(rows, top_n=None):
     }
 
 
+def _cap_rows(rows, top_n):
+    """Top `top_n` rows by gross (sorted by net for display) + an aggregated
+    "Other" row, so the table shows the same buckets as the donut."""
+    ranked = sorted(rows, key=lambda r: r["gross"], reverse=True)
+    head = sorted(ranked[:top_n], key=lambda r: r["net"], reverse=True)
+    rest = ranked[top_n:]
+    if rest:
+        head.append(
+            {
+                "label": "Other",
+                "matter_id": None,
+                "hours": sum((r["hours"] for r in rest), Decimal(0)),
+                "gross": sum((r["gross"] for r in rest), Decimal(0)),
+                "comp": sum((r["comp"] for r in rest), Decimal(0)),
+                "net": sum((r["net"] for r in rest), Decimal(0)),
+            }
+        )
+    return head
+
+
 def wip_user_matters(user, top_n=5):
     """A user's own unbilled WIP grouped by matter: (rows, donut, totals).
 
-    `rows` covers every matter (sorted by net, each with matter_id); `donut`
-    caps at top_n + a trailing "Other" slice.
+    `rows` is the top_n matters by gross + an "Other" bucket (matching the donut
+    slices); `totals` still reflects every matter.
     """
     rows = []
     for g in (
@@ -177,5 +197,4 @@ def wip_user_matters(user, top_n=5):
         rows.append(
             {**_row(g["matter__name"] or "Unknown", g), "matter_id": g["matter_id"]}
         )
-    rows.sort(key=lambda r: r["net"], reverse=True)
-    return rows, _donut(rows, top_n=top_n), _totals(rows)
+    return _cap_rows(rows, top_n), _donut(rows, top_n=top_n), _totals(rows)

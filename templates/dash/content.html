@@ -20,6 +20,8 @@
               <tr>
                 <th>Matter</th>
                 <th class="numeric">Hours</th>
+                <th class="numeric">Gross</th>
+                <th class="numeric">Comp</th>
                 <th class="numeric">Net</th>
               </tr>
             </thead>
@@ -27,16 +29,22 @@
               {% for row in user_self_matters %}
                 <tr>
                   <td>
-                    <a href="{% url 'matters:detail' id=row.matter_id %}"><strong>{{ row.label }}</strong></a>
+                    {% if row.matter_id %}
+                      <a href="{% url 'matters:detail' id=row.matter_id %}"><strong>{{ row.label }}</strong></a>
+                    {% else %}
+                      <strong>{{ row.label }}</strong>
+                    {% endif %}
                   </td>
                   <td class="numeric">{{ row.hours|floatformat:1 }}h</td>
+                  <td class="numeric">${{ row.gross|floatformat:2|intcomma }}</td>
+                  <td class="numeric">${{ row.comp|floatformat:2|intcomma }}</td>
                   <td class="numeric">
                     <strong>${{ row.net|floatformat:2|intcomma }}</strong>
                   </td>
                 </tr>
               {% empty %}
                 <tr>
-                  <td colspan="3" class="empty-entries">No unbilled work in progress.</td>
+                  <td colspan="5" class="empty-entries">No unbilled work in progress.</td>
                 </tr>
               {% endfor %}
             </tbody>
@@ -48,6 +56,12 @@
                   </td>
                   <td class="numeric">
                     <strong>{{ totals.hours|floatformat:1 }}h</strong>
+                  </td>
+                  <td class="numeric">
+                    <strong>${{ totals.gross|floatformat:2|intcomma }}</strong>
+                  </td>
+                  <td class="numeric">
+                    <strong>${{ totals.comp|floatformat:2|intcomma }}</strong>
                   </td>
                   <td class="numeric">
                     <strong>${{ totals.net|floatformat:2|intcomma }}</strong>
