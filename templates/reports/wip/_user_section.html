@@ -1,8 +1,11 @@
 {% load humanize %}
-{% include "reports/wip/_user_section.html" %}
-<div class="toolbar" x-data="donutToggle('wip-matter-chart')">
+{% comment %}
+WIP by-user section (donut + table). Shared by the WIP report and the admin
+dashboard. Requires: user_rows, totals, user_donut.
+{% endcomment %}
+<div class="toolbar" x-data="donutToggle('wip-user-chart')">
   <div class="toolbar-left">
-    <h2>WIP by matter</h2>
+    <h2>WIP by user</h2>
     <div class="chart-toggle" role="group" aria-label="Metric">
       <button type="button"
               :class="{ 'toggle-active': metric === 'gross' }"
@@ -15,13 +18,13 @@
 </div>
 <div class="wip-section">
   <div class="wip-donut">
-    <canvas id="wip-matter-chart" data-donut-data="wip-matter-data"></canvas>
+    <canvas id="wip-user-chart" data-donut-data="wip-user-data"></canvas>
   </div>
   <div class="table-container wip-table">
     <table class="table">
       <thead>
         <tr>
-          <th>Matter</th>
+          <th>User</th>
           <th class="numeric">Hours</th>
           <th class="numeric">Gross</th>
           <th class="numeric">Comp</th>
@@ -30,12 +33,10 @@
         </tr>
       </thead>
       <tbody>
-        {% for row in matter_rows %}
+        {% for row in user_rows %}
           <tr>
             <td>
-              <a href="{% url 'matters:detail' id=row.matter_id %}">
-                <strong>{{ row.label }}</strong>
-              </a>
+              <strong>{{ row.label }}</strong>
             </td>
             <td class="numeric">{{ row.hours|floatformat:1 }}h</td>
             <td class="numeric">${{ row.gross|floatformat:2|intcomma }}</td>
@@ -51,7 +52,7 @@
           </tr>
         {% endfor %}
       </tbody>
-      {% if matter_rows %}
+      {% if user_rows %}
         <tfoot>
           <tr class="table-total">
             <td>
@@ -78,8 +79,8 @@
     </table>
   </div>
 </div>
-{{ matter_donut|json_script:"wip-matter-data" }}
+{{ user_donut|json_script:"wip-user-data" }}
 <script>
   window.AletheiaActivityChart &&
-    window.AletheiaActivityChart.renderDonut('wip-matter-chart', 'wip-matter-data', { metric: 'net' });
+    window.AletheiaActivityChart.renderDonut('wip-user-chart', 'wip-user-data', { metric: 'net' });
 </script>

@@ -1,30 +1,24 @@
 /* ==========================================================================
- Dashboard Layout (Bootstrap grid replacement)
+ Dashboard Layout — stacked full-width rows; row 3 splits into two columns
 ========================================================================== */
 
-.dashboard-grid {
+.dashboard {
   display: flex;
   flex-direction: column;
-  gap: 1rem;
+  gap: 1.5rem;
 }
 
-@media (width >= 1200px) {
-  .dashboard-grid {
-    flex-direction: row;
-    gap: 1.25rem;
-  }
+/* Two equal columns (Past Due | Low Clearance), stacking on narrow screens. */
+.dash-split {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1.5rem;
+  align-items: flex-start;
+}
 
-  .dashboard-grid > .dashboard-sidebar {
-    flex: 0 0 calc(33.333% - 0.833rem);
-    max-width: calc(33.333% - 0.833rem);
-    order: 1;
-  }
-
-  .dashboard-grid > .dashboard-main {
-    flex: 0 0 calc(66.666% - 0.417rem);
-    max-width: calc(66.666% - 0.417rem);
-    order: 2;
-  }
+.dash-split > .dashboard-card {
+  flex: 1;
+  min-width: 20rem;
 }
 
 /* ==========================================================================

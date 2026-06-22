@@ -22,77 +22,42 @@ from apps.invoicing.credits.models import Credit
 from apps.invoicing.invoices.models import Invoice
 from apps.invoicing.payments.models import Payment
 from apps.matters.models import Matter
-from apps.tasks.constants import ACTIVE_STATUSES
-from apps.tasks.models import Task
+from apps.reports.wip.aggregation import wip_user_breakdown
 from apps.trust.trust import get_confirmed_client_balance
+
+
+def _nth_working_day(start, count):
+    """Date of the `count`-th working day (Mon–Fri) on or after `start`."""
+    day = start
+    seen = 0
+    while True:
+        if day.weekday() < 5:
+            seen += 1
+            if seen == count:
+                return day
+        day += timedelta(days=1)
 
 
 @login_required
 def dash_index(request):
     today = date.today()
-    tomorrow = today + timedelta(days=1)
 
-    # All pending events ordered by date (captures past due and upcoming)
-    upcoming_events = Event.objects.filter(status="Pending").order_by("date", "party")[
-        :4
-    ]
+    # Upcoming events: pending events from today through the 3rd working day
+    # (weekends in between still show). The table is hidden when empty.
+    window_end = _nth_working_day(today, 3)
+    upcoming_events = Event.objects.filter(
+        status="Pending", date__gte=today, date__lte=window_end
+    ).order_by("date", "start_time", "party")
 
-    # Count of events in the next 7 days for the summary
-    end_date = today + timedelta(days=7)
-    events_next_7_days_count = Event.objects.filter(
-        date__gte=today, date__lte=end_date
-    ).count()
-
-    # Tasks past due, due today, or due tomorrow, ordered by due date then importance
-    urgent_tasks = Task.objects.filter(
-        status__in=ACTIVE_STATUSES,
-        date_due__lte=tomorrow,
-    ).order_by("date_due", "importance")
-
-    # Unbilled hours and fees
-    if request.user.is_admin:
-        # Admin: show all users with per-user breakdown
-        unbilled_by_user = (
-            TimeEntry.objects.filter(
-                entered=False,
-                invoice__isnull=True,
-                matter__billable=True,
-            )
-            .exclude(comp=True)
-            .values("user__username")
-            .annotate(
-                total_hours=Coalesce(Sum("hours"), 0, output_field=DecimalField()),
-                total_fees=Coalesce(
-                    Sum(F("hours") * F("rate")), 0, output_field=DecimalField()
-                ),
-            )
-            .order_by("user__username")
-        )
-        unbilled_total_hours = sum(entry["total_hours"] for entry in unbilled_by_user)
-        unbilled_total_fees = sum(entry["total_fees"] for entry in unbilled_by_user)
+    # WIP by user — users with reporting access see the full all-users section
+    # (identical to the WIP report); everyone else sees only their own WIP.
+    wip_show_all = request.user.is_admin or request.user.perm_reports
+    if wip_show_all:
+        wip_user_rows, wip_user_donut, wip_totals = wip_user_breakdown()
     else:
-        # Non-admin: show only current user's unbilled hours for the month
-        month_start = today.replace(day=1)
-        user_unbilled = (
-            TimeEntry.objects.filter(
-                entered=False,
-                invoice__isnull=True,
-                matter__billable=True,
-                user=request.user,
-                date__gte=month_start,
-                date__lte=today,
-            )
-            .exclude(comp=True)
-            .aggregate(
-                total_hours=Coalesce(Sum("hours"), 0, output_field=DecimalField()),
-                total_fees=Coalesce(
-                    Sum(F("hours") * F("rate")), 0, output_field=DecimalField()
-                ),
-            )
+        wip_user_rows, wip_user_donut, wip_totals = wip_user_breakdown(
+            user=request.user
         )
-        unbilled_by_user = None
-        unbilled_total_hours = user_unbilled["total_hours"]
-        unbilled_total_fees = user_unbilled["total_fees"]
 
     # Matters with low clearance (< $1000)
     # Use subqueries to calculate unbilled amounts
@@ -278,17 +243,14 @@ def dash_index(request):
     context = {
         "app": "dash",
         "upcoming_events": upcoming_events,
-        "upcoming_events_count": len(upcoming_events),
-        "events_next_7_days_count": events_next_7_days_count,
-        "urgent_tasks": urgent_tasks,
-        "unbilled_by_user": unbilled_by_user,
-        "unbilled_total_hours": unbilled_total_hours,
-        "unbilled_total_fees": unbilled_total_fees,
+        "wip_show_all": wip_show_all,
+        "user_rows": wip_user_rows,
+        "user_donut": wip_user_donut,
+        "totals": wip_totals,
         "low_clearance_matters": low_clearance_matters,
         "balance_due_matters": balance_due_matters,
         "open_intakes": open_intakes,
         "today": today,
-        "tomorrow": tomorrow,
     }
 
     return render(request, "dash/dash.html", context)

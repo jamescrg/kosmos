@@ -55,21 +55,31 @@ def _row(label, group):
     }
 
 
-def build_wip_context(request):
-    """Full template context for the WIP report, including donut payloads."""
-    base = TimeEntry.objects.filter(
+def _wip_base():
+    return TimeEntry.objects.filter(
         invoice__isnull=True, entered=False, matter__billable=True
     )
+
+
+def _totals(rows):
+    return {
+        key: sum((r[key] for r in rows), Decimal(0))
+        for key in ("hours", "gross", "comp", "net")
+    }
+
+
+def wip_user_breakdown(user=None):
+    """The unbilled WIP by-user view: (user_rows, user_donut, totals). When
+    `user` is given, the breakdown is scoped to just that user (for the
+    non-admin dashboard); otherwise it spans every user."""
+    base = _wip_base()
+    if user is not None:
+        base = base.filter(user=user)
 
     by_user = base.values(
         "user_id", "user__first_name", "user__last_name", "user__username"
     ).annotate(hours_sum=Sum("hours"), gross=Sum(_FEE), comp=Sum(_COMP_FEE))
 
-    by_matter = base.values(
-        "matter_id", "matter__name", "matter__client__name"
-    ).annotate(hours_sum=Sum("hours"), gross=Sum(_FEE), comp=Sum(_COMP_FEE))
-
-    # --- by user ---
     user_rows = []
     for g in by_user:
         name = f"{g['user__first_name']} {g['user__last_name']}".strip()
@@ -77,7 +87,24 @@ def build_wip_context(request):
         user_rows.append(_row(label, g))
     user_rows.sort(key=lambda r: r["net"], reverse=True)
 
-    # --- by matter ---
+    totals = _totals(user_rows)
+    total_net = totals["net"]
+    for r in user_rows:
+        r["pct"] = (r["net"] / total_net * 100) if total_net else Decimal(0)
+
+    return user_rows, _donut(user_rows, cap=False), totals
+
+
+def build_wip_context(request):
+    """Full template context for the WIP report, including donut payloads."""
+    user_rows, user_donut, totals = wip_user_breakdown()
+    total_net = totals["net"]
+
+    by_matter = (
+        _wip_base()
+        .values("matter_id", "matter__name", "matter__client__name")
+        .annotate(hours_sum=Sum("hours"), gross=Sum(_FEE), comp=Sum(_COMP_FEE))
+    )
     matter_rows = []
     for g in by_matter:
         matter_rows.append(
@@ -88,24 +115,12 @@ def build_wip_context(request):
             }
         )
     matter_rows.sort(key=lambda r: r["net"], reverse=True)
-
-    totals = {
-        "hours": sum((r["hours"] for r in user_rows), Decimal(0)),
-        "gross": sum((r["gross"] for r in user_rows), Decimal(0)),
-        "comp": sum((r["comp"] for r in user_rows), Decimal(0)),
-        "net": sum((r["net"] for r in user_rows), Decimal(0)),
-    }
-    total_net = totals["net"]
-    for rows in (user_rows, matter_rows):
-        for r in rows:
-            r["pct"] = (r["net"] / total_net * 100) if total_net else Decimal(0)
+    for r in matter_rows:
+        r["pct"] = (r["net"] / total_net * 100) if total_net else Decimal(0)
 
     if settings.DEBUG:
         matter_net = sum((r["net"] for r in matter_rows), Decimal(0))
         assert matter_net == total_net, f"WIP net mismatch: {matter_net} != {total_net}"
-
-    user_donut = _donut(user_rows, cap=False)
-    matter_donut = _donut(matter_rows, cap=True)
 
     return {
         "app": "reports",
@@ -114,7 +129,7 @@ def build_wip_context(request):
         "matter_rows": matter_rows,
         "totals": totals,
         "user_donut": user_donut,
-        "matter_donut": matter_donut,
+        "matter_donut": _donut(matter_rows, cap=True),
     }
 
 
