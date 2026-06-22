@@ -24,13 +24,20 @@ class UserForm(forms.ModelForm):
             (False, "No"),
         )
 
+        ACTIVE_CHOICES = (
+            (True, "Active"),
+            (False, "Inactive"),
+        )
+
         widgets = {
             "is_attorney": forms.Select(choices=ATTORNEY_CHOICES),
+            "is_active": forms.Select(choices=ACTIVE_CHOICES),
         }
 
         labels = {
             "is_attorney": "Attorney",
             "user_rate": "Hourly Rate",
+            "is_active": "Status",
         }
 
     def __init__(self, *args, **kwargs):

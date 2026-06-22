@@ -62,6 +62,9 @@ def user_sort(request, order):
 
 @login_required
 def change_role(request, user_id, role):
+    if not request.user.is_admin:
+        return HttpResponseForbidden()
+
     CustomUser.objects.filter(id=user_id).update(role=role)
 
     return HttpResponse(status=204, headers={"HX-Trigger": "userListReload"})
@@ -69,6 +72,9 @@ def change_role(request, user_id, role):
 
 @login_required
 def switch_status(request, user_id):
+    if not request.user.is_admin:
+        return HttpResponseForbidden()
+
     user = CustomUser.objects.get(id=user_id)
 
     user.is_active = not user.is_active
@@ -79,6 +85,9 @@ def switch_status(request, user_id):
 
 @login_required
 def add_user(request):
+    if not request.user.is_admin:
+        return HttpResponseForbidden()
+
     if request.method == "POST":
         form = CreateUserForm(request.POST)
 
@@ -98,6 +107,9 @@ def add_user(request):
 
 @login_required
 def edit_user(request, user_id):
+    if not request.user.is_admin:
+        return HttpResponseForbidden()
+
     user = CustomUser.objects.get(id=user_id)
 
     if request.method == "POST":

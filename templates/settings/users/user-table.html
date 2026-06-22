@@ -2,13 +2,15 @@
   <div class="toolbar-left">
     <h1>User Management</h1>
     <div class="filter-tools" hx-target="#users-table" hx-swap="#outerHTML">
-      <button type="button"
-              class="btn-icon"
-              hx-get="{% url 'settings:add-user' %}"
-              hx-target="#htmx-modal-container"
-              hx-trigger="click">
-        <i class="icon-plus"></i>
-      </button>
+      {% if request.user.is_admin %}
+        <button type="button"
+                class="btn-icon"
+                hx-get="{% url 'settings:add-user' %}"
+                hx-target="#htmx-modal-container"
+                hx-trigger="click">
+          <i class="icon-plus"></i>
+        </button>
+      {% endif %}
       <button type="button"
               class="btn-icon"
               hx-get="{% url 'settings:user-filter' %}"
@@ -83,25 +85,29 @@
     {% for user in users %}
       <tr>
         <td class="dropdown-cell">
-          <div class="dropdown" x-data="dropdown()">
-            <button class="button-link"
-                    type="button"
-                    x-ref="button"
-                    @click="toggle()"
-                    :aria-expanded="open">{{ user.username }}</button>
-            <ul class="dropdown-menu" x-ref="menu" x-show="open">
-              <li>
-                <a class="dropdown-item"
-                   hx-get="{% url 'settings:edit-user' user.id %}"
-                   hx-target="#htmx-modal-container"
-                   hx-trigger="click"><i class="icon-pencil"></i> Edit</a>
-              </li>
-              <li>
-                <a class="dropdown-item"
-                   hx-post="{% url 'settings:switch-status' user.id %}"><i class="icon-toggle-right"></i> Switch to {{ user.is_active|yesno:"Inactive,Active" }}</a>
-              </li>
-            </ul>
-          </div>
+          {% if request.user.is_admin %}
+            <div class="dropdown" x-data="dropdown()">
+              <button class="button-link"
+                      type="button"
+                      x-ref="button"
+                      @click="toggle()"
+                      :aria-expanded="open">{{ user.username }}</button>
+              <ul class="dropdown-menu" x-ref="menu" x-show="open">
+                <li>
+                  <a class="dropdown-item"
+                     hx-get="{% url 'settings:edit-user' user.id %}"
+                     hx-target="#htmx-modal-container"
+                     hx-trigger="click"><i class="icon-pencil"></i> Edit</a>
+                </li>
+                <li>
+                  <a class="dropdown-item"
+                     hx-post="{% url 'settings:switch-status' user.id %}"><i class="icon-toggle-right"></i> Switch to {{ user.is_active|yesno:"Inactive,Active" }}</a>
+                </li>
+              </ul>
+            </div>
+          {% else %}
+            {{ user.username }}
+          {% endif %}
         </td>
         <td>{{ user.full_name }}</td>
         <td>{{ user.initials }}</td>
@@ -115,7 +121,7 @@
               <span class="btn-perm"><i class="icon-chart-no-axes-column perm-active" title="Reports"></i></span>
               <span class="btn-perm"><i class="icon-scale perm-active" title="Research"></i></span>
             </span>
-          {% else %}
+          {% elif request.user.is_admin %}
             <span class="perm-icons">
               {% if user.perm_all_matters %}
                 <button hx-post="{% url 'settings:toggle-perm' user.id 'perm_all_matters' %}"
@@ -152,26 +158,43 @@
                 <i class="icon-scale {% if user.perm_research %}perm-active{% else %}perm-inactive{% endif %}"></i>
               </button>
             </span>
+          {% else %}
+            <span class="perm-icons">
+              <span class="btn-perm"><i class="icon-briefcase {% if user.perm_all_matters %}perm-active{% else %}perm-inactive{% endif %}"
+   title="All Matters"></i></span>
+              <span class="btn-perm"><i class="icon-dollar-sign {% if user.perm_financial %}perm-active{% else %}perm-inactive{% endif %}"
+   title="Financial"></i></span>
+              <span class="btn-perm"><i class="icon-inbox {% if user.perm_intakes %}perm-active{% else %}perm-inactive{% endif %}"
+   title="Intakes"></i></span>
+              <span class="btn-perm"><i class="icon-chart-no-axes-column {% if user.perm_reports %}perm-active{% else %}perm-inactive{% endif %}"
+   title="Reports"></i></span>
+              <span class="btn-perm"><i class="icon-scale {% if user.perm_research %}perm-active{% else %}perm-inactive{% endif %}"
+   title="Research"></i></span>
+            </span>
           {% endif %}
         </td>
         <td class="dropdown-cell">
-          <div class="dropdown" x-data="dropdown()">
-            <button class="button-link"
-                    type="button"
-                    x-ref="button"
-                    @click="toggle()"
-                    :aria-expanded="open">{{ user.role_display }}</button>
-            <ul class="dropdown-menu" x-ref="menu" x-show="open">
-              <li>
-                <a class="dropdown-item"
-                   hx-post="{% url 'settings:change-role' user_id=user.id role='USER' %}">User</a>
-              </li>
-              <li>
-                <a class="dropdown-item"
-                   hx-post="{% url 'settings:change-role' user_id=user.id role='ADMIN' %}">Admin</a>
-              </li>
-            </ul>
-          </div>
+          {% if request.user.is_admin %}
+            <div class="dropdown" x-data="dropdown()">
+              <button class="button-link"
+                      type="button"
+                      x-ref="button"
+                      @click="toggle()"
+                      :aria-expanded="open">{{ user.role_display }}</button>
+              <ul class="dropdown-menu" x-ref="menu" x-show="open">
+                <li>
+                  <a class="dropdown-item"
+                     hx-post="{% url 'settings:change-role' user_id=user.id role='USER' %}">User</a>
+                </li>
+                <li>
+                  <a class="dropdown-item"
+                     hx-post="{% url 'settings:change-role' user_id=user.id role='ADMIN' %}">Admin</a>
+                </li>
+              </ul>
+            </div>
+          {% else %}
+            {{ user.role_display }}
+          {% endif %}
         </td>
         <td>{{ user.is_attorney|yesno:"Attorney,Staff" }}</td>
         <td>${{ user.user_rate }}</td>
