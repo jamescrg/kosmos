@@ -95,16 +95,16 @@
       <tbody>
         {% for event in objects %}
           <tr class="{% if event.date < third_day and event.status == 'Pending' %}hl-yellow{% endif %}">
-            <td>
+            <td class="date">
               {{ event.date|date:"Y-m-d" }}
               {% if event.start_time %}{{ event.start_time|time:"g:i A" }}{% endif %}
             </td>
-            <td>
+            <td class="matter">
               {% if event.matter %}
                 <a href="{% url 'matters:events-index' id=event.matter.id %}">{{ event.matter.name }}</a>
               {% endif %}
             </td>
-            <td>
+            <td class="description">
               <a href="#"
                  type="button"
                  class="btn-icon"
@@ -112,15 +112,15 @@
                  hx-target="#htmx-modal-container"
                  hx-trigger="click">{{ event.description }}</a>
             </td>
-            <td>
+            <td class="duration">
               {% if event.duration %}
                 {{ event.duration }} hr
                 {% if event.duration != 1 %}s{% endif %}
               {% endif %}
             </td>
-            <td>{{ event.event_type|default:"" }}</td>
-            <td>{{ event.party }}</td>
-            <td>{{ event.status }}</td>
+            <td class="location">{{ event.event_type|default:"" }}</td>
+            <td class="party">{{ event.party }}</td>
+            <td class="status">{{ event.status }}</td>
           </tr>
         {% empty %}
           <tr>

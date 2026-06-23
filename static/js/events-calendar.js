@@ -54,6 +54,20 @@ document.addEventListener("alpine:init", () => {
     calendar: null,
 
     initCalendar() {
+      // On mobile the grid is unusable — flip to the card list instead of
+      // building FullCalendar. Clicking the existing List View toggle reuses
+      // the normal view-mode machinery (POST -> HX-Trigger: eventsViewChanged
+      // -> #events re-fetches list.html). The session then persists 'list' for
+      // this (independent) mobile browser, so later loads render list.html
+      // server-side directly: no calendar built, no flash. Desktop is
+      // unaffected (separate session).
+      if (window.innerWidth <= 768) {
+        document
+          .querySelector('.view-toggle button[title="List View"]')
+          ?.click();
+        return;
+      }
+
       const calendarEl = this.$el;
 
       this.calendar = new FullCalendar.Calendar(calendarEl, {
