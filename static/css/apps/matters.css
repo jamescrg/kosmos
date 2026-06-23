@@ -22,12 +22,29 @@ Matter Form
   width: 14rem;
 }
 
+/* Mobile: pare the matter-list toolbar down to just Add + Filter so the
+   controls stop stacking unevenly. The quick-status buttons, search field,
+   and count badge are hidden — their functions remain in the Filter modal. */
+@media (width <= 768px) {
+  /* .filter-tools in the selector outweighs the base
+     `.toolbar button:not(...)` display rule, which would otherwise re-show the
+     buttons. */
+  .matters-toolbar .filter-tools .quick-status,
+  .matters-toolbar .toolbar-search,
+  .matters-toolbar .toolbar-right {
+    display: none;
+  }
+}
+
 /* ==========================================================================
 Matter List
 ========================================================================== */
 
 .matter-list {
-  min-width: 43rem;
+  /* Sum of the fixed column widths below (name 18 + work-status 22 + case-no
+     15). Keeps every column at its intended size and lets .table-container
+     scroll sideways on narrow screens rather than squashing work-status. */
+  min-width: 55rem;
 }
 
 .matter-list td {
@@ -53,7 +70,9 @@ Matter List
 }
 
 .matter-list .work-status {
-  min-width: 20rem;
+  /* Explicit width, not min-width: under table-layout: fixed (tables.css) a
+     cell's min-width is ignored, so min-width let this column collapse. */
+  width: 22rem;
 }
 
 .matter-list .unbilled {

@@ -1,6 +1,6 @@
 {% load humanize %}
 {% block content %}
-  <div class="toolbar">
+  <div class="toolbar matters-toolbar">
     <div class="toolbar-left">
       <div class="filter-tools">
         <button type="button"
@@ -15,11 +15,11 @@
                 data-bs-target="#htmx-modal-container">
           <i class="icon-list-filter with-text"></i>Filter
         </button>
-        <button class="{% if filter_label == "Pending" %}toggle-active{% endif %}"
+        <button class="quick-status {% if filter_label == "Pending" %}toggle-active{% endif %}"
                 hx-post="{% url 'matters:filter-quick-status' 'Pending' %}">Pending</button>
-        <button class="{% if filter_label == "Open" %}toggle-active{% endif %}"
+        <button class="quick-status {% if filter_label == "Open" %}toggle-active{% endif %}"
                 hx-post="{% url 'matters:filter-quick-status' 'Open' %}">Open</button>
-        <button class="{% if filter_label == "Complete" %}toggle-active{% endif %}"
+        <button class="quick-status {% if filter_label == "Complete" %}toggle-active{% endif %}"
                 hx-post="{% url 'matters:filter-quick-status' 'Complete' %}">Complete</button>
         <input type="search"
                name="q"
