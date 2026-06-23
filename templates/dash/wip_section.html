@@ -4,6 +4,8 @@
     <div class="toolbar">
       <div class="toolbar-left">
         <h2>Unbilled Time</h2>
+      </div>
+      <div class="toolbar-right">
         {% if user_rows %}
           <div class="chart-toggle" role="group" aria-label="Group by">
             <button type="button"
@@ -147,8 +149,8 @@
   <div class="toolbar">
     <div class="toolbar-left">
       <h2>Unbilled Time</h2>
-      {% include "dash/wip_period_dropdown.html" %}
     </div>
+    <div class="toolbar-right">{% include "dash/wip_period_dropdown.html" %}</div>
   </div>
   <div class="wip-section">
     <div class="wip-donut">

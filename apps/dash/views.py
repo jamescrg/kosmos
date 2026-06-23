@@ -1,4 +1,5 @@
 from datetime import date, timedelta
+from decimal import Decimal
 
 from django.contrib.auth.decorators import login_required
 from django.db.models import (
@@ -293,7 +294,7 @@ def dash_collections_context(request):
     )
 
     # Annotate matters and filter for positive balance due
-    balance_due_matters = list(
+    balance_due_qs = (
         filter_matters_for_user(Matter.objects.filter(billable=True), request.user)
         .annotate(
             billed=Coalesce(
@@ -337,12 +338,18 @@ def dash_collections_context(request):
             ),
         )
         .filter(balance_due__gt=0)
-        .order_by("-balance_due")[:10]
+        .order_by("-balance_due")
     )
+
+    # Total across all past-due matters (not just the top 10 shown).
+    all_balance_due = list(balance_due_qs)
+    total_balance_due = sum((m.balance_due for m in all_balance_due), Decimal("0"))
+    balance_due_matters = all_balance_due[:10]
 
     return {
         "show_collections": True,
         "balance_due_matters": balance_due_matters,
+        "total_balance_due": total_balance_due,
         "low_clearance_matters": low_clearance_matters,
     }
 

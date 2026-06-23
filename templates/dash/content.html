@@ -45,6 +45,18 @@
                 </tr>
               {% endif %}
             </tbody>
+            {% if balance_due_matters %}
+              <tfoot>
+                <tr class="table-total">
+                  <td>
+                    <strong>Total</strong>
+                  </td>
+                  <td class="numeric">
+                    <strong>${{ total_balance_due|floatformat:2|intcomma }}</strong>
+                  </td>
+                </tr>
+              </tfoot>
+            {% endif %}
           </table>
         </div>
         <div class="dashboard-card">
