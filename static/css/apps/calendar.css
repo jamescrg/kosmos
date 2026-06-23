@@ -383,7 +383,7 @@
    The generic table->cards transform lives in tables.css (.card-table); the
    events table opts in via `card-table` + `card-title`/`card-desc` on its cells
    (templates/calendar/list.html). Only the event-specific bits live here:
-   column order, the due-soon urgency rail, and hiding the view toggle.
+   column order and the due/past-due highlight (--past-due-bg, like tasks).
    ========================================================================== */
 
 @media (width <= 768px) {
@@ -396,20 +396,19 @@
   .events-table td.duration { order: 6; }
   .events-table td.status { order: 7; }
 
-  /* Urgency: due-soon events (hl-yellow) get a coloured left rail on a clean
-     card — matching the task cards — instead of the pale yellow-100 full-row
-     fill the .hl-yellow utility applies. (--background-body == --background-td,
-     so the card stays uniform without touching the cells.) */
+  /* Due / past-due events (hl-yellow) use the same convention as the task
+     cards: a --past-due-bg card fill, overriding the pale yellow-100 fill the
+     .hl-yellow utility applies. No coloured rail in light mode. */
   .events-table tbody tr.hl-yellow {
-    background: var(--background-body) !important;
-    border-left-color: var(--yellow-600);
+    background: var(--past-due-bg) !important;
   }
 
-  /* Dark/cosmic: a brighter rail reads better on the dark card, and suppress
-     the global hl-row first-cell rail (colors.css) which in flex card order
-     would otherwise land on the date cell mid-card. */
+  /* Dark/cosmic: --past-due-bg resolves to the card background (no visible
+     fill), so — like the task cards — show the past-due signal as a rose rail
+     instead. Suppress the global hl-row first-cell rail (colors.css), which in
+     flex card order would otherwise land on the date cell mid-card. */
   :is([data-theme="dark"], [data-theme="cosmic"]) .events-table tbody tr.hl-yellow {
-    border-left-color: var(--yellow-400);
+    border-left-color: var(--past-due-rail);
   }
 
   :is([data-theme="dark"], [data-theme="cosmic"]) .events-table tbody tr[class*="hl-"] > td:first-child {
