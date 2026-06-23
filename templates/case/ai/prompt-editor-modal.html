@@ -91,8 +91,21 @@
   if (savedDraft) {
     setHtmlContent(savedDraft);
   } else if (initialText) {
-    // Convert plain text to paragraphs
-    const html = initialText.split('\n').map(line => '<p>' + (line || '<br>') + '</p>').join('');
+    // Convert plain text to HTML: blank lines separate paragraphs, single
+    // newlines become soft line breaks (<br>) within a paragraph. Wrapping every
+    // line in its own <p> previously added a paragraph margin to each soft break,
+    // showing up as extra space between lines in the rich editor.
+    const escapeHtml = (s) => s
+      .replace(/&/g, '&amp;')
+      .replace(/</g , '&lt;') .replace( />/g, '&gt;');
+    const html = initialText
+      .replace(/\r\n?/g, '\n')
+      .split(/\n{2,}/)
+      .map((block) => {
+        const inner = block.split('\n').map(escapeHtml).join('<br>');
+        return '<p>' + (inner || '<br>') + '</p>';
+      })
+      .join('');
     setHtmlContent(html);
   }
 
