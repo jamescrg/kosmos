@@ -7,6 +7,7 @@ from logging import getLogger
 import google.oauth2.credentials
 from dateutil import parser as date_parser
 from googleapiclient.discovery import build
+from googleapiclient.errors import HttpError
 
 from utils.prepare_path import prepare_path
 
@@ -193,33 +194,28 @@ def list_google_events(sync_token=None):
 
 
 @best_effort(default=False)
-def delete_event(event):
+def delete_event_by_id(google_id):
+    """Delete a Google event by id. Returns True on success or if it's already
+    gone (404/410) — both mean "nothing left to delete." Real failures (auth,
+    network) raise and are turned into False by best_effort so the caller can
+    retry. Takes a bare id so reconcile can drain deletions without an Event."""
     service = build_service()
-    result = None
-
-    if service:
-        try:
-            result = (
-                service.events()
-                .delete(
-                    calendarId=CALENDAR_ID,
-                    eventId=event.google_id,
-                )
-                .execute()
-            )
-        except Exception as err:
-            # If the event is not found, it is already deleted, ignore the error
-            logger.warning(
-                f"The event was already deleted through the Google Calendar interface: {err}"
-            )
-
-        if result:
-            return True
-        else:
-            return False
-
-    else:
+    if not service:
         return False
+
+    try:
+        service.events().delete(calendarId=CALENDAR_ID, eventId=google_id).execute()
+    except HttpError as err:
+        if err.resp.status in (404, 410):
+            logger.info("Google event %s already gone (%s)", google_id, err.resp.status)
+            return True
+        raise
+
+    return True
+
+
+def delete_event(event):
+    return delete_event_by_id(event.google_id)
 
 
 @best_effort(default=False)
