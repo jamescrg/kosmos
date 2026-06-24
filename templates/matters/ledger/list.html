@@ -32,11 +32,11 @@
       </tr>
       {% if has_deferred %}
         <tr>
-          <th>Deferred (recovery claim)</th>
+          <th>Deferred</th>
           <td class="numeric">${{ deferred_total|floatformat:2|intcomma }}</td>
         </tr>
         <tr>
-          <th>Currently owed (excl. deferred)</th>
+          <th>Currently Owed</th>
           <td class="numeric">${{ currently_owed|floatformat:2|intcomma }}</td>
         </tr>
       {% endif %}
