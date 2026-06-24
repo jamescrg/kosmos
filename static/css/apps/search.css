@@ -177,7 +177,7 @@
 
 .search .search-card-meta {
   color: var(--color-muted);
-  font-size: 0.875rem;
+  font-size: 1rem;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
