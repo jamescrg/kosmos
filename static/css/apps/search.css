@@ -224,6 +224,16 @@
    ========================================================================== */
 
 @media (width <= 768px) {
+  /* Fit the dialog to the viewport. The shared modal mobile sizing only starts
+     at <=767px, but the tabs hide at <=768px, so at exactly 768px the dialog
+     was still using desktop sizing + the forced width:100% and spilled off the
+     right. width:auto lets max-width govern. */
+  .search.modal-dialog {
+    margin: 0.5rem;
+    max-width: calc(100% - 1rem);
+    width: auto;
+  }
+
   .search .search-tabs,
   .search .search-hint {
     display: none;
