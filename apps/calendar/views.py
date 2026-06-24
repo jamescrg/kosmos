@@ -8,6 +8,7 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.views.decorators.http import require_POST
 
 import apps.calendar.google as google
+import apps.calendar.sync as sync
 from apps.calendar.filter import EventFilter
 from apps.calendar.forms import EventForm
 from apps.calendar.models import Event
@@ -340,14 +341,11 @@ def events_add(request, matter_id=None, origin="events"):
                 end_datetime = start_datetime + timedelta(hours=1)
                 event.end_time = end_datetime.time()
 
-            # add to google account
-            sync_failed = False
-            if google.check_credentials():
-                event.google_id = google.add_event(event)
-                sync_failed = event.google_id is None
-
-            # save event to database with google id
             event.save()
+
+            # Mirror to Google (Pending events only); records google_synced_at,
+            # or leaves it for reconcile() to retry if the push fails.
+            sync_failed = sync.push_event(event) == "failed"
 
             trigger = "matterEventChanged" if origin == "matters" else "eventsChanged"
             return _event_change_response(trigger, sync_failed)
@@ -444,11 +442,9 @@ def events_edit(request, id, origin="events"):
                 end_datetime = start_datetime + timedelta(hours=1)
                 event.end_time = end_datetime.time()
 
-            sync_failed = False
-            if google.check_credentials() and event.google_id:
-                sync_failed = not google.edit_event(event)
-
             event.save()
+
+            sync_failed = sync.push_event(event) == "failed"
 
             trigger = "matterEventChanged" if origin == "matters" else "eventsChanged"
             return _event_change_response(trigger, sync_failed)
@@ -499,9 +495,8 @@ def events_delete(request, id, origin="events"):
 
     event = get_object_or_404(Event, pk=id)
 
-    sync_failed = False
-    if google.check_credentials() and event.google_id:
-        sync_failed = not google.delete_event(event)
+    # Remove from Google (queues a retry on failure) before deleting locally.
+    sync_failed = sync.delete_event_remote(event) == "failed"
 
     event.delete()
 
@@ -516,8 +511,7 @@ def events_delete(request, id, origin="events"):
 @login_required
 def events_google_sync(request, id):
     event = get_object_or_404(Event, pk=id)
-    event.google_id = google.add_event(event)
-    event.save()
+    sync.push_event(event)
     return redirect("/events")
 
 
@@ -705,9 +699,7 @@ def events_quick_update(request, id):
     event.save()
 
     # Sync to Google Calendar
-    sync_failed = False
-    if google.check_credentials() and event.google_id:
-        sync_failed = not google.edit_event(event)
+    sync_failed = sync.push_event(event) == "failed"
 
     return _event_change_response("eventsChanged", sync_failed)
 
