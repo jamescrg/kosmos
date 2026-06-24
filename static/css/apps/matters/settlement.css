@@ -25,6 +25,16 @@ Display
 }
 
 
+/* Mobile — settlement entries as cards (.card-table base in tables.css). */
+@media (width <= 768px) {
+  .settlement-list td.type { order: 1; }
+  .settlement-list td.date { order: 2; }
+  .settlement-list td.medium { order: 3; }
+  .settlement-list td.amount { order: 4; }
+  .settlement-list td.notes { order: 5; }
+}
+
+
 /* ------------------------------------------------
 Form
 ------------------------------------------------ */

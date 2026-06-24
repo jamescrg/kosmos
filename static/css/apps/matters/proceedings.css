@@ -49,6 +49,16 @@ Display
 }
 
 
+/* Mobile — proceedings as cards (.card-table base in tables.css). */
+@media (width <= 768px) {
+  .proceedings-list td.nickname { order: 1; }
+  .proceedings-list td.forum { order: 2; }
+  .proceedings-list td.case-no { order: 3; }
+  .proceedings-list td.filed { order: 4; }
+  .proceedings-list td.status { order: 5; }
+}
+
+
 /* ------------------------------------------------
 Form
 ------------------------------------------------ */

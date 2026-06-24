@@ -13,59 +13,63 @@
     </div>
   </div>
   <div class="table-container">
-    <table class="table proceedings-list">
-      <tr>
-        <th class="primary">Primary</th>
-        <th class="filed">Filed</th>
-        <th class="nickname">Nickname</th>
-        <th class="forum">County and Court</th>
-        <th class="case-no">Case No</th>
-        <th class="status">Status</th>
-      </tr>
-      {% for proceeding in proceedings %}
+    <table class="table proceedings-list card-table">
+      <thead>
         <tr>
-          <td class="primary">
-            {% if proceeding.primary %}
-              <i class="icon-circle-check proceeding-primary-active"></i>
-            {% else %}
-              <button class="button-link"
-                      hx-post="/matters/{{ matter.id }}/proceedings/{{ proceeding.id }}/set-primary"
-                      hx-swap="none"
-                      title="Set as primary">
-                <i class="icon-circle proceeding-primary-inactive"></i>
-              </button>
-            {% endif %}
-          </td>
-          <td class="filed">{{ proceeding.date_filed|date:"Y-m-d"|default:"" }}</td>
-          <td class="nickname">
-            <a href="#"
-               type="button"
-               class="btn-icon"
-               hx-get="/matters/{{ matter.id }}/proceedings/{{ proceeding.id }}/edit"
-               hx-target="#htmx-modal-container"
-               hx-trigger="click"
-               data-bs-toggle="modal"
-               data-bs-target="#htmx-modal-container">{{ proceeding.nickname|default:proceeding.forum }}</a>
-          </td>
-          <td class="forum">{{ proceeding.forum }}</td>
-          <td class="case-no">
-            {% if proceeding.case_number %}
-              <button type="button"
-                      class="btn btn-sm action-btn copy-btn"
-                      data-copy="{{ proceeding.case_number }}"
-                      title="Copy case number">
-                <i class="icon-copy"></i>
-              </button>
-            {% endif %}
-            {{ proceeding.case_number }}
-          </td>
-          <td class="status">{{ proceeding.status }}</td>
+          <th class="primary">Primary</th>
+          <th class="filed">Filed</th>
+          <th class="nickname">Nickname</th>
+          <th class="forum">County and Court</th>
+          <th class="case-no">Case No</th>
+          <th class="status">Status</th>
         </tr>
-      {% empty %}
-        <tr>
-          <td colspan="6" class="empty-message">No proceedings found for this matter.</td>
-        </tr>
-      {% endfor %}
+      </thead>
+      <tbody>
+        {% for proceeding in proceedings %}
+          <tr>
+            <td class="primary card-hide">
+              {% if proceeding.primary %}
+                <i class="icon-circle-check proceeding-primary-active"></i>
+              {% else %}
+                <button class="button-link"
+                        hx-post="/matters/{{ matter.id }}/proceedings/{{ proceeding.id }}/set-primary"
+                        hx-swap="none"
+                        title="Set as primary">
+                  <i class="icon-circle proceeding-primary-inactive"></i>
+                </button>
+              {% endif %}
+            </td>
+            <td class="filed">{{ proceeding.date_filed|date:"Y-m-d"|default:"" }}</td>
+            <td class="nickname card-desc">
+              <a href="#"
+                 type="button"
+                 class="btn-icon"
+                 hx-get="/matters/{{ matter.id }}/proceedings/{{ proceeding.id }}/edit"
+                 hx-target="#htmx-modal-container"
+                 hx-trigger="click"
+                 data-bs-toggle="modal"
+                 data-bs-target="#htmx-modal-container">{{ proceeding.nickname|default:proceeding.forum }}</a>
+            </td>
+            <td class="forum">{{ proceeding.forum }}</td>
+            <td class="case-no">
+              {% if proceeding.case_number %}
+                <button type="button"
+                        class="btn btn-sm action-btn copy-btn"
+                        data-copy="{{ proceeding.case_number }}"
+                        title="Copy case number">
+                  <i class="icon-copy"></i>
+                </button>
+              {% endif %}
+              {{ proceeding.case_number }}
+            </td>
+            <td class="status">{{ proceeding.status }}</td>
+          </tr>
+        {% empty %}
+          <tr>
+            <td colspan="6" class="empty-message">No proceedings found for this matter.</td>
+          </tr>
+        {% endfor %}
+      </tbody>
     </table>
   </div>
 {% endblock subcontent %}

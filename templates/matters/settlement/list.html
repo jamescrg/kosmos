@@ -14,40 +14,44 @@
     </div>
   </div>
   <div class="overflow-x">
-    <table class="table settlement-list">
-      <tr>
-        <th class="date">Date</th>
-        <th class="medium">Medium</th>
-        <th class="type">Type</th>
-        <th class="notes">Notes</th>
-        <th class="amount">Amount</th>
-      </tr>
-      {% for entry in entries %}
+    <table class="table settlement-list card-table">
+      <thead>
         <tr>
-          <td class="date {% if entry.type == 'Authorization' %}strong{% endif %}">{{ entry.date|date:'Y-m-d' }}</td>
-          <td class="medium {% if entry.type == 'Authorization' %}strong{% endif %}">{{ entry.medium }}</td>
-          <td class="type {% if entry.type == 'Authorization' %}strong{% endif %}">
-            <a href="#"
-               hx-get="/matters/{{ entry.matter.id }}/settlement/{{ entry.id }}/edit"
-               hx-target="#htmx-modal-container"
-               hx-trigger="click"
-               data-bs-toggle="modal"
-               data-bs-target="#htmx-modal-container">{{ entry.type }}</a>
-          </td>
-          <td class="notes {% if entry.type == 'Authorization' %}strong{% endif %}">{{ entry.notes }}</td>
-          <td class="amount {% if entry.type == 'Authorization' %}strong{% endif %}">
-            {% if entry.amount|floatformat:2|intcomma %}
-              ${{ entry.amount|floatformat:2|intcomma }}
-            {% else %}
-              NA
-            {% endif %}
-          </td>
+          <th class="date">Date</th>
+          <th class="medium">Medium</th>
+          <th class="type">Type</th>
+          <th class="notes">Notes</th>
+          <th class="amount">Amount</th>
         </tr>
-      {% empty %}
-        <tr>
-          <td colspan="5" class="empty-message">No settlement entries found for this matter.</td>
-        </tr>
-      {% endfor %}
+      </thead>
+      <tbody>
+        {% for entry in entries %}
+          <tr>
+            <td class="date {% if entry.type == 'Authorization' %}strong{% endif %}">{{ entry.date|date:'Y-m-d' }}</td>
+            <td class="medium {% if entry.type == 'Authorization' %}strong{% endif %}">{{ entry.medium }}</td>
+            <td class="type card-desc {% if entry.type == 'Authorization' %}strong{% endif %}">
+              <a href="#"
+                 hx-get="/matters/{{ entry.matter.id }}/settlement/{{ entry.id }}/edit"
+                 hx-target="#htmx-modal-container"
+                 hx-trigger="click"
+                 data-bs-toggle="modal"
+                 data-bs-target="#htmx-modal-container">{{ entry.type }}</a>
+            </td>
+            <td class="notes {% if entry.type == 'Authorization' %}strong{% endif %}">{{ entry.notes }}</td>
+            <td class="amount {% if entry.type == 'Authorization' %}strong{% endif %}">
+              {% if entry.amount|floatformat:2|intcomma %}
+                ${{ entry.amount|floatformat:2|intcomma }}
+              {% else %}
+                NA
+              {% endif %}
+            </td>
+          </tr>
+        {% empty %}
+          <tr>
+            <td colspan="5" class="empty-message">No settlement entries found for this matter.</td>
+          </tr>
+        {% endfor %}
+      </tbody>
     </table>
   </div>
 {% endblock subcontent %}
