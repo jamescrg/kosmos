@@ -13,6 +13,13 @@ Time entry form
   gap: 0.5rem;
 }
 
+/* Nudge the checkbox down so it lines up with the "Preview:" caption, and ease
+   it back visually so it reads as a quiet, secondary control. */
+.actions-preview input[type="checkbox"] {
+  margin-top: 0.2rem;
+  opacity: 0.6;
+}
+
 
 /* ==========================================================================
 Expenses form
