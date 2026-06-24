@@ -139,52 +139,56 @@
 </div>
 </div>
 <div class="table-container">
-  <table class="table activity flat-fees-list">
-    <tr>
-      {% if user.is_admin or user.perm_financial %}
-        <th class="col-select">
-          {% url 'activity:flat-fees-select-all' as select_all_url %}
-          {% include "selection/select-all-btn.html" with select_all_url=select_all_url all_selected=all_selected %}
-        </th>
-      {% endif %}
-      <th class="date">
-        Date
-        <button class="btn-sort {% if current_order == 'date' %}active{% endif %}"
-                hx-post="{% url 'activity:flat-fees-order-by' 'date' %}">
-          <i class="icon-chevrons-up-down"></i>
-        </button>
-      </th>
-      <th class="user">User</th>
-      <th class="matter">
-        Matter
-        <button class="btn-sort {% if current_order == 'matter' %}active{% endif %}"
-                hx-post="{% url 'activity:flat-fees-order-by' 'matter' %}">
-          <i class="icon-chevrons-up-down"></i>
-        </button>
-      </th>
-      <th class="actions">
-        Description
-        <button class="btn-sort {% if current_order == 'description' %}active{% endif %}"
-                hx-post="{% url 'activity:flat-fees-order-by' 'description' %}">
-          <i class="icon-chevrons-up-down"></i>
-        </button>
-      </th>
-      <th class="amount">Amount</th>
-    </tr>
-    {% for entry in objects %}
-      <tr id="flat-fee-{{ entry.id }}">
-        {% if user.is_admin or user.perm_financial %}
-          {% include "activity/flat-fees/table-row.html" with show_select=True %}
-        {% else %}
-          {% include "activity/flat-fees/table-row.html" %}
-        {% endif %}
-      </tr>
-    {% empty %}
+  <table class="table activity flat-fees-list card-table">
+    <thead>
       <tr>
-        <td colspan="{% if user.is_admin or user.perm_financial %}6{% else %}5{% endif %}"
-            class="empty-message">No flat-fee entries found.</td>
+        {% if user.is_admin or user.perm_financial %}
+          <th class="col-select">
+            {% url 'activity:flat-fees-select-all' as select_all_url %}
+            {% include "selection/select-all-btn.html" with select_all_url=select_all_url all_selected=all_selected %}
+          </th>
+        {% endif %}
+        <th class="date">
+          Date
+          <button class="btn-sort {% if current_order == 'date' %}active{% endif %}"
+                  hx-post="{% url 'activity:flat-fees-order-by' 'date' %}">
+            <i class="icon-chevrons-up-down"></i>
+          </button>
+        </th>
+        <th class="user">User</th>
+        <th class="matter">
+          Matter
+          <button class="btn-sort {% if current_order == 'matter' %}active{% endif %}"
+                  hx-post="{% url 'activity:flat-fees-order-by' 'matter' %}">
+            <i class="icon-chevrons-up-down"></i>
+          </button>
+        </th>
+        <th class="actions">
+          Description
+          <button class="btn-sort {% if current_order == 'description' %}active{% endif %}"
+                  hx-post="{% url 'activity:flat-fees-order-by' 'description' %}">
+            <i class="icon-chevrons-up-down"></i>
+          </button>
+        </th>
+        <th class="amount">Amount</th>
       </tr>
-    {% endfor %}
+    </thead>
+    <tbody>
+      {% for entry in objects %}
+        <tr id="flat-fee-{{ entry.id }}">
+          {% if user.is_admin or user.perm_financial %}
+            {% include "activity/flat-fees/table-row.html" with show_select=True %}
+          {% else %}
+            {% include "activity/flat-fees/table-row.html" %}
+          {% endif %}
+        </tr>
+      {% empty %}
+        <tr>
+          <td colspan="{% if user.is_admin or user.perm_financial %}6{% else %}5{% endif %}"
+              class="empty-message">No flat-fee entries found.</td>
+        </tr>
+      {% endfor %}
+    </tbody>
   </table>
   <div class="flex-start-space">
     <div>{% include "pagination.html" %}</div>

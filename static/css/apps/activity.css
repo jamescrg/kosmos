@@ -222,3 +222,28 @@ Codes Table Action Icons
     display: none;
   }
 }
+
+
+/* ==========================================================================
+   Mobile — Flat-fee entries as cards
+
+   Same conventions as the time/expenses tables above. No specificity overrides
+   needed here: flat-fees has no `.activity.flat-fees-list` rules, so the base
+   `.activity` widths are already reset by the shared .card-table rules.
+   ========================================================================== */
+
+@media (width <= 768px) {
+  /* Card order: matter title, description, then a muted meta row. */
+  #flat-fees .activity td.matter { order: 1; }
+  #flat-fees .activity td.actions { order: 2; }
+  #flat-fees .activity td.date { order: 3; }
+  #flat-fees .activity td.user { order: 4; }
+  #flat-fees .activity td.amount { order: 5; }
+
+  /* Pare the toolbar to Add + Filter: drop the date/bulk dropdowns and the
+     Download control (toolbar-right). */
+  #flat-fees .toolbar .filter-tools .dropdown,
+  #flat-fees .toolbar-right {
+    display: none;
+  }
+}
