@@ -55,6 +55,17 @@
     justify-content: space-between;
   }
 
+  /* Shrink cells to their content so space-between pushes the initials / fee to
+     the card edge. Their desktop fixed widths (user 6rem, etc.) otherwise left
+     empty space inside the cell that read as a gap on the right. */
+  .matter-activity td.date,
+  .matter-activity td.user,
+  .matter-activity td.hours,
+  .matter-activity td.rate,
+  .matter-activity td.fee {
+    width: auto;
+  }
+
   .matter-activity td.date { order: 1; }
   .matter-activity td.user { order: 2; }
   .matter-activity td.actions { order: 3; }
