@@ -1069,9 +1069,14 @@
   white-space: pre-wrap;
 }
 
-/* Code - blocks */
+/* Code - blocks. Theme-aware surface (same tokens as inline code above): a
+   light grey block with dark text in the light theme, a dark block with light
+   text in dark/cosmic. Was hardcoded dark (stone-800/stone-100), which rendered
+   as a black box with white text in the light theme. The border gives the
+   block definition when its background is light. */
 .ai-markdown pre {
-  background: var(--stone-800);
+  background: var(--background-control);
+  border: 1px solid var(--border-medium);
   border-radius: 0.375rem;
   margin: 0.75rem 0;
   overflow-x: auto;
@@ -1081,7 +1086,7 @@
 .ai-markdown pre code {
   background: transparent;
   border-radius: 0;
-  color: var(--stone-100);
+  color: var(--color-darker);
   display: block;
   font-size: 0.8125rem;
   line-height: 1.5;
