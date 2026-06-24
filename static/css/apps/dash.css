@@ -303,4 +303,11 @@
   #dash-wip .wip-table .table {
     min-width: 48rem;
   }
+
+  /* When the donut wraps above the table it's a fixed 300px box in a
+     flex-start row, so it sits hard-left. Auto-margins centre it on its line. */
+  #dash-wip .wip-donut {
+    margin-left: auto;
+    margin-right: auto;
+  }
 }
