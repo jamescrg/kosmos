@@ -62,9 +62,7 @@
       </tr>
       <tr>
         <th>Trust Clearance</th>
-        <td class="numeric">
-          ${{ client_trust_balance|sub:currently_owed|sub:matter.value.unbilled.net_fees_and_expenses|floatformat:2|intcomma }}
-        </td>
+        <td class="numeric">${{ trust_clearance|floatformat:2|intcomma }}</td>
       </tr>
     </table>
   </div>

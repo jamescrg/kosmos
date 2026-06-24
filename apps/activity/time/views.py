@@ -581,17 +581,19 @@ def set_rate(request, matter_id):
 
 
 def _trust_clearance(matter):
-    """Trust funds remaining for a matter once outstanding invoices and unbilled
-    work are accounted for. Mirrors the "Trust Clearance" figure on the matter
-    ledger: confirmed client trust balance − currently owed − unbilled net
-    fees/expenses. Local imports avoid a circular import with the matters app."""
-    from apps.matters.ledger.get_ledger_data import get_ledger_data
+    """Trust funds remaining for a matter, using the same deferred-aware helper
+    as the matter ledger's "Trust Clearance" figure so the two can't diverge
+    (it skips unbilled fees on deferred-fee matters). Local imports avoid a
+    circular import with the matters app."""
+    from apps.matters.ledger.get_ledger_data import (
+        compute_trust_clearance,
+        get_ledger_data,
+    )
     from apps.trust.trust import get_confirmed_client_balance
 
     balance = get_confirmed_client_balance(matter.client.id) if matter.client else 0
     ledger = get_ledger_data(matter)
-    unbilled = matter.value["unbilled"]["net_fees_and_expenses"]
-    return float(balance) - float(ledger["currently_owed"]) - float(unbilled)
+    return compute_trust_clearance(matter, balance, ledger["currently_owed"])
 
 
 @login_required
