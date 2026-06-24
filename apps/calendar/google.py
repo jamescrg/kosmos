@@ -6,6 +6,7 @@ from logging import getLogger
 
 import google.oauth2.credentials
 from dateutil import parser as date_parser
+from django.db.models import F
 from googleapiclient.discovery import build
 from googleapiclient.errors import HttpError
 
@@ -360,7 +361,7 @@ def _process_google_event(google_event):
     Process a single Google Calendar event.
     Returns: 'created', 'updated', 'deleted', or 'skipped'
     """
-    from apps.calendar.models import Event
+    from apps.calendar.models import Event, PendingGoogleDeletion
 
     google_id = google_event.get("id")
     status = google_event.get("status")
@@ -385,27 +386,40 @@ def _process_google_event(google_event):
         local_event = Event.objects.get(google_id=google_id)
         # Event exists - check if we should update it
 
-        # Get Google's last updated timestamp
-        google_updated = date_parser.parse(google_event.get("updated"))
-
-        # Kosmos wins: only update if Google is newer
-        if local_event.updated_at and local_event.updated_at > google_updated:
-            # Local is newer - push to Google instead
-            logger.info(f"Local event {google_id} is newer, pushing to Google")
-            edit_event(local_event)
+        # Kosmos wins: if the local event has edits not yet pushed to Google
+        # (never synced, or edited since the last successful push), don't let
+        # Google overwrite it — the next reconcile() will push our version up.
+        local_dirty = local_event.google_synced_at is None or (
+            local_event.updated_at
+            and local_event.updated_at > local_event.google_synced_at
+        )
+        if local_dirty:
+            logger.info("Local event %s has unpushed edits; skipping", google_id)
             return "skipped"
 
         # Google is newer - update local
         for field, value in event_data.items():
             setattr(local_event, field, value)
         local_event.save()
+        # Local now matches Google, so mark it synced — otherwise the save()
+        # bumped updated_at and reconcile() would push it straight back.
+        Event.objects.filter(pk=local_event.pk).update(google_synced_at=F("updated_at"))
         logger.info(f"Updated event {google_id}")
         return "updated"
 
     except Event.DoesNotExist:
+        # Don't re-create an event we deleted locally and queued for remote
+        # deletion (reconcile() will remove it from Google).
+        if PendingGoogleDeletion.objects.filter(google_id=google_id).exists():
+            logger.info("Skipping create of %s — pending deletion", google_id)
+            return "skipped"
+
         # Event doesn't exist locally - create it
         event_data["google_id"] = google_id
-        Event.objects.create(**event_data)
+        new_event = Event.objects.create(**event_data)
+        # A pulled event is in sync by definition; stamp synced_at == updated_at
+        # so reconcile() doesn't treat it as a never-pushed local event.
+        Event.objects.filter(pk=new_event.pk).update(google_synced_at=F("updated_at"))
         logger.info(f"Created event {google_id}")
         return "created"
 
