@@ -55,9 +55,20 @@ def get_matter_list(request):
     list_data["edit"] = False
     list_data["matters"] = pagination.get_object_list()
     list_data["number_matters"] = len(matters_list)
-    list_data["filter_label"] = (
-        filter_data.get("filter_label", None) if filter_data else None
-    )
+    # filter_label drives which quick-status button is highlighted. It's set
+    # explicitly when a quick-status button is clicked ("Open"/"Pending"/
+    # "Complete") or a custom Filter is applied ("custom"). When it isn't set —
+    # the default view, whose persisted filter carries no label — fall back to
+    # the status filter so the matching button (Open by default) still lights up.
+    effective_filter = filter_data or default_filter
+    filter_label = effective_filter.get("filter_label")
+    if not filter_label and effective_filter.get("status") in (
+        "Pending",
+        "Open",
+        "Complete",
+    ):
+        filter_label = effective_filter.get("status")
+    list_data["filter_label"] = filter_label
     list_data["custom_filter_active"] = filter_data and any(
         [
             filter_data.get("practice_area") not in (None, ""),
