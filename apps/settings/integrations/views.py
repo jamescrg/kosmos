@@ -115,6 +115,14 @@ def google_store(request):
     with open(path, "w") as file:
         file.write(google_credentials)
 
+    # On (re)connecting the calendar, flush any local events that weren't synced
+    # while disconnected — adopting existing Pending events on first connect and
+    # clearing the backlog after a token outage.
+    if app == "calendar":
+        from apps.calendar import sync
+
+        sync.reconcile()
+
     return redirect("/settings/integrations/")
 
 

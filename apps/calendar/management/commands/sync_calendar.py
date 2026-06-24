@@ -3,6 +3,7 @@ from datetime import datetime
 from django.core.management.base import BaseCommand
 
 import apps.calendar.google as google
+from apps.calendar import sync
 
 
 class Command(BaseCommand):
@@ -12,6 +13,12 @@ class Command(BaseCommand):
         self.stdout.write("Starting Google Calendar sync...")
 
         try:
+            # Push local changes + drain queued deletions first, so local
+            # removals reach Google before the pull (which would otherwise
+            # re-create them) and any previously failed pushes get retried.
+            summary = sync.reconcile()
+            self.stdout.write(f"Reconciled local changes: {summary}")
+
             google.sync_from_google()
             timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
             self.stdout.write(
