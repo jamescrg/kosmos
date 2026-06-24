@@ -106,6 +106,29 @@ Matter List
   width: 100%!important;
 }
 
+/* Mobile: explode the matter list into cards via the shared .card-table
+   primitive (matter name = card title, work status = card description,
+   proceeding = meta). Unlike tasks/calendar, a matter row carries several
+   independent controls (open the matter, edit work status, the proceeding
+   menu), so the card is NOT a single stretched tap target. */
+@media (width <= 768px) {
+  .matter-list tbody tr {
+    cursor: default;
+  }
+
+  /* Keep the matter-name link tappable (open the matter); the primitive
+     disables title links because it expects a stretched card link instead. */
+  .matter-list td.card-title a {
+    pointer-events: auto;
+  }
+
+  /* Don't stretch the work-status link across the whole card — it stays a
+     normal inline link so work status remains editable on mobile. */
+  .matter-list td.card-desc > a:first-child::after {
+    content: none;
+  }
+}
+
 
 /* ==========================================================================
 Matter Switcher
