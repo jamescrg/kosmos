@@ -45,8 +45,8 @@ def get_accessible_matters():
 
 
 def get_selected_llm(request):
-    """Get the selected LLM from session, defaulting to Claude Opus."""
-    return request.session.get("ai_selected_llm", "claude-opus")
+    """Get the selected LLM from session, defaulting to Gemini Pro (Latest)."""
+    return request.session.get("ai_selected_llm", "gemini-pro-latest")
 
 
 def get_llm_display(llm_key):
