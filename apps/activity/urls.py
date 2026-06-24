@@ -80,6 +80,7 @@ from apps.activity.time.views import (
     time_select_all,
     time_toggle_entered,
     time_toggle_select,
+    trust_clearance,
 )
 
 app_name = "activity"
@@ -91,6 +92,11 @@ urlpatterns = [
     path("activity/time/add/<int:id>/<str:request_app>", time_add, name="time-add"),
     path("activity/time/<int:id>/edit", time_edit, name="time-edit"),
     path("activity/time/set-rate/<int:matter_id>", set_rate, name="set-rate"),
+    path(
+        "activity/time/trust-clearance/<int:matter_id>",
+        trust_clearance,
+        name="trust-clearance",
+    ),
     path("activity/time/export/<str:format>", time_export_to_csv, name="time-export"),
     path("activity/time/<int:id>/delete", time_delete, name="time-delete"),
     path(

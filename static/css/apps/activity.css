@@ -20,6 +20,27 @@ Time entry form
   opacity: 0.6;
 }
 
+/* Trust funds remaining for the selected matter. Hidden until JS fills it in
+   (no matter selected = nothing to show); shown as a flex row by the JS. */
+.trust-clearance {
+  align-items: baseline;
+  display: none;
+  gap: 0.4rem;
+}
+
+.trust-clearance-label {
+  color: var(--color-muted);
+}
+
+.trust-clearance-value {
+  font-weight: 600;
+}
+
+/* Over-extended: billing/owed exceeds trust on hand. */
+.trust-clearance-value.is-negative {
+  color: var(--error);
+}
+
 
 /* ==========================================================================
 Expenses form

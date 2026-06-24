@@ -26,6 +26,39 @@ function updateRate(){
 }
 
 
+function updateTrustClearance(){
+    /**
+     * Show how much trust money remains for the selected matter, so the
+     * attorney is aware while billing. Mirrors updateRate(): fires on matter
+     * change and on form load.
+     */
+    var matterElement = document.getElementById("id_matter");
+    var row = document.getElementById("trust-clearance");
+    var value = document.getElementById("trust-clearance-value");
+    if (!matterElement || !row || !value) {
+        return;
+    }
+
+    var matterId = matterElement.options[matterElement.selectedIndex].value;
+    if (!matterId) {
+        row.style.display = "none";
+        return;
+    }
+
+    fetch(`/activity/time/trust-clearance/${matterId}`)
+        .then(response => response.json())
+        .then(data => {
+            value.textContent = data.display;
+            value.classList.toggle("is-negative", data.negative);
+            row.style.display = "flex";
+        })
+        .catch(error => {
+            console.error('Error fetching trust clearance:', error);
+            row.style.display = "none";
+        });
+}
+
+
 // Abbreviation codes cache
 let abbreviationCodes = null;
 
@@ -90,5 +123,6 @@ document.body.addEventListener('htmx:afterSettle', function(event) {
     // Check if the time entry form was loaded
     if (document.getElementById('time-entry-form')) {
         initAbbreviationPreview();
+        updateTrustClearance();
     }
 });

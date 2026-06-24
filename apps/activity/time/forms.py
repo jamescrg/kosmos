@@ -42,7 +42,12 @@ class TimeEntryForm(forms.ModelForm):
         )
 
         widgets = {
-            "matter": forms.Select(attrs={"onchange": "updateRate()", "tabindex": "1"}),
+            "matter": forms.Select(
+                attrs={
+                    "onchange": "updateRate(); updateTrustClearance()",
+                    "tabindex": "1",
+                }
+            ),
             "date": forms.DateInput(attrs={"type": "date", "tabindex": "5"}),
             "actions": forms.Textarea(
                 attrs={

@@ -3,7 +3,7 @@ from datetime import date, datetime, timedelta
 from django.contrib.auth.decorators import login_required
 from django.core.exceptions import ObjectDoesNotExist
 from django.db import models
-from django.http import HttpResponse, HttpResponseForbidden
+from django.http import HttpResponse, HttpResponseForbidden, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.views.decorators.http import require_POST
@@ -578,6 +578,39 @@ def set_rate(request, matter_id):
         rate_value = request.user.user_rate
 
     return HttpResponse(rate_value)
+
+
+def _trust_clearance(matter):
+    """Trust funds remaining for a matter once outstanding invoices and unbilled
+    work are accounted for. Mirrors the "Trust Clearance" figure on the matter
+    ledger: confirmed client trust balance − currently owed − unbilled net
+    fees/expenses. Local imports avoid a circular import with the matters app."""
+    from apps.matters.ledger.get_ledger_data import get_ledger_data
+    from apps.trust.trust import get_confirmed_client_balance
+
+    balance = get_confirmed_client_balance(matter.client.id) if matter.client else 0
+    ledger = get_ledger_data(matter)
+    unbilled = matter.value["unbilled"]["net_fees_and_expenses"]
+    return float(balance) - float(ledger["currently_owed"]) - float(unbilled)
+
+
+@login_required
+def trust_clearance(request, matter_id):
+    """AJAX endpoint: trust funds remaining for a matter, shown on the time entry
+    form so the attorney sees how much is left in trust while billing."""
+    try:
+        matter = Matter.objects.get(pk=matter_id)
+        clearance = _trust_clearance(matter)
+    except Matter.DoesNotExist:
+        clearance = 0
+
+    sign = "-" if clearance < 0 else ""
+    return JsonResponse(
+        {
+            "display": "{}${:,.2f}".format(sign, abs(clearance)),
+            "negative": clearance < 0,
+        }
+    )
 
 
 TIME_TRIGGER = "timeChanged"
