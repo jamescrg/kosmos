@@ -41,6 +41,7 @@ from apps.invoicing.invoices.views import (
     invoices_list,
     invoices_pdf,
     invoices_pdf_download,
+    invoices_send,
     invoices_void,
     invoices_void_confirm,
     order_by_invoices,
@@ -160,6 +161,11 @@ urlpatterns = [
         "invoicing/invoices-edit-status/<int:pk>/<str:status>/<str:view>/",
         invoices_edit_status,
         name="invoices-edit-status",
+    ),
+    path(
+        "invoicing/invoices/<int:pk>/send/",
+        invoices_send,
+        name="invoices-send",
     ),
     path(
         "invoicing/invoices-detail/<int:pk>/details-index/",

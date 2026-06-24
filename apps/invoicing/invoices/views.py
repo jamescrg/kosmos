@@ -34,11 +34,13 @@ from apps.management.selection import (
 )
 from apps.matters.models import Matter
 from apps.trust.models import Transaction
+from utils.toasts import toast_success
 
 from .filters import InvoiceFilter
 from .forms import EditInvoiceForm, InvoiceForm
 from .functions import generate_invoice
 from .functions.generate_invoice import store_invoice_pdf
+from .functions.send_invoice import InvoiceSendError, send_invoice
 from .models import Invoice
 
 
@@ -796,3 +798,51 @@ def invoices_edit_status(request, pk, status, view):
     trigger = "invoicesChanged" if view == "list" else "invoiceDetailChanged"
 
     return HttpResponse(status=204, headers={"HX-Trigger": trigger})
+
+
+@login_required
+def invoices_send(request, pk):
+    """Email the invoice PDF to the client and record the transmission. GET
+    renders the confirmation modal; POST sends and returns 204 (closes the modal,
+    refreshes the detail) or re-renders the modal with an error."""
+    invoice = get_object_or_404(Invoice, pk=pk)
+    client = invoice.matter.client if invoice.matter else None
+
+    if request.method == "POST":
+        to = (request.POST.get("to") or "").strip()
+        cc = (request.POST.get("cc") or "").strip()
+        message = request.POST.get("message", "")
+        recipient = to or (client.email if client else "")
+        try:
+            send_invoice(
+                invoice,
+                to=to or None,
+                cc=cc or None,
+                message=message,
+                sent_by=request.user,
+                request=request,
+            )
+        except InvoiceSendError as exc:
+            context = {
+                "invoice": invoice,
+                "default_to": to,
+                "default_cc": cc,
+                "default_message": message,
+                "error": str(exc),
+            }
+            return render(request, "invoicing/invoices/send.html", context)
+
+        response = HttpResponse(
+            status=204, headers={"HX-Trigger": "invoiceDetailChanged"}
+        )
+        toast_success(response, f"Invoice #{invoice.id} sent to {recipient}.")
+        return response
+
+    context = {
+        "invoice": invoice,
+        "default_to": client.email if client else "",
+        "default_cc": "",
+        "default_message": invoice.message or "",
+        "error": "",
+    }
+    return render(request, "invoicing/invoices/send.html", context)
