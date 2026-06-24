@@ -73,17 +73,24 @@ table.matter-contacts {
 }
 
 /* ==========================================================================
- Mobile Responsive - Favor horizontal scroll over compression
+ Mobile — contacts as cards (.card-table base in tables.css)
+
+ Toolbar keeps only Filter + the Groups dropdown; the card shows the contact
+ name (tap to open) with group / role as meta. Email + phone are card-hidden
+ (open the contact for those).
 ========================================================================== */
 
 @media (width <= 768px) {
-  .matter-contacts {
-    white-space: nowrap;
+  /* Toolbar: drop +Assign and the Roles filter; keep Filter + Groups. */
+  .matter-contacts-toolbar .accent-link,
+  .matter-contacts-toolbar .dropdown:has(#contacts-role-filter) {
+    display: none;
   }
 
-  .matter-contacts .email .copy-btn {
-    flex-shrink: 0;
-  }
+  /* Card order: name (prominent, full width) then group · role. */
+  .matter-contacts td.name { order: 1; }
+  .matter-contacts td.group { order: 2; }
+  .matter-contacts td.role { order: 3; }
 }
 
 
