@@ -5,6 +5,7 @@ from .aging import views as aging
 from .clients import views as clients
 from .intakes import views as intakes
 from .matters import views as matters
+from .realization import views as realization
 from .revenue import views as revenue
 from .trust import views as trust
 from .views import reports_index, reports_list
@@ -24,6 +25,16 @@ urlpatterns = [
     path("reports/revenue/", revenue.revenue_index, name="revenue-index"),
     path("reports/revenue/list/", revenue.revenue_list, name="revenue"),
     path("reports/revenue/period/", revenue.revenue_period, name="revenue-period"),
+    # Realization
+    path(
+        "reports/realization/", realization.realization_index, name="realization-index"
+    ),
+    path("reports/realization/list/", realization.realization_list, name="realization"),
+    path(
+        "reports/realization/period/",
+        realization.realization_period,
+        name="realization-period",
+    ),
     # Clients
     path("reports/clients/", clients.clients_index, name="clients-index"),
     path("reports/clients/list/", clients.clients_list, name="clients"),

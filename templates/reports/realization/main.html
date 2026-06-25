@@ -1,0 +1,8 @@
+{% extends "reports/main.html" %}
+{% load humanize %}
+{% block subcontent %}
+  <div id="realization-reports"
+       hx-trigger="reportsChanged from:body, realizationChanged from:body"
+       hx-get="{% url 'reports:realization' %}"
+       hx-target="this">{% include "reports/realization/list.html" %}</div>
+{% endblock subcontent %}
