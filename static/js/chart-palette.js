@@ -26,17 +26,17 @@ window.AletheiaChartPalette = (function () {
     // (chroma ~0.09) so bars read on a near-white page while staying on-aesthetic.
     // Ordered so the highlight set's warm cluster (red/orange/yellow) isn't
     // adjacent in the stack; teal is the one non-highlight hue, added for a 7th.
-    // The Tailwind 150 level — one step up from the app's highlight fills (the
-    // *-100 family): still soft and on-aesthetic, a touch more presence so
-    // adjacent bars separate. Hues track the highlight set.
+    // ~Tailwind 175 — interpolated halfway between each hue's -150 and -200 (the
+    // ramps don't ship a 175 step). Still soft and in the highlight family, a
+    // touch more presence than 150 so adjacent bars separate.
     light: [
-      "oklch(91.9% 0.041 294.0deg)", // violet-150 (hl-violet family)
-      "oklch(92.8% 0.055 73.0deg)", // orange-150
-      "oklch(90.7% 0.045 254.9deg)", // blue-150
-      "oklch(94.4% 0.062 156.4deg)", // green-150
-      "oklch(91.1% 0.045 18.0deg)", // red-150
-      "oklch(93.0% 0.060 181.0deg)", // teal (~150; complement for a 7th hue)
-      "oklch(95.9% 0.097 102.4deg)", // yellow-150 (hl-yellow family)
+      "oklch(90.7% 0.048 293.7deg)", // violet ~175 (hl-violet family)
+      "oklch(91.5% 0.064 71.9deg)", // orange ~175
+      "oklch(89.5% 0.051 254.5deg)", // blue ~175
+      "oklch(93.5% 0.072 156.2deg)", // green ~175
+      "oklch(89.8% 0.052 18.2deg)", // red ~175
+      "oklch(92.0% 0.077 180.7deg)", // teal ~175 (complement for a 7th hue)
+      "oklch(95.2% 0.110 102.0deg)", // yellow ~175 (hl-yellow family)
     ],
     // Muted Gruvbox family: same hues as the bright accents but chroma pulled
     // down (~0.08, was up to 0.22) so they're soft on the dark surface, distinct
