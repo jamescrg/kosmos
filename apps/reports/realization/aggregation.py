@@ -6,9 +6,11 @@ to 100% of the fees worked that month and "Collected ÷ bar" is the realization
 rate.
 
 Fees only: expenses are excluded entirely (this measures performance collecting
-billed *hours*, not cost pass-throughs) and flat fees are out of v1. Comp time
-and the fee-share of any invoice discount are write-downs; payments and credits
-are pro-rated back to each entry's accrual month by the entry's share of its
+billed *hours*, not cost pass-throughs). Flat fees are shown as a separate band
+(accrued value), kept out of the hourly disposition so Deferred stays the genuine
+hourly-deferred and the realization rate is hourly-only. Comp time and the
+fee-share of any invoice discount are write-downs; payments and credits are
+pro-rated back to each entry's accrual month by the entry's share of its
 invoice's net billable value (the same engine the Revenue report uses).
 
 Accrual basis: a month column counts time entries by their own ``date``. The
@@ -39,6 +41,10 @@ DEFERRED = "Deferred"
 UNCOLLECTIBLE = "Uncollectible"
 WRITEDOWNS = "Write-downs (comp & discount)"
 UNBILLED = "Unbilled (WIP)"
+# Flat fees are shown as their own band (accrued value), deliberately kept out of
+# the hourly disposition — Deferred stays the genuine hourly-deferred. The
+# realization rate is computed on hourly fees only.
+FLATFEES = "Flat fees"
 SEGMENTS = [
     COLLECTED,
     CREDITS,
@@ -47,6 +53,7 @@ SEGMENTS = [
     UNCOLLECTIBLE,
     WRITEDOWNS,
     UNBILLED,
+    FLATFEES,
 ]
 NEUTRAL = {UNBILLED}  # rendered grey on the chart
 
@@ -185,6 +192,20 @@ def build_realization_context(request):
         buckets[CREDITS][idx] += f["credited"] * share
         buckets[f["remainder_seg"]][idx] += f["remainder"] * share
 
+    # Flat fees: their own band (accrued value), kept out of the hourly
+    # disposition. Comp (no-charge) flat fees are write-downs, like comp time.
+    flat_entries = list(
+        FlatFeeEntry.objects.filter(date__gte=window_start, date__lt=window_end).values(
+            "date", "amount", "comp"
+        )
+    )
+    for fe in flat_entries:
+        amt = Decimal(fe["amount"] or 0)
+        if amt <= 0 or not fe["date"]:
+            continue
+        idx = month_index[(fe["date"].year, fe["date"].month)]
+        buckets[WRITEDOWNS if fe["comp"] else FLATFEES][idx] += amt
+
     # Table rows (skip wholly-empty segments) + per-month and grand totals.
     month_totals = [Decimal(0)] * n
     grand_total = Decimal(0)
@@ -207,18 +228,22 @@ def build_realization_context(request):
             mt = month_totals[i]
             cell["pct"] = (cell["amount"] / mt * 100) if mt else Decimal(0)
 
-    # Realization rate = Collected ÷ accrued, per month and overall.
+    # Realization rate = Collected ÷ accrued HOURLY fees (flat fees are a separate
+    # band, excluded from the denominator), per month and overall.
     collected = buckets[COLLECTED]
+    flat = buckets[FLATFEES]
+    hourly_totals = [month_totals[i] - flat[i] for i in range(n)]
     realization_cells = [
         {
-            "pct": (collected[i] / month_totals[i] * 100)
-            if month_totals[i]
+            "pct": (collected[i] / hourly_totals[i] * 100)
+            if hourly_totals[i]
             else Decimal(0)
         }
         for i in range(n)
     ]
+    hourly_grand = sum(hourly_totals, Decimal(0))
     overall_realization = (
-        sum(collected, Decimal(0)) / grand_total * 100 if grand_total else Decimal(0)
+        sum(collected, Decimal(0)) / hourly_grand * 100 if hourly_grand else Decimal(0)
     )
 
     # Chart: one stacked series per non-empty segment; WIP renders grey.
@@ -237,7 +262,7 @@ def build_realization_context(request):
     }
 
     if settings.DEBUG:
-        accrued = sum(
+        accrued_hourly = sum(
             (
                 Decimal(e["hours"] or 0) * Decimal(e["rate"] or 0)
                 for e in entries
@@ -245,6 +270,15 @@ def build_realization_context(request):
             ),
             Decimal(0),
         )
+        accrued_flat = sum(
+            (
+                Decimal(fe["amount"] or 0)
+                for fe in flat_entries
+                if fe["amount"] and fe["date"]
+            ),
+            Decimal(0),
+        )
+        accrued = accrued_hourly + accrued_flat
         assert abs(grand_total - accrued) < Decimal("0.01"), (
             f"realization mismatch: {grand_total} != {accrued}"
         )

@@ -21,7 +21,7 @@
     </div>
     <div class="period-nav-label">
       Realization rate: <strong>{{ overall_realization|floatformat:1 }}%</strong>
-      <small class="text-muted">(collected ÷ fees accrued, last 6 months)</small>
+      <small class="text-muted">(collected ÷ hourly fees accrued, last 6 months; flat fees shown separately)</small>
     </div>
   </div>
 </div>
@@ -89,7 +89,7 @@
           </td>
         </tr>
         <tr>
-          <td>Realization rate</td>
+          <td>Realization rate (hourly)</td>
           {% for r in realization_cells %}
             <td class="numeric">{{ r.pct|floatformat:1 }}%</td>
           {% endfor %}
