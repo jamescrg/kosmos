@@ -53,18 +53,18 @@
           {% for cell in row.cells %}
             <td class="numeric">
               {% if cell.amount %}
-                ${{ cell.amount|floatformat:2|intcomma }}
+                <strong>{{ cell.pct|floatformat:1 }}%</strong>
                 <br>
-                <small class="text-muted">{{ cell.pct|floatformat:1 }}%</small>
+                <small class="text-muted">${{ cell.amount|floatformat:2|intcomma }}</small>
               {% else %}
                 -
               {% endif %}
             </td>
           {% endfor %}
           <td class="numeric">
-            <strong>${{ row.total|floatformat:2|intcomma }}</strong>
+            <strong>{{ row.pct|floatformat:1 }}%</strong>
             <br>
-            <small class="text-muted">{{ row.pct|floatformat:1 }}%</small>
+            <small class="text-muted">${{ row.total|floatformat:2|intcomma }}</small>
           </td>
         </tr>
       {% empty %}

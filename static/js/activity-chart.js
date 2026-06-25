@@ -59,6 +59,9 @@ window.AletheiaActivityChart = (function () {
       const meta0 = chart.getDatasetMeta(0);
       if (!meta0 || !meta0.data || !meta0.data.length) return;
       const { ctx, scales } = chart;
+      // Optional per-column override labels (e.g. a realization %). When absent,
+      // we draw the stacked dollar/hours total as before.
+      const labels = opts.labels;
       ctx.save();
       ctx.fillStyle = opts.color || "#666";
       ctx.font = "600 12px " + ((Chart.defaults.font && Chart.defaults.font.family) || "sans-serif");
@@ -71,8 +74,15 @@ window.AletheiaActivityChart = (function () {
           if (chart.isDatasetVisible(di)) total += Number(ds.data[i]) || 0;
         });
         if (!total) continue;
+        let text;
+        if (labels) {
+          text = labels[i] || "";
+          if (!text) continue;
+        } else {
+          text = formatTotal(total, opts.metric);
+        }
         const bar = meta0.data[i];
-        ctx.fillText(formatTotal(total, opts.metric), bar.x, scales.y.getPixelForValue(total) - 4);
+        ctx.fillText(text, bar.x, scales.y.getPixelForValue(total) - 4);
       }
       ctx.restore();
     },
@@ -274,7 +284,7 @@ window.AletheiaActivityChart = (function () {
               },
             },
           },
-          stackTotals: { metric: state.metric, color: themed.tick },
+          stackTotals: { metric: state.metric, color: themed.tick, labels: payload.top_labels },
         },
       },
     });

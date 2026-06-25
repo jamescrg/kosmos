@@ -19,6 +19,7 @@ window's end month is held in the session ("realization_end") and stepped by
 """
 
 from collections import defaultdict
+from datetime import date
 from decimal import Decimal
 
 from dateutil.relativedelta import relativedelta
@@ -30,7 +31,22 @@ from apps.activity.flat_fees.models import FlatFeeEntry
 from apps.activity.time.models import TimeEntry
 from apps.invoicing.applications.models import CreditApplication, PaymentApplication
 from apps.invoicing.invoices.models import Invoice
-from apps.reports.activity.aggregation import _window_months, resolve_end
+from apps.reports.activity.aggregation import _window_months
+
+
+def resolve_realization_end(session_value):
+    """Resolve the window's end month, but the latest selectable month is the
+    PREVIOUS (completed) month: the current month has barely any realization yet
+    (no time to collect) and would skew the trend toward 0%. Returns
+    (end_first_of_month, latest_complete_first_of_month)."""
+    latest = date.today().replace(day=1) - relativedelta(months=1)
+    try:
+        year, month = (int(part) for part in session_value.split("-"))
+        end = date(year, month, 1)
+    except (AttributeError, TypeError, ValueError):
+        end = latest
+    return min(end, latest), latest
+
 
 # Disposition segments, bottom-of-stack first. Each accrued fee dollar lands in
 # exactly one, so the stack reconciles to the month's accrued fee value.
@@ -150,7 +166,7 @@ def _invoice_facts(invoice_ids):
 
 def build_realization_context(request):
     """Full template context for the realization report, incl. ``chart_payload``."""
-    end, current_first = resolve_end(request.session.get("realization_end"))
+    end, latest = resolve_realization_end(request.session.get("realization_end"))
     months = _window_months(end)
     n = len(months)
     window_start = months[0]["date"]
@@ -259,6 +275,12 @@ def build_realization_context(request):
     chart_payload = {
         "months": [m["name"] for m in months],
         "series": {"segment": series},
+        # Per-bar top label: the month's hourly realization rate (blank when no
+        # hourly fees accrued that month).
+        "top_labels": [
+            f"{realization_cells[i]['pct']:.1f}%" if hourly_totals[i] else ""
+            for i in range(n)
+        ],
     }
 
     if settings.DEBUG:
@@ -293,6 +315,6 @@ def build_realization_context(request):
         "realization_cells": realization_cells,
         "overall_realization": overall_realization,
         "period_label": end.strftime("%b %Y"),
-        "can_go_next": end < current_first,
+        "can_go_next": end < latest,
         "chart_payload": chart_payload,
     }
