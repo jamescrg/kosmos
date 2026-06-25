@@ -173,6 +173,17 @@
   min-width: 20rem;
 }
 
+/* Standard spacing for a section heading above a report table/chart: clear air
+   above to separate it from the prior block, snug below to its content. */
+.reports-section-heading {
+  margin: 2rem 0 0.75rem;
+}
+
+/* Donut-card headings sit at the top of their card, so drop the top margin. */
+.intake-donut-card .reports-section-heading {
+  margin-top: 0;
+}
+
 /* Intakes report: two distribution donuts side by side under the volume bar,
    wrapping on narrow screens. */
 .intake-donut-row {
