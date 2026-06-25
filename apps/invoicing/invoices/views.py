@@ -205,7 +205,7 @@ def invoice_details_index(request, pk):
         "view": "detail",
     }
 
-    return render(request, "invoicing/invoices/detail/details.html", context)
+    return render(request, "invoicing/invoices/detail/detail-index.html", context)
 
 
 @login_required
@@ -220,7 +220,7 @@ def pdf_preview_index(request, pk):
         "view": "detail",
     }
 
-    return render(request, "invoicing/invoices/preview/index.html", context)
+    return render(request, "invoicing/invoices/detail/detail-index.html", context)
 
 
 @login_required
@@ -250,7 +250,7 @@ def invoice_time_entries_index(request, pk):
     }
     context.update(_get_invoice_time_context(request, invoice))
 
-    return render(request, "invoicing/invoices/time/index.html", context)
+    return render(request, "invoicing/invoices/detail/detail-index.html", context)
 
 
 @login_required
@@ -397,7 +397,7 @@ def invoice_expense_entries_index(request, pk):
     }
     context.update(_get_invoice_expense_context(request, invoice))
 
-    return render(request, "invoicing/invoices/expenses/index.html", context)
+    return render(request, "invoicing/invoices/detail/detail-index.html", context)
 
 
 @login_required
@@ -442,7 +442,7 @@ def invoice_flat_fee_entries_index(request, pk):
         "view": "detail",
     }
 
-    return render(request, "invoicing/invoices/flat-fees/index.html", context)
+    return render(request, "invoicing/invoices/detail/detail-index.html", context)
 
 
 @login_required
