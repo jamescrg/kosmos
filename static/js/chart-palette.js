@@ -75,13 +75,13 @@ window.AletheiaChartPalette = (function () {
     return NEUTRAL[theme] || NEUTRAL.light;
   }
 
-  // Matches the table border token (--border-medium): stone-300 in light,
-  // gb-dark2 in dark, nord2 in cosmic. Outlines donut slices and bar segments
-  // like table cell borders.
+  // One step darker than the table cell border (--border-medium-dark: stone-350
+  // / gb-dark3 / nord3) so the outline separates cleanly against the light
+  // 'Other' grey. Outlines donut slices and bar segments.
   const BORDER = {
-    light: "oklch(86.9% 0 none)",
-    dark: "oklch(0.411 0.011 52)",
-    cosmic: "#434c5e",
+    light: "oklch(83.5% 0 none)",
+    dark: "oklch(0.482 0.018 61)",
+    cosmic: "#4c566a",
   };
 
   function border(theme) {
