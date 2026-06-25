@@ -335,3 +335,15 @@ DRIVE_NOTES_ROOT = env("DRIVE_NOTES_ROOT", default="Matters - Open")
 DRIVE_NOTES_DEBUG_DIR = env("DRIVE_NOTES_DEBUG_DIR", default="")
 # Optional: set if "Matters - Open" lives in a Shared Drive rather than My Drive.
 DRIVE_SHARED_DRIVE_ID = env("DRIVE_SHARED_DRIVE_ID", default="")
+
+# Online invoice payment collection (Phase 2)
+# Active processor; "fake" simulates the full card+ACH lifecycle so dev/CI run
+# without credentials. Switch to "lawpay" once sandbox keys are configured.
+PAYMENT_PROCESSOR = env("PAYMENT_PROCESSOR", default="fake")
+# LawPay/AffiniPay (8am) credentials. Public key -> client-side hosted fields;
+# secret key -> server-side Basic auth; operating account_id pins funds to the
+# operating (non-trust) account. Test-mode keys hit only sandbox accounts.
+LAWPAY_PUBLIC_KEY = env("LAWPAY_PUBLIC_KEY", default="")
+LAWPAY_SECRET_KEY = env("LAWPAY_SECRET_KEY", default="")
+LAWPAY_OPERATING_ACCOUNT_ID = env("LAWPAY_OPERATING_ACCOUNT_ID", default="")
+LAWPAY_API_BASE = env("LAWPAY_API_BASE", default="https://api.8am.com")
