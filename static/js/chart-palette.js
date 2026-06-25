@@ -62,10 +62,11 @@ window.AletheiaChartPalette = (function () {
     return { grid: t.grid, tick: t.tick };
   }
 
-  // Catch-all / residual series ("Other"). Light is the original near-neutral
-  // grey, just lighter (L0.74 -> 0.90) so it no longer reads as dark.
+  // Catch-all / residual series ("Other"). Light matches the table header grey
+  // (--background-control = stone-200). Dark/cosmic keep a mid-grey that stays
+  // visible on the dark surface.
   const NEUTRAL = {
-    light: "oklch(0.90 0.004 286)",
+    light: "oklch(92.4% 0 none)",
     dark: "oklch(0.60 0.006 70)",
     cosmic: "oklch(0.62 0.006 250)",
   };
@@ -74,13 +75,13 @@ window.AletheiaChartPalette = (function () {
     return NEUTRAL[theme] || NEUTRAL.light;
   }
 
-  // Matches the surface the charts sit on (--background-body): stone-125 in
-  // light, gb-dark in dark, nord0 in cosmic. Outlining slices/bars in the
-  // background colour reads as clean gaps between segments.
+  // Matches the table border token (--border-medium): stone-300 in light,
+  // gb-dark2 in dark, nord2 in cosmic. Outlines donut slices and bar segments
+  // like table cell borders.
   const BORDER = {
-    light: "oklch(95.4% 0 none)",
-    dark: "oklch(0.277 0 263)",
-    cosmic: "#2e3440",
+    light: "oklch(86.9% 0 none)",
+    dark: "oklch(0.411 0.011 52)",
+    cosmic: "#434c5e",
   };
 
   function border(theme) {
