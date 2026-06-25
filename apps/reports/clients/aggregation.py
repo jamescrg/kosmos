@@ -10,6 +10,7 @@ still scopes it. Also builds a top-4-clients-by-billings donut (+ "All others").
 from datetime import date
 from decimal import Decimal
 
+from dateutil.relativedelta import relativedelta
 from django.db.models import Sum
 
 from apps.activity.time.models import TimeEntry
@@ -19,31 +20,31 @@ from apps.invoicing.payments.models import Payment
 
 TOP_N = 7
 
+# Trailing-window options (raw N-month lookbacks, not calendar periods).
 CLIENT_PERIODS = [
-    ("month", "This Month"),
-    ("quarter", "This Quarter"),
-    ("year", "This Year"),
+    ("1m", "1 Month"),
+    ("3m", "3 Months"),
+    ("6m", "6 Months"),
+    ("12m", "12 Months"),
 ]
+_PERIOD_MONTHS = {"1m": 1, "3m": 3, "6m": 6, "12m": 12}
+DEFAULT_PERIOD = "12m"
 
 
 def _period_range(period):
-    """Calendar-period-to-date (date_min, date_max) for a CLIENT_PERIODS key."""
+    """Trailing (date_min, date_max): the last N months ending today."""
     today = date.today()
-    if period == "month":
-        return today.replace(day=1), today
-    if period == "quarter":
-        q_first_month = 3 * ((today.month - 1) // 3) + 1
-        return date(today.year, q_first_month, 1), today
-    return date(today.year, 1, 1), today  # year (default)
+    months = _PERIOD_MONTHS.get(period, _PERIOD_MONTHS[DEFAULT_PERIOD])
+    return today - relativedelta(months=months), today
 
 
 def build_clients_context(request):
     sort_by = request.GET.get("sort", "client_name")
     sort_direction = request.GET.get("direction", "asc")
 
-    period = request.session.get("clients_period", "year")
+    period = request.session.get("clients_period", DEFAULT_PERIOD)
     if period not in dict(CLIENT_PERIODS):
-        period = "year"
+        period = DEFAULT_PERIOD
     date_from_obj, date_to_obj = _period_range(period)
 
     # Actual clients only: marked Current AND the primary client of >=1 matter.
