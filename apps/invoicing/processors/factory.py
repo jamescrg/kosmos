@@ -20,11 +20,10 @@ def get_processor(name: str | None = None) -> PaymentProcessor:
         return FakeProcessor()
 
     if name == "lawpay":
-        # The concrete LawPay/AffiniPay adapter is built against sandbox keys
-        # in a later step; fail loudly until then.
-        raise ProcessorConfigError(
-            "The 'lawpay' processor is not implemented yet. "
-            "Set PAYMENT_PROCESSOR=fake until the LawPay adapter is built."
-        )
+        # Imported lazily so the package needn't import `requests` unless the
+        # LawPay processor is actually selected.
+        from .lawpay import LawPayProcessor
+
+        return LawPayProcessor()
 
     raise ProcessorConfigError(f"Unknown PAYMENT_PROCESSOR: {name!r}")
