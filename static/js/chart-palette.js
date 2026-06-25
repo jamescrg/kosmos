@@ -62,10 +62,10 @@ window.AletheiaChartPalette = (function () {
     return { grid: t.grid, tick: t.tick };
   }
 
-  // Catch-all / residual series ("Other"). Light uses a soft warm cream (sits in
-  // the stone family, lighter than the old mid-grey, warm against the cool series).
+  // Catch-all / residual series ("Other"). Light uses a soft ivory (lighter than
+  // the old mid-grey, a hint of warmth so it sits in the stone family).
   const NEUTRAL = {
-    light: "oklch(0.90 0.022 85)",
+    light: "oklch(0.90 0.012 85)",
     dark: "oklch(0.60 0.006 70)",
     cosmic: "oklch(0.62 0.006 250)",
   };
