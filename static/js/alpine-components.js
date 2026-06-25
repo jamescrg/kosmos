@@ -297,8 +297,8 @@ document.addEventListener('alpine:init', () => {
     metric: 'fees',
 
     init() {
-      const last = window.AletheiaActivityChart &&
-        window.AletheiaActivityChart._stateFor('activity-chart');
+      const last = window.KosmosActivityChart &&
+        window.KosmosActivityChart._stateFor('activity-chart');
       if (last) {
         this.dimension = last.dimension;
         this.metric = last.metric;
@@ -307,14 +307,14 @@ document.addEventListener('alpine:init', () => {
 
     setDimension(d) {
       this.dimension = d;
-      window.AletheiaActivityChart &&
-        window.AletheiaActivityChart.update('activity-chart', { dimension: d });
+      window.KosmosActivityChart &&
+        window.KosmosActivityChart.update('activity-chart', { dimension: d });
     },
 
     setMetric(m) {
       this.metric = m;
-      window.AletheiaActivityChart &&
-        window.AletheiaActivityChart.update('activity-chart', { metric: m });
+      window.KosmosActivityChart &&
+        window.KosmosActivityChart.update('activity-chart', { metric: m });
     },
   }));
 
@@ -327,8 +327,8 @@ document.addEventListener('alpine:init', () => {
     metric: 'net',
 
     init() {
-      const last = window.AletheiaActivityChart &&
-        window.AletheiaActivityChart._donutStateFor(canvasId);
+      const last = window.KosmosActivityChart &&
+        window.KosmosActivityChart._donutStateFor(canvasId);
       if (last) {
         this.metric = last.metric;
       }
@@ -336,8 +336,8 @@ document.addEventListener('alpine:init', () => {
 
     setMetric(m) {
       this.metric = m;
-      window.AletheiaActivityChart &&
-        window.AletheiaActivityChart.updateDonut(canvasId, { metric: m });
+      window.KosmosActivityChart &&
+        window.KosmosActivityChart.updateDonut(canvasId, { metric: m });
     },
   }));
 
@@ -351,8 +351,8 @@ document.addEventListener('alpine:init', () => {
     setDim(d) {
       this.dim = d;
       const dataId = d === 'matter' ? 'wip-admin-matter-data' : 'wip-admin-user-data';
-      window.AletheiaActivityChart &&
-        window.AletheiaActivityChart.renderDonut('wip-admin-chart', dataId, { metric: 'net' });
+      window.KosmosActivityChart &&
+        window.KosmosActivityChart.renderDonut('wip-admin-chart', dataId, { metric: 'net' });
     },
   }));
 

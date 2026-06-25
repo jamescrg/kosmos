@@ -1,5 +1,5 @@
 /**
- * AletheiaActivityChart
+ * KosmosActivityChart
  * ---------------------
  * Chart.js lifecycle for the Activity report's stacked bar chart. The <canvas>
  * lives inside the HTMX-swapped #activity-reports fragment, so this module is
@@ -11,7 +11,7 @@
  *   update(canvasId, partialState)     - flip dimension/metric without refetching
  *   _stateFor(canvasId)                - current {dimension, metric} (used to re-seed Alpine)
  */
-window.AletheiaActivityChart = (function () {
+window.KosmosActivityChart = (function () {
   let themeObserverStarted = false;
   // Remembers the last payload element + toggle state per canvas, so an HTMX
   // re-swap or a theme change can rebuild with the same selection.
@@ -104,7 +104,7 @@ window.AletheiaActivityChart = (function () {
       const keys = Object.keys(payload.series);
       if (keys.length) series = payload.series[keys[0]] || [];
     }
-    const palette = window.AletheiaChartPalette;
+    const palette = window.KosmosChartPalette;
     const isMatter = state.dimension === "matter";
     // A series is neutral (grey) if flagged, or the matter view's trailing "Other".
     const isNeutral = (s, i) =>
@@ -134,7 +134,7 @@ window.AletheiaActivityChart = (function () {
       const keys = Object.keys(payload.series);
       if (keys.length) series = payload.series[keys[0]] || [];
     }
-    const palette = window.AletheiaChartPalette;
+    const palette = window.KosmosChartPalette;
     const colors = palette.make(series.length || 1, theme);
     return series.map((s, i) => {
       const c = colors[i];
@@ -201,8 +201,8 @@ window.AletheiaActivityChart = (function () {
     registry[canvasId] = { dataElId, state, kind: "donut" };
 
     const theme = currentTheme();
-    const themed = window.AletheiaChartPalette.axes(theme);
-    const palette = window.AletheiaChartPalette;
+    const themed = window.KosmosChartPalette.axes(theme);
+    const palette = window.KosmosChartPalette;
 
     const values = payload[state.metric] || [];
     const labels = payload.labels || [];
@@ -284,7 +284,7 @@ window.AletheiaActivityChart = (function () {
     const stacked = !isLine;
 
     const theme = currentTheme();
-    const themed = window.AletheiaChartPalette.axes(theme);
+    const themed = window.KosmosChartPalette.axes(theme);
 
     // Chart.js v4: tear down any instance already bound to this canvas.
     const existing = Chart.getChart(canvas);

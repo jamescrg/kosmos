@@ -81,6 +81,6 @@ dashboard. Requires: user_rows, totals, user_donut.
 </div>
 {{ user_donut|json_script:"wip-user-data" }}
 <script>
-  window.AletheiaActivityChart &&
-    window.AletheiaActivityChart.renderDonut('wip-user-chart', 'wip-user-data', { metric: 'net' });
+  window.KosmosActivityChart &&
+    window.KosmosActivityChart.renderDonut('wip-user-chart', 'wip-user-data', { metric: 'net' });
 </script>

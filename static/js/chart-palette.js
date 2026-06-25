@@ -1,5 +1,5 @@
 /**
- * AletheiaChartPalette
+ * KosmosChartPalette
  * ---------------------
  * Generates muted, theme-aware series colours for Chart.js so charts blend with
  * the project's monochrome + two-accent aesthetic instead of reading as a loud
@@ -13,7 +13,7 @@
  * neutral(theme)  -> muted grey for catch-all / residual ("Other" / WIP) series
  * border(theme)   -> table-border colour (--border-medium) for outlining slices/bars
  */
-window.AletheiaChartPalette = (function () {
+window.KosmosChartPalette = (function () {
   const THEME = {
     // otherL = lightness of the near-neutral "Other" bucket. In light it sits
     // well above the series ramp so it recedes toward the page; in dark/cosmic

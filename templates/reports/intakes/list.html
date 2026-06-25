@@ -34,8 +34,8 @@
 </div>
 {{ flow_chart|json_script:"intake-flow-data" }}
 <script>
-  window.AletheiaActivityChart &&
-    window.AletheiaActivityChart.render('intake-flow-chart', 'intake-flow-data',
+  window.KosmosActivityChart &&
+    window.KosmosActivityChart.render('intake-flow-chart', 'intake-flow-data',
       { type: 'line', dimension: 'flow', metric: 'count', unit: '', metricLabel: 'Intakes' });
 </script>
 <!-- Outcomes + practice-area donuts -->
@@ -66,8 +66,8 @@
 {{ practice_donut|json_script:"intake-practice-data" }}
 {{ conversion_donut|json_script:"intake-conversion-data" }}
 <script>
-  window.AletheiaActivityChart && (function () {
-    var C = window.AletheiaActivityChart;
+  window.KosmosActivityChart && (function () {
+    var C = window.KosmosActivityChart;
     C.renderDonut('intake-conversion-chart', 'intake-conversion-data', { metric: 'count', unit: '', metricLabel: 'Intakes' });
     C.renderDonut('intake-practice-chart', 'intake-practice-data', { metric: 'count', unit: '', metricLabel: 'Intakes' });
   })();

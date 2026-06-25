@@ -26,8 +26,8 @@
 </div>
 {{ chart_payload|json_script:"revenue-chart-data" }}
 <script>
-  window.AletheiaActivityChart &&
-    window.AletheiaActivityChart.render('revenue-chart', 'revenue-chart-data',
+  window.KosmosActivityChart &&
+    window.KosmosActivityChart.render('revenue-chart', 'revenue-chart-data',
       { dimension: 'user', metric: 'fees', metricLabel: 'Revenue ($)' });
 </script>
 <br />

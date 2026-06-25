@@ -30,8 +30,8 @@
 </div>
 {{ chart_payload|json_script:"realization-chart-data" }}
 <script>
-  window.AletheiaActivityChart &&
-    window.AletheiaActivityChart.render('realization-chart', 'realization-chart-data',
+  window.KosmosActivityChart &&
+    window.KosmosActivityChart.render('realization-chart', 'realization-chart-data',
       { dimension: 'segment', metric: 'fees', metricLabel: 'Fees ($)' });
 </script>
 <br />
