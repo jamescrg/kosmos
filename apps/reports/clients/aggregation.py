@@ -17,7 +17,7 @@ from apps.contacts.models import Contact
 from apps.invoicing.invoices.models import Invoice
 from apps.invoicing.payments.models import Payment
 
-TOP_N = 4
+TOP_N = 7
 
 CLIENT_PERIODS = [
     ("month", "This Month"),
