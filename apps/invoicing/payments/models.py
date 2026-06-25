@@ -7,6 +7,7 @@ from utils.models import AuditMixin
 PAYMENT_METHOD_CHOICES = (
     ("CHECK", "Check"),
     ("CARD", "Card"),
+    ("ACH", "ACH / eCheck"),
     ("TRUST", "Trust"),
     ("WIRE", "Wire"),
 )
@@ -18,6 +19,13 @@ class Payment(AuditMixin, models.Model):
     amount = models.DecimalField(max_digits=10, decimal_places=2)
     payment_method = models.CharField(max_length=10, choices=PAYMENT_METHOD_CHOICES)
     detail = models.CharField(max_length=255, null=True, blank=True)
+    # Online-payment provenance (blank for manually-entered payments). Lets the
+    # settlement/return webhook find this row and reconcile it.
+    processor = models.CharField(max_length=20, blank=True, default="")
+    processor_txn_id = models.CharField(
+        max_length=64, blank=True, default="", db_index=True
+    )
+    processor_status = models.CharField(max_length=20, blank=True, default="")
     history = HistoricalRecords()
 
     def __str__(self):

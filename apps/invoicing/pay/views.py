@@ -8,23 +8,44 @@ one-time token to `pay_charge`, which charges it via the configured processor.
 This is the app's only record-exposing public surface, so access is gated by the
 signed, expiring token (see `utils.signing`), not a session.
 
-NOTE (Piece 3): recording the resulting Payment + applying it to the invoice,
-the settlement/return webhook, and rate-limiting live in the next piece. Today
-the charge is performed and its result reported; the invoice is not yet updated.
+On a successful charge the payment is recorded and applied to the invoice (see
+`recording`); the settlement/return webhook (`processor_webhook` →
+`reconcile`) later confirms or reverses it.
 """
 
 import json
 
 from django.conf import settings
 from django.core import signing
-from django.http import Http404, JsonResponse
+from django.core.cache import cache
+from django.http import Http404, HttpResponse, JsonResponse
 from django.shortcuts import get_object_or_404, render
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_http_methods
 
 from apps.invoicing.invoices.models import Invoice
+from apps.invoicing.pay.recording import record_payment
 from apps.invoicing.processors import ChargeError, get_processor
 from utils.signing import read_payment_token
+
+
+def _client_ip(request):
+    forwarded = request.META.get("HTTP_X_FORWARDED_FOR", "")
+    if forwarded:
+        return forwarded.split(",")[0].strip()
+    return request.META.get("REMOTE_ADDR", "") or "unknown"
+
+
+def _rate_limited(request, scope, *, limit, window):
+    """Best-effort fixed-window limiter keyed by client IP (Django cache)."""
+    key = f"ratelimit:{scope}:{_client_ip(request)}"
+    try:
+        cache.get_or_set(key, 0, window)
+        count = cache.incr(key)
+    except ValueError:
+        cache.set(key, 1, window)
+        count = 1
+    return count > limit
 
 
 def _resolve_invoice(token):
@@ -81,6 +102,12 @@ def pay_page(request, token):
 @csrf_exempt
 @require_http_methods(["POST"])
 def pay_charge(request, token):
+    if _rate_limited(request, "pay-charge", limit=20, window=300):
+        return JsonResponse(
+            {"success": False, "error": "Too many attempts. Please wait a moment."},
+            status=429,
+        )
+
     # Token gates access in lieu of a session; an invalid/expired token 404s.
     invoice = _resolve_invoice(token)
 
@@ -116,14 +143,38 @@ def pay_charge(request, token):
     except ChargeError as exc:
         return JsonResponse({"success": False, "error": str(exc)}, status=402)
 
-    # Piece 3 records a Payment + applies it (provisional for pending ACH) and
-    # the webhook confirms/reverses. For now report the processor result.
-    pending = result.status == "pending"
+    # Record the payment + apply it to the invoice (provisional PAID for pending
+    # ACH). The settlement/return webhook later confirms or reverses it.
+    if result.accepted:
+        record_payment(invoice, result)
+
     return JsonResponse(
         {
             "success": True,
-            "pending": pending,
+            "pending": result.is_pending,
             "status": result.status,
             "transaction_id": result.transaction_id,
         }
     )
+
+
+@csrf_exempt
+@require_http_methods(["POST"])
+def processor_webhook(request, processor):
+    """Receive a processor webhook. We always 200 quickly (the processor retries
+    otherwise) and reconcile out-of-band; the reconciler re-fetches the
+    transaction to confirm authenticity, so the raw body is never trusted."""
+    if _rate_limited(request, f"webhook-{processor}", limit=240, window=60):
+        return HttpResponse(status=429)
+
+    body = request.body.decode("utf-8", "replace")
+    try:
+        from django_q.tasks import async_task
+
+        async_task("apps.invoicing.pay.reconcile.reconcile_webhook", processor, body)
+    except Exception:
+        # If the task queue is unavailable, reconcile inline rather than drop it.
+        from apps.invoicing.pay.reconcile import reconcile_webhook
+
+        reconcile_webhook(processor, body)
+    return HttpResponse(status=200)

@@ -11,12 +11,14 @@ active processor with `get_processor()`.
 """
 
 from .base import (
+    ACCEPTED_STATUSES,
     BANK,
     CARD,
     FAILED,
     PENDING,
     REFUNDED,
     RETURNED,
+    REVERSED_STATUSES,
     SUCCEEDED,
     VOIDED,
     ChargeError,
@@ -31,12 +33,14 @@ from .base import (
 from .factory import get_processor
 
 __all__ = [
+    "ACCEPTED_STATUSES",
     "BANK",
     "CARD",
     "FAILED",
     "PENDING",
     "REFUNDED",
     "RETURNED",
+    "REVERSED_STATUSES",
     "SUCCEEDED",
     "VOIDED",
     "ChargeError",

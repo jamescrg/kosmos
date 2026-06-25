@@ -28,6 +28,7 @@ is exactly right for a fake (a fresh process starts empty).
 
 import itertools
 import json
+from uuid import uuid4
 
 from .base import (
     ACCEPTED_STATUSES,
@@ -48,7 +49,6 @@ from .base import (
 
 # Process-local transaction registry: {transaction_id: dict}
 _TRANSACTIONS: dict[str, dict] = {}
-_TXN_COUNTER = itertools.count(1)
 _EVENT_COUNTER = itertools.count(1)
 
 # Token strings that script a charge's behaviour.
@@ -94,7 +94,9 @@ class FakeProcessor(PaymentProcessor):
                 "Card declined (fake).", code="declined", raw={"token": token}
             )
 
-        txn_id = f"fake_{method}_{next(_TXN_COUNTER)}"
+        # Globally-unique id like a real processor (avoids collisions across
+        # separate processes / test runs).
+        txn_id = f"fake_{method}_{uuid4().hex[:16]}"
 
         # Card settles immediately; bank is accepted but provisional.
         if method == CARD:
