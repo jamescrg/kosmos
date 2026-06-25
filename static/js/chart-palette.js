@@ -21,24 +21,30 @@ window.AletheiaChartPalette = (function () {
   // the themes' own accent tokens (static/css/palette.css + colors.css) so the
   // charts stay on-palette; charts here have < 8 series, so cycling is moot.
   const CATEGORICAL = {
+    // Muted pastels: distinction comes from hue, not saturation, so the bars
+    // stay soft and on-aesthetic (low, even chroma ~0.09; light, even L ~0.80)
+    // rather than the loud Tailwind-500 set. Hues track the project's ramps.
     light: [
-      "oklch(60.6% 0.219 292.7deg)", // violet-500 (brand accent)
-      "oklch(76.9% 0.165 70.1deg)", // amber-500
-      "oklch(70.4% 0.123 182.5deg)", // teal-500
-      "oklch(64.5% 0.215 16.4deg)", // rose-500
-      "oklch(62.3% 0.188 259.8deg)", // blue-500
-      "oklch(72.3% 0.192 149.6deg)", // green-500
-      "oklch(66.7% 0.259 322.1deg)", // fuchsia-500
-      "oklch(60.9% 0.111 221.7deg)", // cyan-600
+      "oklch(0.79 0.090 293)", // soft violet (brand accent)
+      "oklch(0.82 0.095 80)", // soft amber
+      "oklch(0.80 0.080 190)", // soft teal
+      "oklch(0.78 0.095 15)", // soft rose
+      "oklch(0.78 0.085 256)", // soft blue
+      "oklch(0.82 0.090 150)", // soft green
+      "oklch(0.78 0.090 325)", // soft fuchsia
+      "oklch(0.80 0.075 220)", // soft cyan
     ],
+    // Muted Gruvbox family: same hues as the bright accents but chroma pulled
+    // down (~0.08, was up to 0.22) so they're soft on the dark surface, distinct
+    // by hue rather than intensity.
     dark: [
-      "oklch(0.756 0.108 138)", // gb-bright-aqua (signature)
-      "oklch(0.731 0.182 52)", // gb-bright-orange
-      "oklch(0.705 0.098 2)", // gb-bright-purple
-      "oklch(0.700 0.075 233)", // gb blue (nudged off aqua for separation)
-      "oklch(0.765 0.158 111)", // gb-bright-green
-      "oklch(0.660 0.217 30)", // gb-bright-red
-      "oklch(0.840 0.150 90)", // gb bright-yellow
+      "oklch(0.72 0.075 165)", // muted aqua (signature)
+      "oklch(0.73 0.085 60)", // muted orange
+      "oklch(0.70 0.078 350)", // muted purple
+      "oklch(0.70 0.068 240)", // muted blue
+      "oklch(0.75 0.080 130)", // muted green
+      "oklch(0.66 0.090 28)", // muted red
+      "oklch(0.81 0.080 92)", // muted yellow
     ],
     cosmic: [
       "#88c0d0", // nord8  Frost cyan (signature)
