@@ -57,7 +57,7 @@
         </a>
       </li>
       {% if user.is_admin or user.perm_financial %}
-        <li {% if app == 'invoicing' %}class="active"{% endif %}>
+        <li class="nav-item-invoicing{% if app == 'invoicing' %} active{% endif %}">
           <a id="nav-invoicing"
              href="{% url 'invoicing:invoices-index' %}"
              data-tooltip="Invoicing">

@@ -517,3 +517,10 @@
     padding-top: 0;
   }
 }
+
+/* Hide the Invoicing tab on mobile (the invoicing UI isn't mobile-friendly yet). */
+@media (width <= 768px) {
+  .nav-item-invoicing {
+    display: none;
+  }
+}
