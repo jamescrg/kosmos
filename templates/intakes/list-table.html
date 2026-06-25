@@ -35,53 +35,57 @@
   </div>
   <div class="table-container">
     <table class="table intake-list card-table">
-      <tr>
-        <th class="intake-importance">
-          <button class="btn-sort {% if current_order == 'importance' %}active{% endif %}"
-                  hx-post="{% url 'intakes:order-by' '-importance' %}"
-                  title="Sort by importance">
-            <i class="icon-flag"></i>
-          </button>
-        </th>
-        <th class="intake-date">
-          Date
-          <button class="btn-sort {% if current_order == 'date' %}active{% endif %}"
-                  hx-post="{% url 'intakes:order-by' 'date' %}">
-            <i class="icon-chevrons-up-down"></i>
-          </button>
-        </th>
-        <th class="intake-name">
-          Name
-          <button class="btn-sort {% if current_order == 'name' %}active{% endif %}"
-                  hx-post="{% url 'intakes:order-by' 'name' %}">
-            <i class="icon-chevrons-up-down"></i>
-          </button>
-        </th>
-        <th class="intake-phone">Phone</th>
-        <th class="intake-source">Source</th>
-        <th class="intake-practice-area">Practice Area</th>
-        <th class="intake-status">Status</th>
-      </tr>
-      {% for intake in intakes %}
-        <tr class="importance-{{ intake.importance }}">
-          <td class="intake-importance dropdown-cell importance card-hide">{% include "intakes/intake-importance.html" %}</td>
-          <td class="intake-date">{{ intake.date|date:"Y-m-d" }}</td>
-          <td class="intake-name card-desc">
-            <a href={% url 'intakes:detail-index' id=intake.id %}>{{ intake.name }}</a>
-            {% if intake.has_new_notes %}
-              <a href="{% url 'intakes:detail-index' id=intake.id %}"><i class="icon-sticky-note note-badge-icon note-badge-new"></i></a>
-            {% endif %}
-          </td>
-          <td class="intake-phone">{{ intake.phone|phone_number|default:'' }}</td>
-          <td class="intake-source">{{ intake.source|default:'' }}</td>
-          <td class="intake-practice-area dropdown-cell">{% include "intakes/intake-practice-area.html" %}</td>
-          <td class="intake-status dropdown-cell">{% include "intakes/intake-status.html" %}</td>
-        </tr>
-      {% empty %}
+      <thead>
         <tr>
-          <td colspan="7" class="empty-message">No intakes found.</td>
+          <th class="intake-importance">
+            <button class="btn-sort {% if current_order == 'importance' %}active{% endif %}"
+                    hx-post="{% url 'intakes:order-by' '-importance' %}"
+                    title="Sort by importance">
+              <i class="icon-flag"></i>
+            </button>
+          </th>
+          <th class="intake-date">
+            Date
+            <button class="btn-sort {% if current_order == 'date' %}active{% endif %}"
+                    hx-post="{% url 'intakes:order-by' 'date' %}">
+              <i class="icon-chevrons-up-down"></i>
+            </button>
+          </th>
+          <th class="intake-name">
+            Name
+            <button class="btn-sort {% if current_order == 'name' %}active{% endif %}"
+                    hx-post="{% url 'intakes:order-by' 'name' %}">
+              <i class="icon-chevrons-up-down"></i>
+            </button>
+          </th>
+          <th class="intake-phone">Phone</th>
+          <th class="intake-source">Source</th>
+          <th class="intake-practice-area">Practice Area</th>
+          <th class="intake-status">Status</th>
         </tr>
-      {% endfor %}
+      </thead>
+      <tbody>
+        {% for intake in intakes %}
+          <tr class="importance-{{ intake.importance }}">
+            <td class="intake-importance dropdown-cell importance card-hide">{% include "intakes/intake-importance.html" %}</td>
+            <td class="intake-date">{{ intake.date|date:"Y-m-d" }}</td>
+            <td class="intake-name card-desc">
+              <a href={% url 'intakes:detail-index' id=intake.id %}>{{ intake.name }}</a>
+              {% if intake.has_new_notes %}
+                <a href="{% url 'intakes:detail-index' id=intake.id %}"><i class="icon-sticky-note note-badge-icon note-badge-new"></i></a>
+              {% endif %}
+            </td>
+            <td class="intake-phone">{{ intake.phone|phone_number|default:'' }}</td>
+            <td class="intake-source">{{ intake.source|default:'' }}</td>
+            <td class="intake-practice-area dropdown-cell">{% include "intakes/intake-practice-area.html" %}</td>
+            <td class="intake-status dropdown-cell">{% include "intakes/intake-status.html" %}</td>
+          </tr>
+        {% empty %}
+          <tr>
+            <td colspan="7" class="empty-message">No intakes found.</td>
+          </tr>
+        {% endfor %}
+      </tbody>
     </table>
     {% include "pagination.html" %}
   </div>
