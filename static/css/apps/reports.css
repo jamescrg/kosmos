@@ -201,7 +201,7 @@
   height: 300px;
 }
 
-.clients-section .table-container {
+.clients-main {
   flex: 1;
   min-width: 28rem;
 }

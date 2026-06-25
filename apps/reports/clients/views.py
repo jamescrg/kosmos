@@ -29,6 +29,15 @@ def clients_list(request):
 
 @login_required
 @staff_member_required
+def clients_period(request, period):
+    """Store the clients quick-period (month/quarter/year) and reload the report."""
+    request.session["clients_period"] = period
+    request.session.modified = True
+    return HttpResponse(status=204, headers={"HX-Trigger": "clientsChanged"})
+
+
+@login_required
+@staff_member_required
 def clients_filter(request):
     filter_manager = FilterManager(request, ClientReportFilter, "clients_filter")
 

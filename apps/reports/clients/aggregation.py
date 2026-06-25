@@ -7,7 +7,7 @@ totals (no date filter) so a clients overview isn't all zeros; the date filter
 still scopes it. Also builds a top-4-clients-by-billings donut (+ "All others").
 """
 
-from datetime import datetime
+from datetime import date
 from decimal import Decimal
 
 from django.db.models import Sum
@@ -19,24 +19,32 @@ from apps.invoicing.payments.models import Payment
 
 TOP_N = 4
 
+CLIENT_PERIODS = [
+    ("month", "This Month"),
+    ("quarter", "This Quarter"),
+    ("year", "This Year"),
+]
 
-def _parse(d):
-    try:
-        return datetime.strptime(d, "%Y-%m-%d").date()
-    except (ValueError, TypeError):
-        return None
+
+def _period_range(period):
+    """Calendar-period-to-date (date_min, date_max) for a CLIENT_PERIODS key."""
+    today = date.today()
+    if period == "month":
+        return today.replace(day=1), today
+    if period == "quarter":
+        q_first_month = 3 * ((today.month - 1) // 3) + 1
+        return date(today.year, q_first_month, 1), today
+    return date(today.year, 1, 1), today  # year (default)
 
 
 def build_clients_context(request):
     sort_by = request.GET.get("sort", "client_name")
     sort_direction = request.GET.get("direction", "asc")
 
-    filter_data = request.session.get("clients_filter", {})
-    date_from = filter_data.get("date_from")
-    date_to = filter_data.get("date_to")
-    date_from_obj = _parse(date_from)
-    date_to_obj = _parse(date_to)
-    # No default window: a clients overview shows lifetime totals unless filtered.
+    period = request.session.get("clients_period", "year")
+    if period not in dict(CLIENT_PERIODS):
+        period = "year"
+    date_from_obj, date_to_obj = _period_range(period)
 
     # Actual clients only: marked Current AND the primary client of >=1 matter.
     # (Secondary contacts on a matter are excluded — they have no billings.)
@@ -119,6 +127,7 @@ def build_clients_context(request):
         "clients_donut": clients_donut,
         "current_sort": sort_by,
         "current_direction": sort_direction,
-        "date_from": date_from,
-        "date_to": date_to,
+        "client_period": period,
+        "period_label": dict(CLIENT_PERIODS)[period],
+        "client_periods": CLIENT_PERIODS,
     }

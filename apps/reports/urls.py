@@ -36,6 +36,11 @@ urlpatterns = [
     # Clients
     path("reports/clients/", clients.clients_index, name="clients-index"),
     path("reports/clients/list/", clients.clients_list, name="clients"),
+    path(
+        "reports/clients/period/<str:period>/",
+        clients.clients_period,
+        name="clients-period",
+    ),
     path("reports/clients/filter/", clients.clients_filter, name="clients-filter"),
     path(
         "reports/clients/statement/", clients.client_statement, name="client-statement"
