@@ -280,6 +280,11 @@
 
 .main-content {
   margin-left: var(--sidebar-width);
+  /* Cap the content column on very large monitors so the layout doesn't sprawl.
+     ~1760px ≈ the content width at a 1920px viewport with the sidebar expanded,
+     so users at/under 1920 are unaffected; bigger screens get whitespace on the
+     right rather than over-stretched tables and charts. */
+  max-width: 1760px;
   transition: margin-left 120ms ease;
 }
 
