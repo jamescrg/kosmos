@@ -31,24 +31,30 @@ window.AletheiaActivityChart = (function () {
     }
   }
 
-  function formatValue(value, metric) {
-    if (metric === "fees") {
-      return "$" + Number(value).toLocaleString(undefined, {
+  // unit: "$" (currency), "h" (hours), or "" (plain count).
+  function formatValue(value, unit) {
+    const n = Number(value);
+    if (unit === "$") {
+      return "$" + n.toLocaleString(undefined, {
         minimumFractionDigits: 2,
         maximumFractionDigits: 2,
       });
     }
-    return Number(value).toLocaleString(undefined, { maximumFractionDigits: 1 }) + "h";
+    if (unit === "h") {
+      return n.toLocaleString(undefined, { maximumFractionDigits: 1 }) + "h";
+    }
+    return n.toLocaleString(undefined, { maximumFractionDigits: 0 });
   }
 
   // Compact label for the per-column total drawn atop each stacked bar.
-  function formatTotal(value, metric) {
-    if (metric === "fees") {
+  function formatTotal(value, unit) {
+    if (unit === "$") {
       if (value >= 1e6) return "$" + (value / 1e6).toFixed(1) + "M";
       if (value >= 1e3) return "$" + (value / 1e3).toFixed(1) + "k";
       return "$" + Math.round(value);
     }
-    return Math.round(value) + "h";
+    if (unit === "h") return Math.round(value) + "h";
+    return String(Math.round(value));
   }
 
   // Draws the stack total (across visible series) above each bar.
@@ -79,7 +85,7 @@ window.AletheiaActivityChart = (function () {
           text = labels[i] || "";
           if (!text) continue;
         } else {
-          text = formatTotal(total, opts.metric);
+          text = formatTotal(total, opts.unit);
         }
         const bar = meta0.data[i];
         ctx.fillText(text, bar.x, scales.y.getPixelForValue(total) - 4);
@@ -138,8 +144,11 @@ window.AletheiaActivityChart = (function () {
       ctx.textAlign = "center";
       ctx.textBaseline = "middle";
       const fam = (Chart.defaults.font && Chart.defaults.font.family) || "sans-serif";
+      const unit = opts.unit || "$";
+      const center =
+        (unit === "$" ? "$" : "") + Math.round(total).toLocaleString();
       ctx.font = "600 16px " + fam;
-      ctx.fillText("$" + Math.round(total).toLocaleString(), cx, cy);
+      ctx.fillText(center, cx, cy);
       if (opts.label) {
         ctx.font = "12px " + fam;
         ctx.fillStyle = opts.muted || opts.color || "#999";
@@ -157,6 +166,7 @@ window.AletheiaActivityChart = (function () {
 
     const prev = registry[canvasId] && registry[canvasId].state;
     const state = Object.assign({ metric: "net" }, prev, opts);
+    if (state.unit == null) state.unit = "$"; // WIP donuts are currency by default
     registry[canvasId] = { dataElId, state, kind: "donut" };
 
     const theme = currentTheme();
@@ -202,7 +212,7 @@ window.AletheiaActivityChart = (function () {
                 return (
                   ctx.label +
                   ": " +
-                  formatValue(v, "fees") +
+                  formatValue(v, state.unit) +
                   " (" +
                   pct.toFixed(1) +
                   "%)"
@@ -210,7 +220,7 @@ window.AletheiaActivityChart = (function () {
               },
             },
           },
-          donutCenter: { color: themed.tick, muted: themed.grid, label: state.metricLabel },
+          donutCenter: { color: themed.tick, muted: themed.grid, label: state.metricLabel, unit: state.unit },
         },
       },
     });
@@ -235,6 +245,7 @@ window.AletheiaActivityChart = (function () {
 
     const prev = registry[canvasId] && registry[canvasId].state;
     const state = Object.assign({ dimension: "user", metric: "fees" }, prev, opts);
+    if (state.unit == null) state.unit = state.metric === "fees" ? "$" : "h";
     registry[canvasId] = { dataElId, state, kind: "bar" };
 
     const theme = currentTheme();
@@ -270,7 +281,7 @@ window.AletheiaActivityChart = (function () {
             ticks: {
               color: themed.tick,
               callback: function (value) {
-                return state.metric === "fees" ? "$" + value : value;
+                return state.unit === "$" ? "$" + value : value;
               },
             },
             title: {
@@ -290,11 +301,11 @@ window.AletheiaActivityChart = (function () {
           tooltip: {
             callbacks: {
               label: function (ctx) {
-                return ctx.dataset.label + ": " + formatValue(ctx.parsed.y, state.metric);
+                return ctx.dataset.label + ": " + formatValue(ctx.parsed.y, state.unit);
               },
             },
           },
-          stackTotals: { metric: state.metric, color: themed.tick, labels: payload.top_labels },
+          stackTotals: { unit: state.unit, color: themed.tick, labels: payload.top_labels },
         },
       },
     });
@@ -356,10 +367,23 @@ window.AletheiaActivityChart = (function () {
   // re-run that inline script, by which point this module already exists.
   function autoInit() {
     document.querySelectorAll("canvas[data-chart-data]").forEach(function (c) {
-      if (c.id) render(c.id, c.dataset.chartData);
+      if (!c.id) return;
+      // Non-default charts (e.g. a count bar) carry their options as data-attrs
+      // so the initial full-page load renders them correctly, not just HTMX swaps.
+      const o = {};
+      if (c.dataset.chartDimension) o.dimension = c.dataset.chartDimension;
+      if (c.dataset.chartMetric) o.metric = c.dataset.chartMetric;
+      if ("chartUnit" in c.dataset) o.unit = c.dataset.chartUnit;
+      if (c.dataset.chartMetricLabel) o.metricLabel = c.dataset.chartMetricLabel;
+      render(c.id, c.dataset.chartData, Object.keys(o).length ? o : undefined);
     });
     document.querySelectorAll("canvas[data-donut-data]").forEach(function (c) {
-      if (c.id) renderDonut(c.id, c.dataset.donutData);
+      if (!c.id) return;
+      const o = {};
+      if (c.dataset.donutMetric) o.metric = c.dataset.donutMetric;
+      if ("donutUnit" in c.dataset) o.unit = c.dataset.donutUnit;
+      if (c.dataset.donutMetricLabel) o.metricLabel = c.dataset.donutMetricLabel;
+      renderDonut(c.id, c.dataset.donutData, Object.keys(o).length ? o : undefined);
     });
   }
   if (document.readyState === "loading") {

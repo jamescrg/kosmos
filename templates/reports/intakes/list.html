@@ -21,7 +21,56 @@
     </div>
   </div>
 </div>
-<h2 class="reports-section-heading">Practice Area</h2>
+<!-- Month-over-month intake volume -->
+<div class="activity-chart-canvas-wrap">
+  <canvas id="intake-flow-chart"
+          data-chart-data="intake-flow-data"
+          data-chart-dimension="flow"
+          data-chart-metric="count"
+          data-chart-unit=""
+          data-chart-metric-label="Intakes"></canvas>
+</div>
+{{ flow_chart|json_script:"intake-flow-data" }}
+<script>
+  window.AletheiaActivityChart &&
+    window.AletheiaActivityChart.render('intake-flow-chart', 'intake-flow-data',
+      { dimension: 'flow', metric: 'count', unit: '', metricLabel: 'Intakes' });
+</script>
+<!-- Practice-area + outcomes donuts -->
+<div class="intake-donut-row">
+  <div class="intake-donut-card">
+    <h2 class="reports-section-heading">Practice areas</h2>
+    <div class="intake-donut">
+      <canvas id="intake-practice-chart"
+              data-donut-data="intake-practice-data"
+              data-donut-metric="count"
+              data-donut-unit=""
+              data-donut-metric-label="Intakes"></canvas>
+    </div>
+  </div>
+  <div class="intake-donut-card">
+    <h2 class="reports-section-heading">
+      Outcomes <small class="text-muted">· {{ conversion_rate|floatformat:1 }}% converted</small>
+    </h2>
+    <div class="intake-donut">
+      <canvas id="intake-conversion-chart"
+              data-donut-data="intake-conversion-data"
+              data-donut-metric="count"
+              data-donut-unit=""
+              data-donut-metric-label="Intakes"></canvas>
+    </div>
+  </div>
+</div>
+{{ practice_donut|json_script:"intake-practice-data" }}
+{{ conversion_donut|json_script:"intake-conversion-data" }}
+<script>
+  window.AletheiaActivityChart && (function () {
+    var C = window.AletheiaActivityChart;
+    C.renderDonut('intake-practice-chart', 'intake-practice-data', { metric: 'count', unit: '', metricLabel: 'Intakes' });
+    C.renderDonut('intake-conversion-chart', 'intake-conversion-data', { metric: 'count', unit: '', metricLabel: 'Intakes' });
+  })();
+</script>
+<h2 class="reports-section-heading">Practice Area by month</h2>
 <div class="table-container">
   <table class="table">
     <tr>
@@ -85,7 +134,7 @@
     {% endif %}
   </table>
 </div>
-<h2 class="reports-section-heading">Rate of Conversion</h2>
+<h2 class="reports-section-heading">Outcomes by month</h2>
 <div class="table-container">
   <table class="table">
     <tr>

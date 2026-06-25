@@ -173,6 +173,25 @@
   min-width: 20rem;
 }
 
+/* Intakes report: two distribution donuts side by side under the volume bar,
+   wrapping on narrow screens. */
+.intake-donut-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2rem;
+  margin-bottom: 2rem;
+}
+
+.intake-donut-card {
+  flex: 1 1 18rem;
+  min-width: 18rem;
+}
+
+.intake-donut {
+  position: relative;
+  height: 300px;
+}
+
 /* Give the matter/user name column the slack; keep the numeric columns tight. */
 .wip-table .table th.numeric,
 .wip-table .table td.numeric {
