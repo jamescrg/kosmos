@@ -1,5 +1,6 @@
 from django import forms
 from django.core.exceptions import ValidationError
+from django.core.validators import validate_email
 
 from apps.settings.models import Company
 
@@ -19,11 +20,15 @@ class CompanyForm(forms.ModelForm):
             "zip_code",
             "phone",
             "email",
+            "invoice_bcc",
             "logo",
             "jurisdiction",
         ]
         widgets = {
             "logo": forms.ClearableFileInput(attrs={"accept": ".png,.jpg,.jpeg,.svg"}),
+        }
+        labels = {
+            "invoice_bcc": "Invoice BCC",
         }
         help_texts = {
             "logo": "PNG, JPG, or SVG. Max 2 MB.",
@@ -40,10 +45,25 @@ class CompanyForm(forms.ModelForm):
             "zip_code",
             "phone",
             "email",
+            "invoice_bcc",
             "jurisdiction",
         ]
         for field_name in text_fields:
             self.fields[field_name].widget.attrs["autocomplete"] = "off"
+
+    def clean_invoice_bcc(self):
+        """Normalize + validate the comma/semicolon-separated BCC list."""
+        raw = self.cleaned_data.get("invoice_bcc", "")
+        addresses = [a.strip() for a in raw.replace(";", ",").split(",") if a.strip()]
+        invalid = []
+        for addr in addresses:
+            try:
+                validate_email(addr)
+            except ValidationError:
+                invalid.append(addr)
+        if invalid:
+            raise ValidationError(f"Invalid email address(es): {', '.join(invalid)}")
+        return ", ".join(addresses)
 
     def clean_logo(self):
         logo = self.cleaned_data.get("logo")

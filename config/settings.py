@@ -245,10 +245,9 @@ ADMINS = env("ADMINS")
 # Address(es) BCC'd on every invoice email the app sends, so the firm retains a
 # faithful copy (cover message + attached PDF) of what each client received.
 # Comma-separated; leave empty to disable.
-INVOICE_SEND_BCC = env.list("INVOICE_SEND_BCC", default=[])
-# Note: the invoice email's Reply-To and the contact address shown in the body
-# come from the Company settings record's email (apps.settings.Company), not a
-# setting here — so the firm configures it in one place alongside its name.
+# Note: invoice-email config — Reply-To, the contact address shown in the body,
+# and the BCC list — all come from the Company settings record
+# (apps.settings.Company), so the firm manages them in the UI in one place.
 
 # set cookies (sessions) to last for two months
 # default is two weeks, multiplying by four to get two months

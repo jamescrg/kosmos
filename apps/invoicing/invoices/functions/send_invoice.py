@@ -6,7 +6,6 @@ a 'failed' row is logged and InvoiceSendError is raised with the status left
 unchanged.
 """
 
-from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.core.mail import EmailMultiAlternatives
 from django.core.validators import validate_email
@@ -107,6 +106,7 @@ def send_invoice(
         # Firm branding comes from the Company settings record (same source as
         # the PDF), not a hardcoded setting.
         company = Company.objects.first()
+        bcc_list = _parse_recipients(company.invoice_bcc) if company else []
         context = {
             "invoice": invoice,
             "matter_name": matter.name if matter else "",
@@ -130,9 +130,9 @@ def send_invoice(
             from_email=None,  # falls back to DEFAULT_FROM_EMAIL
             to=to_list,
             cc=cc_list,
-            # Firm archive copy (settings.INVOICE_SEND_BCC); the BCC'd mailbox
-            # retains the full email, cover message and PDF included.
-            bcc=settings.INVOICE_SEND_BCC or None,
+            # Firm archive copy (Company.invoice_bcc); the BCC'd mailbox retains
+            # the full email, cover message and PDF included.
+            bcc=bcc_list or None,
             # Client replies go to the firm's configured email (Company
             # settings), not the unattended From address.
             reply_to=[company.email] if company and company.email else None,

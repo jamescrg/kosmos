@@ -12,6 +12,12 @@ class Company(AuditMixin):
     zip_code = models.CharField(max_length=20, blank=True)
     phone = models.CharField(max_length=30, blank=True)
     email = models.EmailField(blank=True)
+    invoice_bcc = models.CharField(
+        max_length=500,
+        blank=True,
+        default="",
+        help_text="Comma-separated addresses BCC'd on every invoice email.",
+    )
     logo = models.ImageField(upload_to="company/", blank=True, null=True)
     jurisdiction = models.CharField(max_length=100, blank=True)
 
