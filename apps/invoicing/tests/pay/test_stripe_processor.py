@@ -24,6 +24,16 @@ def proc():
     )
 
 
+def pi_obj(data):
+    """A real PaymentIntent StripeObject (not a dict) — exercises _to_plain,
+    which a plain-dict mock would not."""
+    return stripe.PaymentIntent.construct_from(data, "sk_test")
+
+
+def event_obj(data):
+    return stripe.Event.construct_from(data, "sk_test")
+
+
 def test_requires_secret_key():
     with pytest.raises(ProcessorConfigError):
         StripeProcessor(secret_key="", publishable_key="", webhook_secret="")
@@ -39,12 +49,14 @@ def test_factory_returns_stripe(settings):
 
 
 def test_charge_success_card():
-    pi = {
-        "id": "pi_1",
-        "status": "succeeded",
-        "amount": 5000,
-        "payment_method_types": ["card"],
-    }
+    pi = pi_obj(
+        {
+            "id": "pi_1",
+            "status": "succeeded",
+            "amount": 5000,
+            "payment_method_types": ["card"],
+        }
+    )
     with patch("stripe.PaymentIntent.create", return_value=pi) as m:
         r = proc().charge(
             token="pm_1",
@@ -63,12 +75,14 @@ def test_charge_success_card():
 
 
 def test_charge_processing_is_pending_bank():
-    pi = {
-        "id": "pi_2",
-        "status": "processing",
-        "amount": 5000,
-        "payment_method_types": ["us_bank_account"],
-    }
+    pi = pi_obj(
+        {
+            "id": "pi_2",
+            "status": "processing",
+            "amount": 5000,
+            "payment_method_types": ["us_bank_account"],
+        }
+    )
     with patch("stripe.PaymentIntent.create", return_value=pi):
         r = proc().charge(token="pm", amount_cents=5000, reference="r", method="bank")
     assert r.status == PENDING and r.is_pending and r.method == BANK
@@ -85,12 +99,14 @@ def test_charge_card_declined():
 
 
 def test_charge_requires_action_rejected():
-    pi = {
-        "id": "pi",
-        "status": "requires_action",
-        "amount": 5000,
-        "payment_method_types": ["card"],
-    }
+    pi = pi_obj(
+        {
+            "id": "pi",
+            "status": "requires_action",
+            "amount": 5000,
+            "payment_method_types": ["card"],
+        }
+    )
     with patch("stripe.PaymentIntent.create", return_value=pi):
         with pytest.raises(ChargeError) as ei:
             proc().charge(token="pm", amount_cents=5000, reference="r", method="card")
@@ -98,12 +114,14 @@ def test_charge_requires_action_rejected():
 
 
 def test_fetch_transaction():
-    pi = {
-        "id": "pi_9",
-        "status": "succeeded",
-        "amount": 1234,
-        "payment_method_types": ["card"],
-    }
+    pi = pi_obj(
+        {
+            "id": "pi_9",
+            "status": "succeeded",
+            "amount": 1234,
+            "payment_method_types": ["card"],
+        }
+    )
     with patch("stripe.PaymentIntent.retrieve", return_value=pi):
         r = proc().fetch_transaction("pi_9")
     assert (
@@ -112,12 +130,14 @@ def test_fetch_transaction():
 
 
 def test_refund_calls_stripe_and_returns_state():
-    pi = {
-        "id": "pi_r",
-        "status": "succeeded",
-        "amount": 5000,
-        "payment_method_types": ["card"],
-    }
+    pi = pi_obj(
+        {
+            "id": "pi_r",
+            "status": "succeeded",
+            "amount": 5000,
+            "payment_method_types": ["card"],
+        }
+    )
     with (
         patch("stripe.Refund.create") as mr,
         patch("stripe.PaymentIntent.retrieve", return_value=pi),
@@ -129,11 +149,15 @@ def test_refund_calls_stripe_and_returns_state():
 
 
 def test_webhook_payment_intent_succeeded():
-    event = {
-        "id": "evt_1",
-        "type": "payment_intent.succeeded",
-        "data": {"object": {"object": "payment_intent", "id": "pi_1", "amount": 5000}},
-    }
+    event = event_obj(
+        {
+            "id": "evt_1",
+            "type": "payment_intent.succeeded",
+            "data": {
+                "object": {"object": "payment_intent", "id": "pi_1", "amount": 5000}
+            },
+        }
+    )
     with patch("stripe.Webhook.construct_event", return_value=event):
         ev = proc().verify_and_parse_webhook(
             SimpleNamespace(body=b"{}", signature="sig")
@@ -153,29 +177,35 @@ def test_webhook_payment_intent_succeeded():
     ],
 )
 def test_webhook_pi_statuses(etype, expected):
-    event = {
-        "id": "evt",
-        "type": etype,
-        "data": {"object": {"object": "payment_intent", "id": "pi_x", "amount": 100}},
-    }
+    event = event_obj(
+        {
+            "id": "evt",
+            "type": etype,
+            "data": {
+                "object": {"object": "payment_intent", "id": "pi_x", "amount": 100}
+            },
+        }
+    )
     with patch("stripe.Webhook.construct_event", return_value=event):
         ev = proc().verify_and_parse_webhook(SimpleNamespace(body=b"{}", signature="s"))
     assert ev.status == expected and ev.transaction_id == "pi_x"
 
 
 def test_webhook_charge_refunded_resolves_payment_intent():
-    event = {
-        "id": "evt",
-        "type": "charge.refunded",
-        "data": {
-            "object": {
-                "object": "charge",
-                "id": "ch_1",
-                "payment_intent": "pi_1",
-                "amount": 5000,
-            }
-        },
-    }
+    event = event_obj(
+        {
+            "id": "evt",
+            "type": "charge.refunded",
+            "data": {
+                "object": {
+                    "object": "charge",
+                    "id": "ch_1",
+                    "payment_intent": "pi_1",
+                    "amount": 5000,
+                }
+            },
+        }
+    )
     with patch("stripe.Webhook.construct_event", return_value=event):
         ev = proc().verify_and_parse_webhook(SimpleNamespace(body=b"{}", signature="s"))
     assert ev.status == REFUNDED and ev.transaction_id == "pi_1"
@@ -191,7 +221,7 @@ def test_webhook_bad_signature():
 
 
 def test_webhook_unhandled_event_ignored():
-    event = {"id": "e", "type": "customer.created", "data": {"object": {}}}
+    event = event_obj({"id": "e", "type": "customer.created", "data": {"object": {}}})
     with patch("stripe.Webhook.construct_event", return_value=event):
         with pytest.raises(WebhookVerificationError):
             proc().verify_and_parse_webhook(SimpleNamespace(body=b"{}", signature="x"))

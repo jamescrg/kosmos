@@ -12,6 +12,10 @@ support is a follow-up. ACH (``us_bank_account``) is a later addition.
 
 Unlike LawPay, Stripe webhooks are cryptographically signed, so
 ``verify_and_parse_webhook`` verifies the signature instead of re-fetching.
+
+The Stripe SDK returns ``StripeObject`` instances (not dicts and, in v15,
+without a ``.get()``), so ``_to_plain`` normalizes them to plain dicts before we
+read fields.
 """
 
 from decimal import Decimal
@@ -57,6 +61,11 @@ _EVENT_STATUS = {
 def _to_cents(amount) -> int:
     """Decimal/float dollars -> integer cents."""
     return int((Decimal(str(amount)) * 100).to_integral_value())
+
+
+def _to_plain(obj) -> dict:
+    """A Stripe object -> plain dict (test mocks pass dicts straight through)."""
+    return obj if isinstance(obj, dict) else obj.to_dict()
 
 
 class StripeProcessor(PaymentProcessor):
@@ -127,13 +136,14 @@ class StripeProcessor(PaymentProcessor):
                 code=getattr(exc, "code", "stripe_error"),
             ) from exc
 
-        if intent.get("status") == "requires_action":
+        data = _to_plain(intent)
+        if data.get("status") == "requires_action":
             raise ChargeError(
                 "This card requires additional authentication; please try another.",
                 code="requires_action",
-                raw=dict(intent),
+                raw=data,
             )
-        return self._result(intent)
+        return self._result(data)
 
     def fetch_transaction(self, transaction_id) -> ChargeResult:
         try:
@@ -146,7 +156,7 @@ class StripeProcessor(PaymentProcessor):
             ) from exc
         except stripe.StripeError as exc:
             raise ChargeError(f"Fetch failed: {exc}", code="stripe_error") from exc
-        return self._result(intent)
+        return self._result(_to_plain(intent))
 
     def verify_and_parse_webhook(self, request) -> WebhookEvent:
         """Verify Stripe's signature and normalize the event. The signed payload
@@ -163,21 +173,20 @@ class StripeProcessor(PaymentProcessor):
         if status is None:
             raise WebhookVerificationError(f"Unhandled Stripe event {event['type']!r}")
 
-        obj = event["data"]["object"]
         # payment_intent.* events carry the PI; charge.* carry a charge whose
         # `payment_intent` is the id we stored as processor_txn_id.
+        obj = _to_plain(event["data"]["object"])
         if obj.get("object") == "payment_intent":
             txn_id = obj.get("id")
-            amount = obj.get("amount")
         else:
             txn_id = obj.get("payment_intent")
-            amount = obj.get("amount")
         if not txn_id:
             raise WebhookVerificationError("Stripe event has no payment_intent id.")
+        amount = obj.get("amount")
 
         return WebhookEvent(
             processor=self.name,
-            event_id=str(event.get("id") or ""),
+            event_id=str(event["id"]),
             transaction_id=str(txn_id),
             status=status,
             amount_cents=int(amount) if amount is not None else None,
@@ -198,20 +207,20 @@ class StripeProcessor(PaymentProcessor):
         return self.fetch_transaction(transaction_id)
 
     # --- internals -------------------------------------------------------
-    def _result(self, intent) -> ChargeResult:
-        status, method = self._normalize(intent)
+    def _result(self, data) -> ChargeResult:
+        status, method = self._normalize(data)
         return ChargeResult(
             processor=self.name,
-            transaction_id=str(intent.get("id") or ""),
+            transaction_id=str(data.get("id") or ""),
             status=status,
-            amount_cents=int(intent.get("amount") or 0),
+            amount_cents=int(data.get("amount") or 0),
             method=method,
-            raw=dict(intent),
+            raw=dict(data),
         )
 
     @staticmethod
-    def _normalize(intent):
-        status = _STATUS_MAP.get(intent.get("status") or "", PENDING)
-        pm_types = intent.get("payment_method_types") or []
+    def _normalize(data):
+        status = _STATUS_MAP.get(data.get("status") or "", PENDING)
+        pm_types = data.get("payment_method_types") or []
         method = BANK if pm_types == ["us_bank_account"] else CARD
         return status, method
