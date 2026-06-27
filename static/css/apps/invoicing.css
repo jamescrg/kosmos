@@ -41,32 +41,27 @@ List View
   width: 9rem;
 }
 
-/* Actions column (download + send), centered. No fixed width — it sizes to its
-   content with the standard 1rem cell padding, matching the other columns. */
-.invoices .actions {
+/* Two Actions columns — download and send — each sized to its icon with the
+   standard 1rem cell padding, and with no divider between them so they read as
+   one group while each icon holds a fixed position regardless of row status. */
+.invoices .action-download,
+.invoices .action-send {
   text-align: center;
 }
 
-/* Header: 1rem between the download and send label icons. */
-.invoices th.actions i + i {
-  margin-left: 1rem;
-}
-
-/* Row cell: the download dropdown and (for approved/sent invoices) the send
-   button, side by side, 1rem apart. */
-.invoices .actions-cell {
-  align-items: center;
-  display: inline-flex;
-  gap: 1rem;
+.invoices .action-download {
+  border-right: none;
 }
 
 /* Muted-gray icon buttons — the app's muted-icon convention (matches
    .create-invoice-icon), clearly lighter than the table text. */
-.invoices .actions-cell .button-link {
+.invoices .action-download .button-link,
+.invoices .action-send .button-link {
   color: var(--color-muted-more);
 }
 
-.invoices .actions-cell .button-link:hover {
+.invoices .action-download .button-link:hover,
+.invoices .action-send .button-link:hover {
   color: var(--color-primary);
 }
 

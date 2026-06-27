@@ -36,41 +36,41 @@
       {{ invoice.annotated_amount_remaining|floatformat:2|intcomma }}
     {% endif %}
   </td>
-  <td class="actions dropdown-cell">
-    <div class="actions-cell">
-      <div class="dropdown" x-data="dropdown()">
-        <button class="button-link"
-                type="button"
-                x-ref="button"
-                @click="toggle()"
-                :aria-expanded="open">
-          <i class="icon-download"></i>
-        </button>
-        <ul class="dropdown-menu" x-ref="menu" x-show="open">
+  <td class="action-download dropdown-cell">
+    <div class="dropdown" x-data="dropdown()">
+      <button class="button-link"
+              type="button"
+              x-ref="button"
+              @click="toggle()"
+              :aria-expanded="open">
+        <i class="icon-download"></i>
+      </button>
+      <ul class="dropdown-menu" x-ref="menu" x-show="open">
+        <li>
+          <a class="dropdown-item"
+             target="_blank"
+             href="{% url 'invoicing:invoices-pdf-download' invoice.id %}"><i class="icon-file-down"></i> Download PDF</a>
+        </li>
+        {% if invoice.status != 'VOID' %}
           <li>
             <a class="dropdown-item"
                target="_blank"
-               href="{% url 'invoicing:invoices-pdf-download' invoice.id %}"><i class="icon-file-down"></i> Download PDF</a>
+               href="{% url 'invoicing:invoice-ledes' invoice.id %}"><i class="icon-file-text"></i> Download Ledes</a>
           </li>
-          {% if invoice.status != 'VOID' %}
-            <li>
-              <a class="dropdown-item"
-                 target="_blank"
-                 href="{% url 'invoicing:invoice-ledes' invoice.id %}"><i class="icon-file-text"></i> Download Ledes</a>
-            </li>
-          {% endif %}
-        </ul>
-      </div>
-      {% if invoice.status == 'APPROVED' or invoice.status == 'SENT' %}
-        <button class="button-link"
-                type="button"
-                hx-get="{% url 'invoicing:invoices-send' pk=invoice.id %}"
-                hx-target="#htmx-modal-container"
-                title="{% if invoice.status == 'SENT' %}Resend invoice{% else %}Send invoice{% endif %}"
-                aria-label="{% if invoice.status == 'SENT' %}Resend invoice{% else %}Send invoice{% endif %}">
-          <i class="icon-send-horizontal"></i>
-        </button>
-      {% endif %}
+        {% endif %}
+      </ul>
     </div>
+  </td>
+  <td class="action-send">
+    {% if invoice.status == 'APPROVED' or invoice.status == 'SENT' %}
+      <button class="button-link"
+              type="button"
+              hx-get="{% url 'invoicing:invoices-send' pk=invoice.id %}"
+              hx-target="#htmx-modal-container"
+              title="{% if invoice.status == 'SENT' %}Resend invoice{% else %}Send invoice{% endif %}"
+              aria-label="{% if invoice.status == 'SENT' %}Resend invoice{% else %}Send invoice{% endif %}">
+        <i class="icon-send-horizontal"></i>
+      </button>
+    {% endif %}
   </td>
 </tr>
