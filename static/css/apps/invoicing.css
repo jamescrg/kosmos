@@ -46,10 +46,29 @@ List View
   width: 3rem;
 }
 
-/* Send button sits at the right edge of the Matter cell on APPROVED rows. */
+/* Matter cell: the name dropdown on the left, Send button pushed to the right. */
+.invoices .matter-cell {
+  align-items: center;
+  display: flex;
+  gap: 1rem;
+  justify-content: space-between;
+}
+
+/* Send button on APPROVED rows — a muted-gray icon button (not a link). */
 .invoices .invoice-row-send {
-  float: right;
-  margin-left: 1rem;
+  background: var(--background-control);
+  border: 1px solid var(--border-medium);
+  border-radius: var(--radius-sm);
+  color: var(--color-muted);
+  cursor: pointer;
+  flex: none;
+  line-height: 1;
+  padding: 0.3rem 0.45rem;
+}
+
+.invoices .invoice-row-send:hover {
+  border-color: var(--border-medium-dark);
+  color: var(--color-darker);
 }
 
 .invoices-delete,
