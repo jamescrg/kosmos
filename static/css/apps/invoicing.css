@@ -71,6 +71,22 @@ List View
   color: var(--color-darker);
 }
 
+/* ==========================================================================
+Send modal
+========================================================================== */
+
+/* Message label row: label on the left, character counter on the far right. */
+#invoice-send-form .message-label {
+  align-items: baseline;
+  display: flex;
+  justify-content: space-between;
+}
+
+#invoice-send-form .char-counter {
+  color: var(--color-muted);
+  font-variant-numeric: tabular-nums;
+}
+
 .invoices-delete,
 .invoices-delete:hover {
   color: var(--urgent);

@@ -39,18 +39,23 @@
                  value="{{ default_cc }}"
                  autocomplete="off">
         </div>
-        <div class="form-group">
-          <label for="invoice-send-message">Message (optional)</label>
+        <div class="form-group"
+             x-data="{ max: 500, count: {{ default_message|length }} }">
+          <label class="message-label" for="invoice-send-message">
+            <span>Message (optional)</span>
+            <span class="char-counter" x-text="count + ' / ' + max"></span>
+          </label>
           <textarea id="invoice-send-message"
                     name="message"
                     rows="4"
-                    placeholder="Enter a message to the client here. It is included in the email only.">{{ default_message }}</textarea>
+                    maxlength="500"
+                    @input="count = $event.target.value.length">{{ default_message }}</textarea>
           <p class="text-muted">
+            Enter a message to the client here; it is included in the email only.
             To annotate the message on the invoice itself, add it to the invoice
             before sending.
           </p>
         </div>
-        <p class="text-muted">The invoice PDF will be attached to the email.</p>
       </form>
     </div>
     <div class="modal-footer">
