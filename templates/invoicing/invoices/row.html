@@ -62,8 +62,10 @@
     </div>
   </td>
   <td class="action-send">
-    {# Send for approved; resend only for invoices actually sent through the app
-       (date_sent set) — not ones merely marked SENT (imported/legacy). #}
+    {% comment %}
+      Send for approved; resend only for invoices actually sent through the app
+      (date_sent set) — not ones merely marked SENT (imported/legacy).
+    {% endcomment %}
     {% if invoice.status == 'APPROVED' or invoice.status == 'SENT' and invoice.date_sent %}
       <button class="button-link"
               type="button"
