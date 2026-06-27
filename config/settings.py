@@ -246,6 +246,10 @@ ADMINS = env("ADMINS")
 # faithful copy (cover message + attached PDF) of what each client received.
 # Comma-separated; leave empty to disable.
 INVOICE_SEND_BCC = env.list("INVOICE_SEND_BCC", default=[])
+# Reply-To on invoice emails (e.g. the invoicing administrator), so client
+# replies land in a monitored inbox rather than the unattended From address.
+# Comma-separated; leave empty to fall back to the From address.
+INVOICE_REPLY_TO = env.list("INVOICE_REPLY_TO", default=[])
 
 # set cookies (sessions) to last for two months
 # default is two weeks, multiplying by four to get two months

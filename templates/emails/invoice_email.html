@@ -1,9 +1,9 @@
-<!DOCTYPE html>
+{% load humanize %}<!DOCTYPE html>
 <html>
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Invoice #{{ invoice.id }}</title>
+    <title>Invoice No. {{ invoice.id }}</title>
   </head>
   <body style="margin: 0;
                padding: 0;
@@ -21,7 +21,7 @@
               <td style="background-color: #eeeeec; color: #57534e; padding: 24px 32px">
                 <h1 style="margin: 0; font-size: 20px; font-weight: 600;">{{ firm_name|default:"Invoice" }}</h1>
                 <p style="margin: 4px 0 0; font-size: 14px; color: #78716c;">
-                  Invoice #{{ invoice.id }} &middot; {{ invoice.date_issued|date:"F j, Y" }}
+                  Invoice No. {{ invoice.id }} &middot; {{ invoice.date_issued|date:"F j, Y" }}
                 </p>
               </td>
             </tr>
@@ -34,8 +34,8 @@
                   <p style="margin: 0 0 16px; font-size: 14px; color: #57534e; white-space: pre-line;">{{ cover_message }}</p>
                 {% else %}
                   <p style="margin: 0 0 16px; font-size: 14px; color: #57534e;">
-                    Please find attached our invoice for {{ matter_name }}. The invoice
-                    detail is included as a PDF attachment.
+                    Please find attached our invoice for matter No. {{ matter_number }}.
+                    The invoice detail is included as a PDF attachment.
                   </p>
                 {% endif %}
 
@@ -46,16 +46,16 @@
                        cellspacing="0"
                        style="margin: 8px 0 20px; border: 1px solid #e7e5e4; border-radius: 6px;">
                   <tr>
-                    <td style="padding: 12px 16px; font-size: 14px; color: #78716c;">Matter</td>
-                    <td style="padding: 12px 16px; font-size: 14px; color: #292524; text-align: right;">{{ matter_name }}</td>
+                    <td style="padding: 12px 16px; font-size: 14px; color: #78716c;">Matter No.</td>
+                    <td style="padding: 12px 16px; font-size: 14px; color: #292524; text-align: right;">{{ matter_number }}</td>
                   </tr>
                   <tr>
-                    <td style="padding: 12px 16px; font-size: 14px; color: #78716c; border-top: 1px solid #e7e5e4;">Invoice</td>
-                    <td style="padding: 12px 16px; font-size: 14px; color: #292524; text-align: right; border-top: 1px solid #e7e5e4;">#{{ invoice.id }}</td>
+                    <td style="padding: 12px 16px; font-size: 14px; color: #78716c; border-top: 1px solid #e7e5e4;">Invoice No.</td>
+                    <td style="padding: 12px 16px; font-size: 14px; color: #292524; text-align: right; border-top: 1px solid #e7e5e4;">{{ invoice.id }}</td>
                   </tr>
                   <tr>
                     <td style="padding: 12px 16px; font-size: 15px; font-weight: 600; color: #292524; border-top: 1px solid #e7e5e4;">Amount Due</td>
-                    <td style="padding: 12px 16px; font-size: 15px; font-weight: 600; color: #292524; text-align: right; border-top: 1px solid #e7e5e4;">${{ amount_due|floatformat:2 }}</td>
+                    <td style="padding: 12px 16px; font-size: 15px; font-weight: 600; color: #292524; text-align: right; border-top: 1px solid #e7e5e4;">${{ amount_due|floatformat:2|intcomma }}</td>
                   </tr>
                 </table>
 

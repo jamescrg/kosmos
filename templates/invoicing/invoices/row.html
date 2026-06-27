@@ -24,12 +24,12 @@
           </li>
         </ul>
       </div>
-      {% if invoice.status == 'APPROVED' %}
+      {% if invoice.status == 'APPROVED' or invoice.status == 'SENT' %}
         <button class="invoice-row-send"
                 hx-get="{% url 'invoicing:invoices-send' pk=invoice.id %}"
                 hx-target="#htmx-modal-container"
-                title="Send invoice"
-                aria-label="Send invoice">
+                title="{% if invoice.status == 'SENT' %}Resend invoice{% else %}Send invoice{% endif %}"
+                aria-label="{% if invoice.status == 'SENT' %}Resend invoice{% else %}Send invoice{% endif %}">
           <i class="icon-send-horizontal"></i>
         </button>
       {% endif %}

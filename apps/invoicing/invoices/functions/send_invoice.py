@@ -104,15 +104,18 @@ def send_invoice(
         context = {
             "invoice": invoice,
             "matter_name": matter.name if matter else "",
+            "matter_number": matter.id if matter else "",
             "client_name": client.name if client else "",
             "amount_due": invoice.amount_remaining,
             "cover_message": cover,
             "firm_name": getattr(settings, "FIRM_NAME", ""),
             "pay_url": payment_url(invoice, request),  # tokenized payment link
         }
-        subject = f"Invoice #{invoice.id}"
+        # Client-facing: identify by number, not matter name (which is internal
+        # and subject to change).
+        subject = f"Invoice No. {invoice.id}"
         if matter:
-            subject += f" — {matter.name}"
+            subject += f" — Matter No. {matter.id}"
 
         email = EmailMultiAlternatives(
             subject=subject,
@@ -123,6 +126,8 @@ def send_invoice(
             # Firm archive copy (settings.INVOICE_SEND_BCC); the BCC'd mailbox
             # retains the full email, cover message and PDF included.
             bcc=settings.INVOICE_SEND_BCC or None,
+            # Client replies go to the invoicing admin, not the unattended From.
+            reply_to=settings.INVOICE_REPLY_TO or None,
         )
         email.attach_alternative(
             render_to_string("emails/invoice_email.html", context), "text/html"
