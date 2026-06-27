@@ -15,11 +15,11 @@
       <ul class="dropdown-menu" x-ref="menu" x-show="open">
         <li>
           <a class="dropdown-item"
-             href="{% url 'matters:ledger' id=invoice.matter.id|default:0 %}"><i class="icon-briefcase-business"></i> Go to matter</a>
+             href="{% url 'matters:ledger' id=invoice.matter.id|default:0 %}"><i class="icon-briefcase-business"></i> Go to Matter</a>
         </li>
         <li>
           <a class="dropdown-item"
-             href="{% url 'invoicing:invoices-detail-index' invoice.id %}"><i class="icon-file-text"></i> View invoice detail</a>
+             href="{% url 'invoicing:invoices-detail-index' invoice.id %}"><i class="icon-file-text"></i> View Invoice</a>
         </li>
       </ul>
     </div>
