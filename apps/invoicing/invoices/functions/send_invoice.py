@@ -115,9 +115,9 @@ def send_invoice(
         }
         # Client-facing: identify by number, not matter name (which is internal
         # and subject to change).
-        subject = f"Invoice No. {invoice.id}"
+        subject = f"Invoice {invoice.id}"
         if matter:
-            subject += f" — Matter No. {matter.id}"
+            subject += f" — Matter {matter.id}"
 
         email = EmailMultiAlternatives(
             subject=subject,
