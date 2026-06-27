@@ -67,15 +67,15 @@
       <button type="submit"
               form="invoice-send-form"
               id="invoice-send-submit"
-              class="btn btn-success">
-        <span class="send-label">
+              class="btn btn-success btn-busy">
+        <span class="btn-busy-idle">
           {% if invoice.date_sent %}
             Resend
           {% else %}
             Send
           {% endif %}
         </span>
-        <span class="send-sending"><span class="send-spinner"></span> Sending…</span>
+        <span class="btn-busy-loading"><span class="btn-spinner"></span> Sending…</span>
       </button>
     </div>
   </div>

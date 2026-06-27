@@ -87,33 +87,35 @@ Send modal
   font-variant-numeric: tabular-nums;
 }
 
-/* Send button: swap the label for a spinner while the request is in flight
-   (htmx adds .htmx-request via the form's hx-indicator). */
-#invoice-send-submit .send-sending {
+/* Busy button: while its form's request is in flight (htmx adds .htmx-request
+   via the form's hx-indicator), swap the label for a spinner and block
+   re-clicks. Used by the invoice send and create modals — both pay the
+   WeasyPrint PDF cost on submit. */
+.btn-busy .btn-busy-loading {
   display: none;
 }
 
-#invoice-send-submit.htmx-request {
+.btn-busy.htmx-request {
   pointer-events: none;
 }
 
-#invoice-send-submit.htmx-request .send-label {
+.btn-busy.htmx-request .btn-busy-idle {
   display: none;
 }
 
-#invoice-send-submit.htmx-request .send-sending {
+.btn-busy.htmx-request .btn-busy-loading {
   align-items: center;
   display: inline-flex;
   gap: 0.4rem;
 }
 
-.send-spinner {
-  width: 0.85em;
-  height: 0.85em;
-  border: 2px solid currentColor;
-  border-right-color: transparent;
-  border-radius: 50%;
+.btn-spinner {
   animation: spin 0.7s linear infinite;
+  border: 2px solid currentColor;
+  border-radius: 50%;
+  border-right-color: transparent;
+  height: 0.85em;
+  width: 0.85em;
 }
 
 .invoices-delete,

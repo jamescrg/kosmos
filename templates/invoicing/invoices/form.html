@@ -12,6 +12,8 @@
       <form id="invoice-form"
             hx-post="{% url 'invoicing:invoices-add' %}"
             hx-target="#htmx-modal-container"
+            hx-indicator="#invoice-submit"
+            hx-disabled-elt="#invoice-submit"
             role="form"
             class="form-compact col2">
         {% csrf_token %}
@@ -26,7 +28,13 @@
       </div>
       <div class="modal-footer-center"></div>
       <div class="modal-footer-right">
-        <button type="submit" form="invoice-form" class="btn btn-success">Submit</button>
+        <button type="submit"
+                form="invoice-form"
+                id="invoice-submit"
+                class="btn btn-success btn-busy">
+          <span class="btn-busy-idle">Submit</span>
+          <span class="btn-busy-loading"><span class="btn-spinner"></span> Generating…</span>
+        </button>
       </div>
     </div>
   </div>
