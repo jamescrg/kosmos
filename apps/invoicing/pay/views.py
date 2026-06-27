@@ -143,7 +143,11 @@ def pay_charge(request, token):
                     amount_cents=config.amount_cents,
                     reference=config.reference,
                     method=method,
-                    idempotency_key=config.reference,
+                    # Scope idempotency to the one-time token, not the invoice:
+                    # a retry uses a fresh token (different params), which Stripe
+                    # rejects if the key is reused. The row lock + already-paid
+                    # check above is the real double-charge guard.
+                    idempotency_key=f"{config.reference}:{payment_token}",
                 )
                 # Record + apply (provisional PAID for pending ACH); the
                 # settlement/return webhook later confirms or reverses it.

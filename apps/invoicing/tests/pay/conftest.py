@@ -18,11 +18,13 @@ from apps.matters.models import Matter, PracticeArea
 
 
 @pytest.fixture(autouse=True)
-def _reset_fake_processor():
-    """Clear the fake processor's process-local registry and the rate-limit
-    cache so tests don't leak transaction state or rate-limit counters."""
+def _reset_fake_processor(settings):
+    """Pin the fake processor (so a dev .env with PAYMENT_PROCESSOR=stripe/lawpay
+    doesn't leak in and hit the network) and clear its process-local registry and
+    the rate-limit cache so tests don't leak state or rate-limit counters."""
     from django.core.cache import cache
 
+    settings.PAYMENT_PROCESSOR = "fake"
     fake.reset()
     cache.clear()
     yield
