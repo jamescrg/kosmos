@@ -112,6 +112,7 @@ def send_invoice(
             "cover_message": cover,
             "firm_name": getattr(settings, "FIRM_NAME", ""),
             "pay_url": payment_url(invoice, request),  # tokenized payment link
+            "invoice_admin_email": settings.INVOICE_ADMIN_EMAIL,
         }
         # Client-facing: identify by number, not matter name (which is internal
         # and subject to change).
@@ -129,7 +130,9 @@ def send_invoice(
             # retains the full email, cover message and PDF included.
             bcc=settings.INVOICE_SEND_BCC or None,
             # Client replies go to the invoicing admin, not the unattended From.
-            reply_to=settings.INVOICE_REPLY_TO or None,
+            reply_to=(
+                [settings.INVOICE_ADMIN_EMAIL] if settings.INVOICE_ADMIN_EMAIL else None
+            ),
         )
         email.attach_alternative(
             render_to_string("emails/invoice_email.html", context), "text/html"
