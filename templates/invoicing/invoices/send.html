@@ -55,7 +55,7 @@
                     name="message"
                     rows="4"
                     maxlength="500"
-                    placeholder="Enter a message to the client. To annotate the invoice itself, add it to the invoice before sending."
+                    placeholder="Enter a message to the client.{% if not invoice.date_sent %} To annotate the invoice itself, add it to the invoice before sending.{% endif %}"
                     @input="count = $event.target.value.length">{{ default_message }}</textarea>
         </div>
       </form>
@@ -75,7 +75,14 @@
             Send
           {% endif %}
         </span>
-        <span class="btn-busy-loading"><span class="btn-spinner"></span> Sending…</span>
+        <span class="btn-busy-loading">
+          <span class="btn-spinner"></span>
+          {% if invoice.date_sent %}
+            Resend
+          {% else %}
+            Sending…
+          {% endif %}
+        </span>
       </button>
     </div>
   </div>
