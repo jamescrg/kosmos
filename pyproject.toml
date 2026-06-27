@@ -47,6 +47,7 @@ dependencies = [
     "setuptools==78.1.1",
     "gunicorn>=25.1.0",
     "requests>=2.33.0",
+    "stripe>=15.3.0",
 ]
 
 [dependency-groups]

@@ -177,13 +177,20 @@ def processor_webhook(request, processor):
         return HttpResponse(status=429)
 
     body = request.body.decode("utf-8", "replace")
+    # Stripe signs its webhooks; pass the header through for verification.
+    signature = request.headers.get("Stripe-Signature", "")
     try:
         from django_q.tasks import async_task
 
-        async_task("apps.invoicing.pay.reconcile.reconcile_webhook", processor, body)
+        async_task(
+            "apps.invoicing.pay.reconcile.reconcile_webhook",
+            processor,
+            body,
+            signature,
+        )
     except Exception:
         # If the task queue is unavailable, reconcile inline rather than drop it.
         from apps.invoicing.pay.reconcile import reconcile_webhook
 
-        reconcile_webhook(processor, body)
+        reconcile_webhook(processor, body, signature)
     return HttpResponse(status=200)

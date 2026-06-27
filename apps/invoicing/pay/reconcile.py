@@ -23,8 +23,12 @@ from apps.invoicing.processors import REVERSED_STATUSES, PaymentError, get_proce
 logger = logging.getLogger(__name__)
 
 
-def reconcile_webhook(processor_name, body):
-    """Verify and apply a single webhook delivery. Safe to call from a task."""
+def reconcile_webhook(processor_name, body, signature=""):
+    """Verify and apply a single webhook delivery. Safe to call from a task.
+
+    `signature` carries the processor's signature header (e.g. Stripe-Signature);
+    processors that don't sign (LawPay re-fetches instead) ignore it.
+    """
     try:
         processor = get_processor(processor_name)
     except PaymentError:
@@ -32,7 +36,9 @@ def reconcile_webhook(processor_name, body):
         return
     raw = body.encode() if isinstance(body, str) else body
     try:
-        event = processor.verify_and_parse_webhook(SimpleNamespace(body=raw))
+        event = processor.verify_and_parse_webhook(
+            SimpleNamespace(body=raw, signature=signature)
+        )
     except PaymentError as exc:
         logger.warning("Unverifiable %s webhook ignored: %s", processor_name, exc)
         return

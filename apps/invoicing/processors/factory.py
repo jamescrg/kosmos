@@ -26,4 +26,10 @@ def get_processor(name: str | None = None) -> PaymentProcessor:
 
         return LawPayProcessor()
 
+    if name == "stripe":
+        # Imported lazily so the package needn't import `stripe` unless selected.
+        from .stripe import StripeProcessor
+
+        return StripeProcessor()
+
     raise ProcessorConfigError(f"Unknown PAYMENT_PROCESSOR: {name!r}")

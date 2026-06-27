@@ -37,9 +37,10 @@ class TestGetProcessor:
     def test_explicit_fake(self):
         assert isinstance(get_processor("fake"), FakeProcessor)
 
-    def test_lawpay_with_keys_returns_lawpay(self):
-        """A LawPay secret key is configured in this environment, so the factory
-        returns a LawPayProcessor (construction touches no network)."""
+    def test_lawpay_with_keys_returns_lawpay(self, settings):
+        """With a LawPay secret key configured, the factory returns a
+        LawPayProcessor (construction touches no network)."""
+        settings.LAWPAY_SECRET_KEY = "sk_test"
         processor = get_processor("lawpay")
         assert isinstance(processor, LawPayProcessor)
         assert processor.name == "lawpay"

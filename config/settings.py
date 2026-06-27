@@ -353,6 +353,13 @@ LAWPAY_PUBLIC_KEY = env("LAWPAY_PUBLIC_KEY", default="")
 LAWPAY_SECRET_KEY = env("LAWPAY_SECRET_KEY", default="")
 LAWPAY_OPERATING_ACCOUNT_ID = env("LAWPAY_OPERATING_ACCOUNT_ID", default="")
 LAWPAY_API_BASE = env("LAWPAY_API_BASE", default="https://api.8am.com")
+# Stripe credentials (direct, single-account: the self-hosting firm owns the
+# Stripe account and provides its own keys). Publishable key -> client-side
+# Stripe Elements; secret key -> server-side API; webhook secret -> signature
+# verification. Use test-mode keys in the sandbox.
+STRIPE_PUBLISHABLE_KEY = env("STRIPE_PUBLISHABLE_KEY", default="")
+STRIPE_SECRET_KEY = env("STRIPE_SECRET_KEY", default="")
+STRIPE_WEBHOOK_SECRET = env("STRIPE_WEBHOOK_SECRET", default="")
 # How long a tokenized public payment link stays valid (seconds). Default 90
 # days; staff can resend an invoice to mint a fresh link.
 INVOICE_PAY_LINK_MAX_AGE = env.int(
