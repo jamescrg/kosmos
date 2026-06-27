@@ -7,6 +7,11 @@
   <td class="date">{{ invoice.date_issued|date:"Y-m-d" }}</td>
   <td class="matter">
     <a href="{% url 'matters:ledger' id=invoice.matter.id|default:0 %}">{{ invoice.matter.name }}</a>
+    {% if invoice.status == 'APPROVED' %}
+      <button class="accent-link invoice-row-send"
+              hx-get="{% url 'invoicing:invoices-send' pk=invoice.id %}"
+              hx-target="#htmx-modal-container">Send</button>
+    {% endif %}
   </td>
   <td class="status dropdown-cell">{% include "invoicing/invoices/status.html" %}</td>
   <td class="amount">${{ invoice.annotated_net_fees|floatformat:2|intcomma }}</td>

@@ -19,17 +19,24 @@
         x-show="open"
         hx-target="#status-dropdown-{{ invoice.id }}"
         hx-swap="outerHTML">
-      <li>
-        <a class="dropdown-item {% if invoice.status == "DRAFT" %}toggle-active{% endif %}"
-           href="#"
-           hx-post="{% url 'invoicing:invoices-edit-status' pk=invoice.id status='DRAFT' view=view %}">Draft</a>
-      </li>
-      <li>
-        <a class="dropdown-item {% if invoice.status == "APPROVED" %}toggle-active{% endif %}"
-           href="#"
-           hx-target="#status-dropdown-{{ invoice.id }}"
-           hx-post="{% url 'invoicing:invoices-edit-status' pk=invoice.id status='APPROVED' view=view %}">Approved</a>
-      </li>
+      {% comment %}
+        Once an invoice has actually been emailed (date_sent set, with a logged
+        transmission), it can't be moved back to Draft or Approved — so hide
+        those options. A manually-set SENT (never emailed) still shows them.
+      {% endcomment %}
+      {% if not invoice.date_sent %}
+        <li>
+          <a class="dropdown-item {% if invoice.status == "DRAFT" %}toggle-active{% endif %}"
+             href="#"
+             hx-post="{% url 'invoicing:invoices-edit-status' pk=invoice.id status='DRAFT' view=view %}">Draft</a>
+        </li>
+        <li>
+          <a class="dropdown-item {% if invoice.status == "APPROVED" %}toggle-active{% endif %}"
+             href="#"
+             hx-target="#status-dropdown-{{ invoice.id }}"
+             hx-post="{% url 'invoicing:invoices-edit-status' pk=invoice.id status='APPROVED' view=view %}">Approved</a>
+        </li>
+      {% endif %}
       <li>
         <a class="dropdown-item {% if invoice.status == "SENT" %}toggle-active{% endif %}"
            href="#"

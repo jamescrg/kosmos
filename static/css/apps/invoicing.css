@@ -46,6 +46,12 @@ List View
   width: 3rem;
 }
 
+/* Send button sits at the right edge of the Matter cell on APPROVED rows. */
+.invoices .invoice-row-send {
+  float: right;
+  margin-left: 1rem;
+}
+
 .invoices-delete,
 .invoices-delete:hover {
   color: var(--urgent);

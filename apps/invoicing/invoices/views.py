@@ -34,7 +34,7 @@ from apps.management.selection import (
 )
 from apps.matters.models import Matter
 from apps.trust.models import Transaction
-from utils.toasts import toast_success
+from utils.toasts import toast_error, toast_success
 
 from .filters import InvoiceFilter
 from .forms import EditInvoiceForm, InvoiceForm
@@ -803,6 +803,18 @@ def invoices_edit_status(request, pk, status, view):
     if invoice.status == "VOID":
         return HttpResponse(status=400)
 
+    # A sent invoice — one actually emailed and logged in its transmission
+    # history (date_sent set) — is locked forward: it can't drop back to
+    # APPROVED or DRAFT. A manually-set SENT that was never emailed still can.
+    if status in ("APPROVED", "DRAFT") and invoice.date_sent:
+        response = HttpResponse(status=204)  # 204 = no swap; dropdown unchanged
+        toast_error(
+            response,
+            f"Invoice #{invoice.id} has already been sent, so it can't be moved "
+            f"back to {status.title()}.",
+        )
+        return response
+
     invoice.status = status
     invoice.save()
 
@@ -846,8 +858,11 @@ def invoices_send(request, pk):
             }
             return render(request, "invoicing/invoices/send.html", context)
 
+        # Refresh both surfaces: the detail page and the list (where the Send
+        # button lives on APPROVED rows and the row should flip to SENT).
         response = HttpResponse(
-            status=204, headers={"HX-Trigger": "invoiceDetailChanged"}
+            status=204,
+            headers={"HX-Trigger": "invoiceDetailChanged, invoicesChanged"},
         )
         toast_success(response, f"Invoice #{invoice.id} sent to {recipient}.")
         return response
