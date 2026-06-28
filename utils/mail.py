@@ -16,6 +16,11 @@ def render_inlined(template_name, context):
     return transform(
         html,
         keep_style_tags=True,
+        # Never touch the network. All CSS is in the local <style> block; without
+        # this premailer would try to DOWNLOAD external <link> stylesheets (e.g.
+        # the Google Fonts link), blocking the send — and hanging it if the host
+        # can't reach them. The font <link> is left in place for the mail client.
+        allow_network=False,
         disable_validation=True,  # don't let cssutils drop modern CSS (gradients)
         cssutils_logging_level="CRITICAL",
     )
