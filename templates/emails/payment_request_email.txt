@@ -9,8 +9,8 @@ You will find attached to this email a PDF file containing a comprehensive matte
 {% endif %}
 If you have any questions, please reply to this email{% if firm_email %} or contact us at {{ firm_email }}{% endif %}.
 
-Matter:       {{ matter_number }}
-Balance Due:  ${{ amount_due|floatformat:2|intcomma }}
+Matter:           {{ matter_number }}
+Amount Requested: ${{ amount_due|floatformat:2|intcomma }}
 {% if pay_url %}
 Pay online:   {{ pay_url }}
 {% endif %}
