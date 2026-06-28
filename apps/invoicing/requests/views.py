@@ -107,6 +107,7 @@ def requests_new(request):
         cc = (request.POST.get("cc") or "").strip()
         message = request.POST.get("message", "")
         amount_raw = (request.POST.get("amount") or "").strip()
+        attach_statement = "attach_statement" in request.POST
         matter = _open_matters().filter(pk=matter_id).first() if matter_id else None
 
         error = ""
@@ -143,7 +144,12 @@ def requests_new(request):
                 with transaction.atomic():
                     payment_request.save()
                     send_payment_request(
-                        payment_request, to=to, cc=cc, message=message, request=request
+                        payment_request,
+                        to=to,
+                        cc=cc,
+                        message=message,
+                        attach_statement=attach_statement,
+                        request=request,
                     )
             except PaymentRequestSendError as exc:
                 error = str(exc)
@@ -161,6 +167,7 @@ def requests_new(request):
             "cc": cc,
             "message": message,
             "amount": amount_raw,
+            "attach_statement": attach_statement,
             "error": error,
         }
         return render(request, "invoicing/requests/form.html", context)
@@ -172,6 +179,7 @@ def requests_new(request):
         "cc": "",
         "message": "",
         "amount": "",
+        "attach_statement": True,
         "error": "",
     }
     return render(request, "invoicing/requests/form.html", context)

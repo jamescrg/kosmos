@@ -38,13 +38,20 @@ def _invalid_addresses(addresses):
 
 
 def send_payment_request(
-    payment_request, *, to=None, cc=None, message=None, request=None
+    payment_request,
+    *,
+    to=None,
+    cc=None,
+    message=None,
+    attach_statement=True,
+    request=None,
 ):
-    """Email the request's pay link + the matter ledger statement PDF.
+    """Email the request's pay link, optionally with the matter ledger statement.
 
     to / cc: comma-delimited address strings; `to` defaults to the request's
-    stored recipient(s). message: optional cover note. Returns True; raises
-    PaymentRequestSendError on a bad/empty address list or send failure.
+    stored recipient(s). message: optional cover note. attach_statement: attach
+    the matter ledger statement PDF (and mention it in the body). Returns True;
+    raises PaymentRequestSendError on a bad/empty address list or send failure.
     """
     matter = payment_request.matter
     client = matter.client if matter else None
@@ -76,6 +83,7 @@ def send_payment_request(
         "firm_name": company.name if company else "",
         "firm_email": company.email if company else "",
         "pay_url": request_pay_url(payment_request, request),
+        "attach_statement": attach_statement,
     }
     firm = company.name if company else ""
     subject = f"{firm} - " if firm else ""
@@ -96,14 +104,15 @@ def send_payment_request(
         email.attach_alternative(
             render_inlined("emails/payment_request_email.html", context), "text/html"
         )
-        # Attach the matter ledger statement (current account activity + balance).
-        pdf_tmp = generate_ledger(matter.id, request)
-        filename = f"Matter Ledger {matter.id} {timezone.localdate():%Y-%m-%d}.pdf"
-        try:
-            with open(pdf_tmp.name, "rb") as f:
-                email.attach(filename, f.read(), "application/pdf")
-        finally:
-            os.unlink(pdf_tmp.name)
+        # Optionally attach the matter ledger statement (account activity + balance).
+        if attach_statement:
+            pdf_tmp = generate_ledger(matter.id, request)
+            filename = f"Matter Ledger {matter.id} {timezone.localdate():%Y-%m-%d}.pdf"
+            try:
+                with open(pdf_tmp.name, "rb") as f:
+                    email.attach(filename, f.read(), "application/pdf")
+            finally:
+                os.unlink(pdf_tmp.name)
         email.send()
     except PaymentRequestSendError:
         raise

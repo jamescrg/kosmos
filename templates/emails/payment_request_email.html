@@ -132,11 +132,10 @@
                 {% if cover_message %}
                   <p class="para" style="white-space: pre-line;">{{ cover_message }}</p>
                 {% else %}
-                  <p class="para">
-                    Attached is the current statement for Matter {{ matter_number }},
-                    showing your account activity and balance. You can pay your full
-                    balance securely online using the button below.
-                  </p>
+                  <p class="para">We are respectfully requesting payment of the amount below.</p>
+                {% endif %}
+                {% if attach_statement %}
+                  <p class="para">You will find attached to this email a PDF file containing a comprehensive matter statement.</p>
                 {% endif %}
                 <p class="para">
                   If you have any questions, please reply to this email{% if firm_email %} or contact us at <a href="mailto:{{ firm_email }}">{{ firm_email }}</a>{% endif %}.
