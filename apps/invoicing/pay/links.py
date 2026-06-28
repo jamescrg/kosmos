@@ -3,7 +3,7 @@
 from django.conf import settings
 from django.urls import reverse
 
-from utils.signing import make_balance_token, make_payment_token
+from utils.signing import make_payment_token, make_request_token
 
 
 def _absolute(path, request):
@@ -26,11 +26,11 @@ def payment_url(invoice, request=None) -> str:
     return _absolute(payment_path(invoice), request)
 
 
-def balance_payment_path(matter) -> str:
-    """Root-relative catch-up (full-balance) payment URL for a matter."""
-    return reverse("pay:balance", kwargs={"token": make_balance_token(matter)})
+def request_pay_path(payment_request) -> str:
+    """Root-relative catch-up (full-balance) payment URL for a PaymentRequest."""
+    return reverse("pay:balance", kwargs={"token": make_request_token(payment_request)})
 
 
-def balance_payment_url(matter, request=None) -> str:
-    """Absolute matter-balance payment URL (see payment_url)."""
-    return _absolute(balance_payment_path(matter), request)
+def request_pay_url(payment_request, request=None) -> str:
+    """Absolute PaymentRequest payment URL (see payment_url)."""
+    return _absolute(request_pay_path(payment_request), request)

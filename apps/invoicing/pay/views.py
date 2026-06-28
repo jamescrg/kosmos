@@ -35,8 +35,8 @@ from apps.invoicing.pay.balance import (
 from apps.invoicing.pay.recording import record_payment
 from apps.invoicing.processors import ChargeError, get_processor
 from apps.invoicing.processors.base import ClientConfig
-from apps.matters.models import Matter
-from utils.signing import read_balance_token, read_payment_token
+from apps.invoicing.requests.models import PaymentRequest
+from utils.signing import read_payment_token, read_request_token
 
 
 def _client_ip(request):
@@ -186,15 +186,15 @@ def pay_charge(request, token):
 # --- Matter "catch-up" payment: pay a matter's full open balance ------------
 
 
-def _resolve_matter(token):
-    """Return the matter for a signed balance token, or raise Http404."""
+def _resolve_request(token):
+    """Return the PaymentRequest for a signed token, or raise Http404."""
     try:
-        matter_id = read_balance_token(token, max_age=settings.INVOICE_PAY_LINK_MAX_AGE)
+        req_uuid = read_request_token(token, max_age=settings.INVOICE_PAY_LINK_MAX_AGE)
     except signing.SignatureExpired:
         raise Http404("expired")
     except signing.BadSignature:
         raise Http404("invalid")
-    return get_object_or_404(Matter, pk=matter_id)
+    return get_object_or_404(PaymentRequest, uuid=req_uuid)
 
 
 def _balance_config(processor, open_invoices, balance_cents, matter):
@@ -216,7 +216,7 @@ def _balance_config(processor, open_invoices, balance_cents, matter):
 
 def balance_pay_page(request, token):
     try:
-        matter = _resolve_matter(token)
+        pay_request = _resolve_request(token)
     except Http404 as exc:
         if str(exc) == "expired":
             return _unavailable(
@@ -226,6 +226,12 @@ def balance_pay_page(request, token):
             )
         return _unavailable(request, "This payment link is invalid.", status=404)
 
+    if pay_request.status == "CANCELED":
+        return _unavailable(
+            request, "This payment request is no longer active.", status=410
+        )
+
+    matter = pay_request.matter
     processor = get_processor()
     open_invoices = matter_open_invoices(matter)
     balance_cents = matter_balance_cents(matter)
@@ -244,7 +250,7 @@ def balance_pay_page(request, token):
         "firm_name": company.name if company else "",
         "amount_due": Decimal(balance_cents) / 100,
         "config": config,
-        "is_paid": balance_cents <= 0,
+        "is_paid": pay_request.status == "PAID" or balance_cents <= 0,
         "dev_mode": config.processor == "fake",
         "charge_url": request.build_absolute_uri(request.path.rstrip("/") + "/charge/"),
     }
@@ -260,7 +266,7 @@ def balance_charge(request, token):
             status=429,
         )
 
-    matter = _resolve_matter(token)
+    pay_request = _resolve_request(token)
 
     try:
         body = json.loads(request.body or "{}")
@@ -277,27 +283,35 @@ def balance_charge(request, token):
         )
 
     processor = get_processor()
-    # Lock the matter row to serialize concurrent submits — the second waits and
-    # then finds the balance already cleared. The recompute under the lock is the
-    # double-charge guard (mirrors the per-invoice flow).
+    # Lock the request row to serialize concurrent submits — the second waits and
+    # then finds the request already settled. The status + balance recheck under
+    # the lock is the double-charge guard (mirrors the per-invoice flow).
     try:
         with transaction.atomic():
-            locked = Matter.objects.select_for_update().get(pk=matter.pk)
-            balance_cents = matter_balance_cents(locked)
-            if balance_cents <= 0:
+            req = PaymentRequest.objects.select_for_update().get(pk=pay_request.pk)
+            matter = req.matter
+            balance_cents = matter_balance_cents(matter)
+            if req.status != "SENT" or balance_cents <= 0:
                 already_paid = True
+                # Balance cleared another way while still SENT — settle the request.
+                if req.status == "SENT":
+                    req.status = "PAID"
+                    req.save(update_fields=["status"])
             else:
                 already_paid = False
-                reference = f"Account balance · Matter {locked.id}"
+                reference = f"Account balance · Matter {matter.id}"
                 result = processor.charge(
                     token=payment_token,
                     amount_cents=balance_cents,
                     reference=reference,
+                    idempotency_key=f"request:{req.id}:{payment_token}",
                     method=method,
-                    idempotency_key=f"matter:{locked.id}:{payment_token}",
                 )
                 if result.accepted:
-                    record_matter_balance_payment(locked, result)
+                    payment = record_matter_balance_payment(matter, result)
+                    req.status = "PAID"
+                    req.payment = payment
+                    req.save(update_fields=["status", "payment"])
     except ChargeError as exc:
         return JsonResponse({"success": False, "error": str(exc)}, status=402)
 
