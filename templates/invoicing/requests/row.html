@@ -1,0 +1,48 @@
+{% load humanize %}
+<tr id="request-{{ payment_request.id }}">
+  <td class="id">
+    {% if payment_request.status == "SENT" %}
+      <div class="dropdown" x-data="dropdown()">
+        <button class="button-link"
+                type="button"
+                x-ref="button"
+                @click="toggle()"
+                :aria-expanded="open">{{ payment_request.id }}</button>
+        <ul class="dropdown-menu" x-ref="menu" x-show="open">
+          <li>
+            <a class="dropdown-item"
+               hx-confirm="This deactivates the pay link sent to the client."
+               data-confirm-title="Cancel Payment Request"
+               data-confirm-text="Cancel Request"
+               data-cancel-text="Back"
+               href="#!"
+               hx-post="{% url 'invoicing:requests-cancel' payment_request.id %}"
+               hx-target="#request-{{ payment_request.id }}"
+               hx-swap="outerHTML"><i class="icon-x"></i> Cancel</a>
+          </li>
+        </ul>
+      </div>
+    {% else %}
+      {{ payment_request.id }}
+    {% endif %}
+  </td>
+  <td class="date">{{ payment_request.created_at|date:"Y-m-d" }}</td>
+  <td class="matter">
+    <a href="{% url 'matters:ledger' id=payment_request.matter.id %}">{{ payment_request.matter.name }}</a>
+  </td>
+  <td class="status">{{ payment_request.get_status_display }}</td>
+  <td class="recipient">{{ payment_request.recipient_email }}</td>
+  <td class="amount">${{ payment_request.amount_requested|floatformat:2|intcomma }}</td>
+  <td class="action-send">
+    {% if payment_request.status == "SENT" %}
+      <button class="button-link"
+              type="button"
+              hx-get="{% url 'invoicing:requests-resend' payment_request.id %}"
+              hx-target="#htmx-modal-container"
+              title="Resend request"
+              aria-label="Resend request">
+        <i class="icon-send-horizontal"></i>
+      </button>
+    {% endif %}
+  </td>
+</tr>

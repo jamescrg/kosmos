@@ -79,15 +79,18 @@
             <i class="icon-chevrons-up-down"></i>
           </button>
         </th>
-        <th class="download">
+        <th class="action-download">
           <i class="icon-download"></i>
+        </th>
+        <th class="action-send">
+          <i class="icon-send-horizontal"></i>
         </th>
       </tr>
       {% for invoice in objects %}
         {% include "invoicing/invoices/row.html" %}
       {% empty %}
         <tr>
-          <td colspan="9" class="empty-message">No invoices found.</td>
+          <td colspan="10" class="empty-message">No invoices found.</td>
         </tr>
       {% endfor %}
     </table>

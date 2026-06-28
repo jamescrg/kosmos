@@ -1,0 +1,68 @@
+{% block subcontent %}
+  {% load humanize %}
+  <div id="request-list">
+    <div class="toolbar">
+      <div class="toolbar-left">
+        <div class="filter-tools">
+          <button type="button"
+                  class="btn-icon"
+                  hx-get="{% url 'invoicing:requests-new' %}"
+                  hx-target="#htmx-modal-container"
+                  hx-trigger="click"
+                  data-bs-toggle="modal"
+                  data-bs-target="#htmx-modal-container">
+            <i class="icon-plus"></i>
+          </button>
+          <button type="button"
+                  class="btn-icon{% if filter_active %} toggle-active{% endif %}"
+                  hx-get="{% url 'invoicing:requests-filter' %}"
+                  hx-target="#htmx-modal-container"
+                  hx-trigger="click"
+                  data-bs-toggle="modal"
+                  data-bs-target="#htmx-modal-container">
+            <i class="icon-list-filter with-text"></i>Filter
+          </button>
+          <a type="button"
+             href="#"
+             class="btn-icon {% if not current_status %}toggle-active{% endif %}"
+             hx-post="{% url 'invoicing:requests-filter-status' 'all' %}">All</a>
+          <a type="button"
+             href="#"
+             class="btn-icon {% if current_status == 'SENT' %}toggle-active{% endif %}"
+             hx-post="{% url 'invoicing:requests-filter-status' 'SENT' %}">Sent</a>
+          <a type="button"
+             href="#"
+             class="btn-icon {% if current_status == 'PAID' %}toggle-active{% endif %}"
+             hx-post="{% url 'invoicing:requests-filter-status' 'PAID' %}">Paid</a>
+          <a type="button"
+             href="#"
+             class="btn-icon {% if current_status == 'CANCELED' %}toggle-active{% endif %}"
+             hx-post="{% url 'invoicing:requests-filter-status' 'CANCELED' %}">Canceled</a>
+        </div>
+      </div>
+    </div>
+    <div class="table-container">
+      <table class="table requests">
+        <tr>
+          <th class="id">ID</th>
+          <th class="date">Sent</th>
+          <th class="matter">Matter</th>
+          <th class="status">Status</th>
+          <th class="recipient">Recipients</th>
+          <th class="amount">Amount</th>
+          <th class="action-send">
+            <i class="icon-send-horizontal"></i>
+          </th>
+        </tr>
+        {% for payment_request in objects %}
+          {% include "invoicing/requests/row.html" %}
+        {% empty %}
+          <tr>
+            <td colspan="7" class="empty-message">No payment requests found.</td>
+          </tr>
+        {% endfor %}
+      </table>
+      <div>{% include "pagination.html" %}</div>
+    </div>
+  </div>
+{% endblock subcontent %}

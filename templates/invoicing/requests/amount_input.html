@@ -1,0 +1,9 @@
+<input type="text"
+       id="request-amount"
+       name="amount"
+       value="{{ amount }}"
+       inputmode="decimal"
+       autocomplete="off"
+       placeholder="0.00"
+       {% if oob %}hx-swap-oob="true"{% endif %}
+       required>

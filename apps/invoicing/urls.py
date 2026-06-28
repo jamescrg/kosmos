@@ -20,6 +20,7 @@ from apps.invoicing.invoices.views import (
     invoice_expense_order_by,
     invoice_flat_fee_entries,
     invoice_flat_fee_entries_index,
+    invoice_history_index,
     invoice_ledes_98b,
     invoice_tab_content,
     invoice_time_bulk_update_comp,
@@ -41,6 +42,7 @@ from apps.invoicing.invoices.views import (
     invoices_list,
     invoices_pdf,
     invoices_pdf_download,
+    invoices_send,
     invoices_void,
     invoices_void_confirm,
     order_by_invoices,
@@ -59,6 +61,16 @@ from apps.invoicing.payments.views import (
     payments_filter_application,
     payments_index,
     payments_list,
+)
+from apps.invoicing.requests.views import (
+    requests_cancel,
+    requests_filter,
+    requests_filter_status,
+    requests_index,
+    requests_list,
+    requests_matter_fields,
+    requests_new,
+    requests_resend,
 )
 from apps.invoicing.unbilled.views import (
     unbilled_bulk_create_invoices,
@@ -162,9 +174,19 @@ urlpatterns = [
         name="invoices-edit-status",
     ),
     path(
+        "invoicing/invoices/<int:pk>/send/",
+        invoices_send,
+        name="invoices-send",
+    ),
+    path(
         "invoicing/invoices-detail/<int:pk>/details-index/",
         invoice_details_index,
         name="invoice-details-index",
+    ),
+    path(
+        "invoicing/invoices-detail/<int:pk>/history-index/",
+        invoice_history_index,
+        name="invoice-history-index",
     ),
     path(
         "invoicing/invoices-detail/<int:pk>/pdf-preview-index/",
@@ -269,6 +291,31 @@ urlpatterns = [
         "invoicing/payments-filter/order-by/<str:order>",
         order_by_payments,
         name="payments-order-by",
+    ),
+    # Requests (catch-up payment requests)
+    path("invoicing/requests/", requests_index, name="requests-index"),
+    path("invoicing/requests/list/", requests_list, name="requests-list"),
+    path("invoicing/requests-new/", requests_new, name="requests-new"),
+    path(
+        "invoicing/requests-matter-fields/",
+        requests_matter_fields,
+        name="requests-matter-fields",
+    ),
+    path(
+        "invoicing/requests-cancel/<int:pk>/",
+        requests_cancel,
+        name="requests-cancel",
+    ),
+    path(
+        "invoicing/requests-resend/<int:pk>/",
+        requests_resend,
+        name="requests-resend",
+    ),
+    path("invoicing/requests-filter/", requests_filter, name="requests-filter"),
+    path(
+        "invoicing/requests/filter/status/<str:status>",
+        requests_filter_status,
+        name="requests-filter-status",
     ),
     # Credits
     path("invoicing/credits/", credits_index, name="credits-index"),

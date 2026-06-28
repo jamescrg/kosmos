@@ -34,11 +34,13 @@ from apps.management.selection import (
 )
 from apps.matters.models import Matter
 from apps.trust.models import Transaction
+from utils.toasts import toast_error, toast_success
 
 from .filters import InvoiceFilter
 from .forms import EditInvoiceForm, InvoiceForm
 from .functions import generate_invoice
 from .functions.generate_invoice import store_invoice_pdf
+from .functions.send_invoice import InvoiceSendError, send_invoice
 from .models import Invoice
 
 
@@ -201,6 +203,20 @@ def invoice_details_index(request, pk):
     context = {
         "app": "invoicing",
         "subapp": "details",
+        "invoice": invoice,
+        "view": "detail",
+    }
+
+    return render(request, "invoicing/invoices/detail/detail-index.html", context)
+
+
+@login_required
+def invoice_history_index(request, pk):
+    invoice = get_object_or_404(Invoice, pk=pk)
+
+    context = {
+        "app": "invoicing",
+        "subapp": "history",
         "invoice": invoice,
         "view": "detail",
     }
@@ -787,6 +803,18 @@ def invoices_edit_status(request, pk, status, view):
     if invoice.status == "VOID":
         return HttpResponse(status=400)
 
+    # A sent invoice — one actually emailed and logged in its transmission
+    # history (date_sent set) — is locked forward: it can't drop back to
+    # APPROVED or DRAFT. A manually-set SENT that was never emailed still can.
+    if status in ("APPROVED", "DRAFT") and invoice.date_sent:
+        response = HttpResponse(status=204)  # 204 = no swap; dropdown unchanged
+        toast_error(
+            response,
+            f"Invoice #{invoice.id} has already been sent, so it can't be moved "
+            f"back to {status.title()}.",
+        )
+        return response
+
     invoice.status = status
     invoice.save()
 
@@ -796,3 +824,54 @@ def invoices_edit_status(request, pk, status, view):
     trigger = "invoicesChanged" if view == "list" else "invoiceDetailChanged"
 
     return HttpResponse(status=204, headers={"HX-Trigger": trigger})
+
+
+@login_required
+def invoices_send(request, pk):
+    """Email the invoice PDF to the client and record the transmission. GET
+    renders the confirmation modal; POST sends and returns 204 (closes the modal,
+    refreshes the detail) or re-renders the modal with an error."""
+    invoice = get_object_or_404(Invoice, pk=pk)
+    client = invoice.matter.client if invoice.matter else None
+
+    if request.method == "POST":
+        to = (request.POST.get("to") or "").strip()
+        cc = (request.POST.get("cc") or "").strip()
+        message = request.POST.get("message", "")
+        recipient = to or (client.email if client else "")
+        try:
+            send_invoice(
+                invoice,
+                to=to or None,
+                cc=cc or None,
+                message=message,
+                sent_by=request.user,
+                request=request,
+            )
+        except InvoiceSendError as exc:
+            context = {
+                "invoice": invoice,
+                "default_to": to,
+                "default_cc": cc,
+                "default_message": message,
+                "error": str(exc),
+            }
+            return render(request, "invoicing/invoices/send.html", context)
+
+        # Refresh both surfaces: the detail page and the list (where the Send
+        # button lives on APPROVED rows and the row should flip to SENT).
+        response = HttpResponse(
+            status=204,
+            headers={"HX-Trigger": "invoiceDetailChanged, invoicesChanged"},
+        )
+        toast_success(response, f"Invoice #{invoice.id} sent to {recipient}.")
+        return response
+
+    context = {
+        "invoice": invoice,
+        "default_to": client.email if client else "",
+        "default_cc": "",
+        "default_message": invoice.message or "",
+        "error": "",
+    }
+    return render(request, "invoicing/invoices/send.html", context)

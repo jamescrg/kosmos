@@ -242,6 +242,12 @@ EMAIL_HOST_PASSWORD = env("EMAIL_HOST_PASSWORD")
 SERVER_EMAIL = env("SERVER_EMAIL")
 DEFAULT_FROM_EMAIL = env("SERVER_EMAIL")
 ADMINS = env("ADMINS")
+# Address(es) BCC'd on every invoice email the app sends, so the firm retains a
+# faithful copy (cover message + attached PDF) of what each client received.
+# Comma-separated; leave empty to disable.
+# Note: invoice-email config — Reply-To, the contact address shown in the body,
+# and the BCC list — all come from the Company settings record
+# (apps.settings.Company), so the firm manages them in the UI in one place.
 
 # set cookies (sessions) to last for two months
 # default is two weeks, multiplying by four to get two months
@@ -335,3 +341,31 @@ DRIVE_NOTES_ROOT = env("DRIVE_NOTES_ROOT", default="Matters - Open")
 DRIVE_NOTES_DEBUG_DIR = env("DRIVE_NOTES_DEBUG_DIR", default="")
 # Optional: set if "Matters - Open" lives in a Shared Drive rather than My Drive.
 DRIVE_SHARED_DRIVE_ID = env("DRIVE_SHARED_DRIVE_ID", default="")
+
+# Online invoice payment collection (Phase 2)
+# Active processor; "fake" simulates the full card+ACH lifecycle so dev/CI run
+# without credentials. Switch to "lawpay" once sandbox keys are configured.
+PAYMENT_PROCESSOR = env("PAYMENT_PROCESSOR", default="fake")
+# LawPay/AffiniPay (8am) credentials. Public key -> client-side hosted fields;
+# secret key -> server-side Basic auth; operating account_id pins funds to the
+# operating (non-trust) account. Test-mode keys hit only sandbox accounts.
+LAWPAY_PUBLIC_KEY = env("LAWPAY_PUBLIC_KEY", default="")
+LAWPAY_SECRET_KEY = env("LAWPAY_SECRET_KEY", default="")
+LAWPAY_OPERATING_ACCOUNT_ID = env("LAWPAY_OPERATING_ACCOUNT_ID", default="")
+LAWPAY_API_BASE = env("LAWPAY_API_BASE", default="https://api.8am.com")
+# Stripe credentials (direct, single-account: the self-hosting firm owns the
+# Stripe account and provides its own keys). Publishable key -> client-side
+# Stripe Elements; secret key -> server-side API; webhook secret -> signature
+# verification. Use test-mode keys in the sandbox.
+STRIPE_PUBLISHABLE_KEY = env("STRIPE_PUBLISHABLE_KEY", default="")
+STRIPE_SECRET_KEY = env("STRIPE_SECRET_KEY", default="")
+STRIPE_WEBHOOK_SECRET = env("STRIPE_WEBHOOK_SECRET", default="")
+# How long a tokenized public payment link stays valid (seconds). Default 90
+# days; staff can resend an invoice to mint a fresh link.
+INVOICE_PAY_LINK_MAX_AGE = env.int(
+    "INVOICE_PAY_LINK_MAX_AGE", default=60 * 60 * 24 * 90
+)
+# Absolute base URL (scheme + host) for links built outside a request context,
+# e.g. payment links in emails sent via async_task. Blank → fall back to the
+# sending request's host when available.
+PUBLIC_BASE_URL = env("PUBLIC_BASE_URL", default="")

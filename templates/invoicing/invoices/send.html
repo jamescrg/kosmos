@@ -1,0 +1,89 @@
+<div class="modal-dialog modal-md">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h1 class="modal-title">
+        {% if invoice.date_sent %}
+          Resend
+        {% else %}
+          Send
+        {% endif %}
+        Invoice #{{ invoice.id }}
+      </h1>
+      <div>
+        <button type="button" @click="$dispatch('close-modal')">
+          <i class="icon-x"></i>
+        </button>
+      </div>
+    </div>
+    <div class="modal-body">
+      {% if error %}<div class="alert alert-danger" role="alert">{{ error }}</div>{% endif %}
+      <form id="invoice-send-form"
+            hx-post="{% url 'invoicing:invoices-send' pk=invoice.id %}"
+            hx-target="#htmx-modal-container"
+            hx-indicator="#invoice-send-submit"
+            hx-disabled-elt="#invoice-send-submit"
+            class="form-compact">
+        {% csrf_token %}
+        <div class="form-group">
+          <label for="invoice-send-to">To</label>
+          <input type="email"
+                 id="invoice-send-to"
+                 name="to"
+                 value="{{ default_to }}"
+                 autocomplete="off"
+                 multiple
+                 placeholder="name@example.com, name2@example.com"
+                 required>
+        </div>
+        <div class="form-group">
+          <label for="invoice-send-cc">Cc (optional)</label>
+          <input type="email"
+                 id="invoice-send-cc"
+                 name="cc"
+                 value="{{ default_cc }}"
+                 autocomplete="off"
+                 multiple
+                 placeholder="name@example.com, name2@example.com">
+        </div>
+        <div class="form-group"
+             x-data="{ max: 500, count: {{ default_message|length }} }">
+          <label class="message-label" for="invoice-send-message">
+            <span>Message (optional)</span>
+            <span class="char-counter" x-text="count + ' / ' + max"></span>
+          </label>
+          <textarea id="invoice-send-message"
+                    name="message"
+                    rows="4"
+                    maxlength="500"
+                    placeholder="Enter a message to the client.{% if not invoice.date_sent %} To annotate the invoice itself, add it to the invoice before sending.{% endif %}"
+                    @input="count = $event.target.value.length">{{ default_message }}</textarea>
+        </div>
+      </form>
+    </div>
+    <div class="modal-footer">
+      <button type="button"
+              class="btn btn-secondary"
+              @click="$dispatch('close-modal')">Cancel</button>
+      <button type="submit"
+              form="invoice-send-form"
+              id="invoice-send-submit"
+              class="btn btn-success btn-busy">
+        <span class="btn-busy-idle">
+          {% if invoice.date_sent %}
+            Resend
+          {% else %}
+            Send
+          {% endif %}
+        </span>
+        <span class="btn-busy-loading">
+          <span class="btn-spinner"></span>
+          {% if invoice.date_sent %}
+            Resend
+          {% else %}
+            Sending…
+          {% endif %}
+        </span>
+      </button>
+    </div>
+  </div>
+</div>

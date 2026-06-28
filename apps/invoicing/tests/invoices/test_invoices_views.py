@@ -1,5 +1,6 @@
 import pytest
 from django.urls import reverse
+from django.utils import timezone
 from pytest_django.asserts import assertTemplateUsed
 
 from apps.invoicing.invoices.forms import EditInvoiceForm, InvoiceForm
@@ -67,6 +68,58 @@ def test_invoices_edit_status(client, invoice):
 
     invoice.refresh_from_db()
     assert invoice.status == "PAID"
+
+
+def _edit_status(client, invoice, status):
+    return client.post(
+        reverse(
+            "invoicing:invoices-edit-status",
+            kwargs={"pk": invoice.pk, "status": status, "view": "list"},
+        )
+    )
+
+
+@pytest.mark.parametrize("target", ["APPROVED", "DRAFT"])
+def test_sent_invoice_cannot_revert(client, invoice, target):
+    """An invoice actually emailed (date_sent + transmission history) is locked
+    forward — it can't go back to Approved or Draft."""
+    invoice.status = "SENT"
+    invoice.date_sent = timezone.now()
+    invoice.save()
+
+    response = _edit_status(client, invoice, target)
+
+    # Blocked: 204 (no swap) carrying an error toast; status unchanged.
+    assert response.status_code == 204
+    assert response.headers.get("HX-Toast")
+    invoice.refresh_from_db()
+    assert invoice.status == "SENT"
+
+
+def test_sent_invoice_can_move_forward(client, invoice):
+    """The lock is only backward — forward/lateral moves still work."""
+    invoice.status = "SENT"
+    invoice.date_sent = timezone.now()
+    invoice.save()
+
+    response = _edit_status(client, invoice, "DEFERRED")
+
+    assert response.status_code == 204
+    invoice.refresh_from_db()
+    assert invoice.status == "DEFERRED"
+
+
+def test_unsent_sent_status_can_revert(client, invoice):
+    """A manually-set SENT that was never emailed (no date_sent) is NOT locked —
+    it can still be corrected back to Approved."""
+    invoice.status = "SENT"
+    invoice.save()
+
+    response = _edit_status(client, invoice, "APPROVED")
+
+    assert response.status_code == 204
+    invoice.refresh_from_db()
+    assert invoice.status == "APPROVED"
 
 
 def test_invoices_delete(client, invoice):

@@ -41,9 +41,134 @@ List View
   width: 9rem;
 }
 
-.invoices .download {
+/* Two Actions columns — download and send — each sized to its icon with the
+   standard 1rem cell padding, and with no divider between them so they read as
+   one group while each icon holds a fixed position regardless of row status. */
+.invoices .action-download,
+.invoices .action-send {
   text-align: center;
   width: 3rem;
+}
+
+/* Halve the inner padding (download's right, send's left) so the two icons sit
+   closer together; the outer sides keep the standard 1rem. */
+.invoices .action-download {
+  border-right: none;
+  padding-right: 0.5rem;
+}
+
+.invoices .action-send {
+  overflow: visible; /* else the td's text-overflow ellipsizes the icon */
+  padding-left: 0.5rem;
+}
+
+/* Muted-gray icon buttons — the app's muted-icon convention (matches
+   .create-invoice-icon), clearly lighter than the table text. */
+.invoices .action-download .button-link,
+.invoices .action-send .button-link {
+  color: var(--color-muted-more);
+}
+
+.invoices .action-download .button-link:hover,
+.invoices .action-send .button-link:hover {
+  color: var(--color-primary);
+}
+
+/* ==========================================================================
+Requests table — same column conventions as .invoices: fixed widths for id /
+date / amount / status, the text columns (matter, recipient) flex via min-width,
+and the amount is right-aligned.
+========================================================================== */
+
+.requests {
+  min-width: 69rem;
+}
+
+.requests .id {
+  width: 5rem;
+}
+
+.requests .date {
+  width: 9.5rem;
+}
+
+.requests .matter {
+  min-width: 18rem;
+}
+
+.requests .recipient {
+  min-width: 16rem;
+}
+
+.requests .amount {
+  text-align: right;
+  width: 9.5rem;
+}
+
+.requests .status {
+  width: 8rem;
+}
+
+/* Resend column — icon sized to its cell, muted-icon button (same convention as
+   .invoices .action-send). Empty for paid/canceled requests. */
+.requests .action-send {
+  text-align: center;
+  width: 3rem;
+}
+
+.requests .action-send .button-link {
+  color: var(--color-muted-more);
+}
+
+.requests .action-send .button-link:hover {
+  color: var(--color-primary);
+}
+
+/* ==========================================================================
+Send modal
+========================================================================== */
+
+/* Message label row: label on the left, character counter on the far right. */
+#invoice-send-form .message-label {
+  align-items: baseline;
+  display: flex;
+  justify-content: space-between;
+}
+
+#invoice-send-form .char-counter {
+  color: var(--color-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+/* Busy button: while its form's request is in flight (htmx adds .htmx-request
+   via the form's hx-indicator), swap the label for a spinner and block
+   re-clicks. Used by the invoice send and create modals — both pay the
+   WeasyPrint PDF cost on submit. */
+.btn-busy .btn-busy-loading {
+  display: none;
+}
+
+.btn-busy.htmx-request {
+  pointer-events: none;
+}
+
+.btn-busy.htmx-request .btn-busy-idle {
+  display: none;
+}
+
+.btn-busy.htmx-request .btn-busy-loading {
+  align-items: center;
+  display: inline-flex;
+  gap: 0.4rem;
+}
+
+.btn-spinner {
+  animation: spin 0.7s linear infinite;
+  border: 2px solid currentColor;
+  border-radius: 50%;
+  border-right-color: transparent;
+  height: 0.85em;
+  width: 0.85em;
 }
 
 .invoices-delete,
@@ -112,6 +237,50 @@ Detail View
   .invoices-table-container {
     flex-direction: column;
   }
+}
+
+/* Invoice History tab: Delivery and Payment tables side by side. */
+.history-columns {
+  align-items: flex-start;
+  display: flex;
+  gap: 2rem;
+}
+
+.history-columns .invoices-detail-table {
+  width: auto;
+}
+
+@media (width <= 768px) {
+  .history-columns {
+    flex-direction: column;
+  }
+}
+
+.history-heading {
+  margin: 0 0 0.75rem;
+}
+
+.history-table {
+  border: 1px solid var(--border-medium);
+  border-collapse: collapse;
+}
+
+.history-table th,
+.history-table td {
+  border-bottom: 1px solid var(--border-medium);
+  padding: 0.5rem 0.75rem;
+  text-align: left;
+  vertical-align: top;
+}
+
+.history-table thead th {
+  background: var(--background-control);
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.history-table tbody tr:last-child td {
+  border-bottom: none;
 }
 
 /* ==========================================================================
