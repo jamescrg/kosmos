@@ -92,7 +92,7 @@ def send_payment_request(
     }
     firm = company.name if company else ""
     subject = f"{firm} - " if firm else ""
-    subject += "Payment request"
+    subject += "Payment Request"
     if matter:
         subject += f" - Matter {matter.id}"
 

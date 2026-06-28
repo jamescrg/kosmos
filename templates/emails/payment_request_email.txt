@@ -1,7 +1,7 @@
 {% load humanize %}{{ firm_name|default:"Payment request" }}
 Outstanding balance
 
-Dear {{ client_name|default:"Client" }},
+Dear Client,
 
 {% if cover_message %}{{ cover_message }}{% else %}We are respectfully requesting payment of the amount below.{% endif %}
 {% if attach_statement %}
