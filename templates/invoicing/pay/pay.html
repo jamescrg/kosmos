@@ -46,7 +46,7 @@
     }
 
     .pay-head h1 .firm-suffix {
-      font-size: 0.5em;
+      font-size: 0.7em;
     }
 
     .pay-head p {
@@ -220,6 +220,97 @@
       padding: 0.75rem 1rem;
       margin-bottom: 1rem;
       color: #57534e;
+    }
+
+    /* Dark mode: the same slate/stone theme inverted, for clients whose OS is in
+       dark mode. The Stripe Element's in-iframe text colour is flipped in JS
+       (init), since the iframe can't see these rules. */
+    @media (prefers-color-scheme: dark) {
+      body {
+        background: #0f172a linear-gradient(180deg, #1e293b 0%, #0f172a 70%, #0f172a 100%) fixed;
+        color: #cbd5e1;
+      }
+
+      .pay-card {
+        background: #1e293b;
+        border-color: #334155;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
+      }
+
+      .pay-head h1 {
+        color: #f1f5f9;
+      }
+
+      .pay-head p {
+        color: #94a3b8;
+      }
+
+      .pay-summary {
+        border-color: #334155;
+      }
+
+      .pay-summary tr+tr td {
+        border-top-color: #334155;
+      }
+
+      .pay-summary .label {
+        color: #94a3b8;
+      }
+
+      .pay-summary .value {
+        color: #f1f5f9;
+      }
+
+      .pay-method {
+        background: #0f172a;
+        border-color: #475569;
+      }
+
+      .pay-method[aria-pressed="true"] {
+        border-color: #94a3b8;
+        box-shadow: inset 0 0 0 1px #94a3b8;
+      }
+
+      .pay-method .pm-title {
+        color: #f1f5f9;
+      }
+
+      .pay-method .pm-note {
+        color: #94a3b8;
+      }
+
+      .pay-field label {
+        color: #cbd5e1;
+      }
+
+      .pay-field input,
+      .pay-field select {
+        color: #f1f5f9;
+        background: #0f172a;
+        border-color: #475569;
+      }
+
+      #stripe-card {
+        background: #0f172a;
+        border-color: #475569;
+      }
+
+      .pay-btn {
+        background: #475569;
+        color: #f1f5f9;
+        border-color: #475569;
+      }
+
+      .pay-alert {
+        color: #cbd5e1;
+        background: #0f172a;
+        border-color: #334155;
+      }
+
+      .pay-dev {
+        background: #1e293b;
+        color: #cbd5e1;
+      }
     }
   </style>
   <div class="pay-wrap">
@@ -420,19 +511,22 @@
             const Stripe = window.Stripe;
             if (!Stripe) { this.error = 'Payment form failed to load. Please refresh.'; return; }
             this._stripe = Stripe(opts.publicKey);
-            // Load Noto Serif into the Element's iframe and use the firm's fixed
-            // stone palette — singleton design, no theme resolution.
+            // Load Noto Serif into the Element's iframe. Flip the in-iframe text
+            // colours for dark mode here — the iframe can't see the page's
+            // @media (prefers-color-scheme) rules.
+            const dark = window.matchMedia
+              && window.matchMedia('(prefers-color-scheme: dark)').matches;
             const elements = this._stripe.elements({
               fonts: [{ cssSrc: 'https://fonts.googleapis.com/css2?family=Noto+Serif:wght@400;500&display=swap' }],
             });
             this._stripeCard = elements.create('card', {
               style: {
                 base: {
-                  color: '#57534e',
+                  color: dark ? '#f1f5f9' : '#57534e',
                   fontFamily: '"Noto Serif", serif',
                   fontSize: '16px',
-                  iconColor: '#78716c',
-                  '::placeholder': { color: '#78716c' },
+                  iconColor: dark ? '#94a3b8' : '#78716c',
+                  '::placeholder': { color: dark ? '#94a3b8' : '#78716c' },
                 },
               },
             });
