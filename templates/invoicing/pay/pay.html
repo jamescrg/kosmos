@@ -4,58 +4,55 @@
   Pay Invoice {{ invoice.id }}
 {% endblock title %}
 {% block content %}
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Serif:ital,wght@0,100..900;1,100..900&display=swap"
+        rel="stylesheet" />
   <style>
+    /* Singleton design matching the firm website's inquire form: slate gradient,
+       Noto Serif, stone text, slate button. No theme tokens — identical in light,
+       dark, and cosmic; the client's OS theme is intentionally ignored here. */
+    body {
+      background: #f1f5f9 linear-gradient(180deg, #cbd5e1 0%, #f1f5f9 70%, #f1f5f9 100%) fixed;
+      min-height: 100vh;
+      font-family: 'Noto Serif', serif;
+      color: #57534e;
+    }
+
     .pay-wrap {
       max-width: 30rem;
       margin: 3rem auto;
       padding: 0 1rem;
     }
 
-    /* Colours come from the project tokens (colors.css), so the page follows the
-       firm's light/dark/cosmic themes automatically — base-minimal already sets
-       data-theme from the client's prefers-color-scheme before paint. */
-    .pay-card {
-      background: var(--background-light);
-      border: 1px solid var(--border-light);
-      border-radius: var(--radius-sm);
-      overflow: hidden;
-      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
-    }
-
     .pay-head {
-      background: var(--background-control);
-      color: var(--color-primary);
-      padding: 1.25rem 1.5rem;
+      padding: 0 0.25rem 1.5rem;
     }
 
     .pay-head h1 {
       margin: 0;
-      font-size: 1.25rem;
-      font-weight: 600;
-      color: var(--color-darker);
+      font-size: 1.7rem;
+      font-weight: normal;
+      color: #292524;
     }
 
     .pay-head p {
-      margin: 0.25rem 0 0;
+      margin: 0.5rem 0 0;
       font-size: 1rem;
-      color: var(--color-muted);
+      color: #78716c;
     }
 
-    .pay-body {
-      padding: 1.5rem;
-    }
-
+    /* Summary: a bordered panel with transparent cells, on the gradient. Overrides
+       the app's global td rule (background + border-right). */
     .pay-summary {
       width: 100%;
-      border: 1px solid var(--border-light);
-      border-radius: var(--radius-sm);
+      border: 1px solid #cbd5e1;
+      border-radius: 3px;
       border-collapse: separate;
       border-spacing: 0;
       margin-bottom: 1.5rem;
     }
 
-    /* Transparent cells over the card, no vertical divider — overrides the app's
-       global td rule (background + border-right) to match the email summary. */
     .pay-summary td {
       padding: 0.75rem 1rem;
       font-size: 1rem;
@@ -64,16 +61,16 @@
     }
 
     .pay-summary tr+tr td {
-      border-top: 1px solid var(--border-light);
+      border-top: 1px solid #e2e8f0;
     }
 
     .pay-summary .label {
-      color: var(--color-muted);
+      color: #78716c;
     }
 
     .pay-summary .value {
       text-align: right;
-      color: var(--color-darker);
+      color: #292524;
     }
 
     .pay-methods {
@@ -85,30 +82,29 @@
     .pay-method {
       flex: 1;
       padding: 0.75rem;
-      border: 1px solid var(--border-medium);
-      border-radius: var(--radius-sm);
-      background: var(--background-light);
+      border: 1px solid #d6d3d1;
+      border-radius: 3px;
+      background: #ffffff;
       cursor: pointer;
       text-align: left;
       font: inherit;
     }
 
     .pay-method[aria-pressed="true"] {
-      border-color: var(--link);
-      background: var(--background-control);
-      box-shadow: inset 0 0 0 1px var(--link);
+      border-color: #64748b;
+      box-shadow: inset 0 0 0 1px #64748b;
     }
 
     .pay-method .pm-title {
       display: block;
       font-weight: 600;
-      color: var(--color-darker);
+      color: #292524;
     }
 
     .pay-method .pm-note {
       display: block;
       font-size: 1rem;
-      color: var(--color-muted);
+      color: #78716c;
       margin-top: 0.25rem;
     }
 
@@ -128,44 +124,45 @@
     .pay-field label {
       display: block;
       font-size: 1rem;
-      color: var(--color-primary);
+      color: #57534e;
       margin-bottom: 0.5rem;
     }
 
+    /* Inputs match the website's forms.css. */
     .pay-field input,
     .pay-field select {
       width: 100%;
-      padding: 0.5rem 0.75rem;
-      font: inherit;
-      color: var(--color-darker);
-      background: var(--input-background);
-      border: 1px solid var(--input-border);
-      border-radius: var(--radius-sm);
+      padding: 0.6rem;
+      font-family: 'Noto Serif', serif;
+      font-size: 1rem;
+      color: #57534e;
+      background: #ffffff;
+      border: 1px solid #d6d3d1;
+      border-radius: 3px;
+      outline: none;
       box-sizing: border-box;
     }
 
-    /* The Stripe card Element is an iframe with no chrome of its own — give it
-       the same bordered field box as the inputs. Its `color` is read in JS
-       (init) and handed to the Element so the digits track the theme. */
+    /* The Stripe Element gets the same field box; its in-iframe text colour and
+       font are set in JS (init). */
     #stripe-card {
-      padding: 0.75rem;
-      color: var(--color-darker);
-      background: var(--input-background);
-      border: 1px solid var(--input-border);
-      border-radius: var(--radius-sm);
+      padding: 0.7rem;
+      background: #ffffff;
+      border: 1px solid #d6d3d1;
+      border-radius: 3px;
     }
 
-    /* The pay button keeps a fixed brand green across themes (matches the
-       invoice email); white text stays legible on it in light and dark. */
+    /* Slate button, matching the website's .btn-primary. */
     .pay-btn {
       width: 100%;
-      padding: 0.75rem;
-      background: #15803d;
-      color: #fff;
-      border: none;
-      border-radius: var(--radius-sm);
-      font-size: 1.05rem;
-      font-weight: 600;
+      padding: 0.6rem 1.3rem;
+      background: #cbd5e1;
+      color: #57534e;
+      border: 1px solid #cbd5e1;
+      border-radius: 0.5rem;
+      font-family: 'Noto Serif', serif;
+      font-size: 1rem;
+      font-weight: 500;
       cursor: pointer;
     }
 
@@ -174,38 +171,37 @@
       cursor: default;
     }
 
-    /* Typed messages follow the toast convention: a neutral themed surface with
-       a coloured left accent rail carrying the type. */
+    /* Typed messages: a white panel with a coloured left accent rail. */
     .pay-alert {
       padding: 0.75rem 1rem;
-      border-radius: var(--radius-sm);
+      border-radius: 3px;
       font-size: 1rem;
       margin-bottom: 1rem;
-      color: var(--color-primary);
-      background: var(--background-light);
-      border: 1px solid var(--border-light);
-      border-left: 4px solid var(--border-dark);
+      color: #57534e;
+      background: #ffffff;
+      border: 1px solid #e2e8f0;
+      border-left: 4px solid #94a3b8;
     }
 
     .pay-alert.error {
-      border-left-color: var(--error);
+      border-left-color: #dc2626;
     }
 
     .pay-alert.ok {
-      border-left-color: var(--success);
+      border-left-color: #15803d;
     }
 
     .pay-alert.info {
-      border-left-color: var(--link);
+      border-left-color: #64748b;
     }
 
     .pay-dev {
-      background: var(--background-section);
-      border: 1px dashed var(--warning);
-      border-radius: var(--radius-sm);
+      background: #fffbeb;
+      border: 1px dashed #d97706;
+      border-radius: 3px;
       padding: 0.75rem 1rem;
       margin-bottom: 1rem;
-      color: var(--color-primary);
+      color: #57534e;
     }
   </style>
   <div class="pay-wrap">
@@ -406,30 +402,23 @@
             const Stripe = window.Stripe;
             if (!Stripe) { this.error = 'Payment form failed to load. Please refresh.'; return; }
             this._stripe = Stripe(opts.publicKey);
-            // Hand the Element theme-resolved colours. Stripe accepts rgb() but
-            // not the oklch() the tokens resolve to, so read them off real
-            // elements (the browser normalises `color` to rgb): the field's own
-            // colour for the digits, a probe for the muted colour the placeholder
-            // text and brand icon use. Without this they're dark-on-dark for a
-            // client in dark mode.
-            const mount = document.getElementById('stripe-card');
-            const probe = document.createElement('span');
-            probe.style.cssText = 'color: var(--color-muted); display: none;';
-            mount.appendChild(probe);
-            const text = getComputedStyle(mount).color;
-            const muted = getComputedStyle(probe).color;
-            probe.remove();
-            this._stripeCard = this._stripe.elements().create('card', {
+            // Load Noto Serif into the Element's iframe and use the firm's fixed
+            // stone palette — singleton design, no theme resolution.
+            const elements = this._stripe.elements({
+              fonts: [{ cssSrc: 'https://fonts.googleapis.com/css2?family=Noto+Serif:wght@400;500&display=swap' }],
+            });
+            this._stripeCard = elements.create('card', {
               style: {
                 base: {
-                  color: text,
+                  color: '#57534e',
+                  fontFamily: '"Noto Serif", serif',
                   fontSize: '16px',
-                  iconColor: muted,
-                  '::placeholder': { color: muted },
+                  iconColor: '#78716c',
+                  '::placeholder': { color: '#78716c' },
                 },
               },
             });
-            this._stripeCard.mount(mount);
+            this._stripeCard.mount('#stripe-card');
             return;
           }
           const HF = window.AffiniPay && window.AffiniPay.HostedFields;
