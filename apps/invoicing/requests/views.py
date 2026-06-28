@@ -183,7 +183,7 @@ def requests_new(request):
         "message": "",
         "amount": "",
         "attach_statement": True,
-        "attach_invoices": False,
+        "attach_invoices": True,
         "error": "",
     }
     return render(request, "invoicing/requests/form.html", context)
@@ -270,7 +270,7 @@ def requests_resend(request, pk):
         "cc": "",
         "message": "",
         "attach_statement": True,
-        "attach_invoices": False,
+        "attach_invoices": True,
         "error": "",
     }
     return render(request, "invoicing/requests/resend.html", context)
