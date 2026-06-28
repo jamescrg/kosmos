@@ -1,7 +1,11 @@
 {% extends "base-minimal.html" %}
 {% load humanize invoicing_extras cache_buster %}
 {% block title %}
-  Pay Invoice {{ invoice.id }}
+  {% if invoice %}
+    Pay Invoice {{ invoice.id }}
+  {% else %}
+    {{ page_title }}
+  {% endif %}
 {% endblock title %}
 {% block content %}
   <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -13,7 +17,13 @@
     <div class="pay-card">
       <div class="pay-head">
         <h1>{{ firm_name|default:"Pay Invoice"|firm_entity }}</h1>
-        <p>Invoice {{ invoice.id }} &middot; {{ invoice.date_issued|date:"F j, Y" }}</p>
+        <p>
+          {% if invoice %}
+            Invoice {{ invoice.id }} &middot; {{ invoice.date_issued|date:"F j, Y" }}
+          {% else %}
+            {{ subtitle }}
+          {% endif %}
+        </p>
       </div>
       <div class="pay-body">
         <table class="pay-summary" role="presentation">
@@ -24,8 +34,20 @@
             </tr>
           {% endif %}
           <tr>
-            <td class="label">Invoice</td>
-            <td class="value">{{ invoice.id }}</td>
+            <td class="label">
+              {% if invoice %}
+                Invoice
+              {% else %}
+                {{ summary_label }}
+              {% endif %}
+            </td>
+            <td class="value">
+              {% if invoice %}
+                {{ invoice.id }}
+              {% else %}
+                {{ summary_value }}
+              {% endif %}
+            </td>
           </tr>
           <tr>
             <td class="label">Amount Due</td>
@@ -33,7 +55,14 @@
           </tr>
         </table>
         {% if is_paid %}
-          <div class="pay-alert ok">This invoice is paid in full. Thank you.</div>
+          <div class="pay-alert ok">
+            {% if invoice %}
+              This invoice is paid in full.
+            {% else %}
+              This balance is paid in full.
+            {% endif %}
+            Thank you.
+          </div>
         {% else %}
           <div x-data='payForm({ chargeUrl: "{{ charge_url|escapejs }}", dev: {{ dev_mode|yesno:"true,false" }}, publicKey: "{{ config.public_key|escapejs }}", processor: "{{ config.processor|escapejs }}" })'>
             <!-- Result states -->

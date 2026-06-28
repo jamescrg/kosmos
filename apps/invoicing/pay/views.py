@@ -14,6 +14,8 @@ On a successful charge the payment is recorded and applied to the invoice (see
 """
 
 import json
+from dataclasses import replace
+from decimal import Decimal
 
 from django.conf import settings
 from django.core import signing
@@ -25,9 +27,16 @@ from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_http_methods
 
 from apps.invoicing.invoices.models import Invoice
+from apps.invoicing.pay.balance import (
+    matter_balance_cents,
+    matter_open_invoices,
+    record_matter_balance_payment,
+)
 from apps.invoicing.pay.recording import record_payment
 from apps.invoicing.processors import ChargeError, get_processor
-from utils.signing import read_payment_token
+from apps.invoicing.processors.base import ClientConfig
+from apps.matters.models import Matter
+from utils.signing import read_balance_token, read_payment_token
 
 
 def _client_ip(request):
@@ -162,6 +171,139 @@ def pay_charge(request, token):
     if already_paid:
         return JsonResponse(
             {"success": False, "error": "This invoice is already paid."}, status=400
+        )
+
+    return JsonResponse(
+        {
+            "success": True,
+            "pending": result.is_pending,
+            "status": result.status,
+            "transaction_id": result.transaction_id,
+        }
+    )
+
+
+# --- Matter "catch-up" payment: pay a matter's full open balance ------------
+
+
+def _resolve_matter(token):
+    """Return the matter for a signed balance token, or raise Http404."""
+    try:
+        matter_id = read_balance_token(token, max_age=settings.INVOICE_PAY_LINK_MAX_AGE)
+    except signing.SignatureExpired:
+        raise Http404("expired")
+    except signing.BadSignature:
+        raise Http404("invalid")
+    return get_object_or_404(Matter, pk=matter_id)
+
+
+def _balance_config(processor, open_invoices, balance_cents, matter):
+    """ClientConfig for a matter balance: reuse the processor's per-invoice config
+    (for its publishable key + methods) and override the amount + reference."""
+    reference = f"Account balance · Matter {matter.id}"
+    if open_invoices:
+        base = processor.client_config(open_invoices[0])
+        return replace(base, amount_cents=balance_cents, reference=reference)
+    # Nothing owed: a stub config — the page shows 'paid in full', no form.
+    return ClientConfig(
+        processor=processor.name,
+        public_key="",
+        amount_cents=0,
+        reference=reference,
+        methods=[],
+    )
+
+
+def balance_pay_page(request, token):
+    try:
+        matter = _resolve_matter(token)
+    except Http404 as exc:
+        if str(exc) == "expired":
+            return _unavailable(
+                request,
+                "This payment link has expired. Please contact us for a new one.",
+                status=410,
+            )
+        return _unavailable(request, "This payment link is invalid.", status=404)
+
+    processor = get_processor()
+    open_invoices = matter_open_invoices(matter)
+    balance_cents = matter_balance_cents(matter)
+    config = _balance_config(processor, open_invoices, balance_cents, matter)
+    from apps.settings.models import Company
+
+    company = Company.objects.first()
+    context = {
+        # No single invoice — the page renders in 'balance mode'.
+        "invoice": None,
+        "page_title": "Pay Account Balance",
+        "subtitle": "Account balance",
+        "matter_number": matter.id,
+        "summary_label": "Open invoices",
+        "summary_value": len(open_invoices),
+        "firm_name": company.name if company else "",
+        "amount_due": Decimal(balance_cents) / 100,
+        "config": config,
+        "is_paid": balance_cents <= 0,
+        "dev_mode": config.processor == "fake",
+        "charge_url": request.build_absolute_uri(request.path.rstrip("/") + "/charge/"),
+    }
+    return render(request, "invoicing/pay/pay.html", context)
+
+
+@csrf_exempt
+@require_http_methods(["POST"])
+def balance_charge(request, token):
+    if _rate_limited(request, "pay-charge", limit=20, window=300):
+        return JsonResponse(
+            {"success": False, "error": "Too many attempts. Please wait a moment."},
+            status=429,
+        )
+
+    matter = _resolve_matter(token)
+
+    try:
+        body = json.loads(request.body or "{}")
+    except (ValueError, TypeError):
+        return JsonResponse(
+            {"success": False, "error": "Malformed request."}, status=400
+        )
+
+    payment_token = (body.get("token") or "").strip()
+    method = body.get("method") or ""
+    if not payment_token:
+        return JsonResponse(
+            {"success": False, "error": "Missing payment details."}, status=400
+        )
+
+    processor = get_processor()
+    # Lock the matter row to serialize concurrent submits — the second waits and
+    # then finds the balance already cleared. The recompute under the lock is the
+    # double-charge guard (mirrors the per-invoice flow).
+    try:
+        with transaction.atomic():
+            locked = Matter.objects.select_for_update().get(pk=matter.pk)
+            balance_cents = matter_balance_cents(locked)
+            if balance_cents <= 0:
+                already_paid = True
+            else:
+                already_paid = False
+                reference = f"Account balance · Matter {locked.id}"
+                result = processor.charge(
+                    token=payment_token,
+                    amount_cents=balance_cents,
+                    reference=reference,
+                    method=method,
+                    idempotency_key=f"matter:{locked.id}:{payment_token}",
+                )
+                if result.accepted:
+                    record_matter_balance_payment(locked, result)
+    except ChargeError as exc:
+        return JsonResponse({"success": False, "error": str(exc)}, status=402)
+
+    if already_paid:
+        return JsonResponse(
+            {"success": False, "error": "This balance is already paid."}, status=400
         )
 
     return JsonResponse(
