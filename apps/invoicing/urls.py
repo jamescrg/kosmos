@@ -68,7 +68,7 @@ from apps.invoicing.requests.views import (
     requests_filter_status,
     requests_index,
     requests_list,
-    requests_matter_email,
+    requests_matter_fields,
     requests_new,
 )
 from apps.invoicing.unbilled.views import (
@@ -296,9 +296,9 @@ urlpatterns = [
     path("invoicing/requests/list/", requests_list, name="requests-list"),
     path("invoicing/requests-new/", requests_new, name="requests-new"),
     path(
-        "invoicing/requests-matter-email/",
-        requests_matter_email,
-        name="requests-matter-email",
+        "invoicing/requests-matter-fields/",
+        requests_matter_fields,
+        name="requests-matter-fields",
     ),
     path(
         "invoicing/requests-cancel/<int:pk>/",

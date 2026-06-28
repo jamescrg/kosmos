@@ -1,4 +1,4 @@
-from decimal import Decimal
+from decimal import Decimal, InvalidOperation
 
 from django.contrib.auth.decorators import login_required
 from django.db import transaction
@@ -105,21 +105,34 @@ def requests_new(request):
         to = (request.POST.get("to") or "").strip()
         cc = (request.POST.get("cc") or "").strip()
         message = request.POST.get("message", "")
+        amount_raw = (request.POST.get("amount") or "").strip()
         matter = _open_matters().filter(pk=matter_id).first() if matter_id else None
 
         error = ""
-        balance_cents = 0
+        amount = None
         if not matter:
             error = "Please select a matter."
         else:
-            balance_cents = matter_balance_cents(matter)
-            if balance_cents <= 0:
+            balance = Decimal(matter_balance_cents(matter)) / 100
+            if balance <= 0:
                 error = "This matter has no open balance to request."
+            elif amount_raw:
+                try:
+                    amount = Decimal(amount_raw.replace("$", "").replace(",", ""))
+                except InvalidOperation:
+                    error = "Enter a valid dollar amount."
+            else:
+                amount = balance  # blank → request the full balance
+            if not error and amount is not None:
+                if amount <= 0:
+                    error = "Amount must be greater than zero."
+                elif amount > balance:
+                    error = f"Amount can't exceed the balance due (${balance:.2f})."
 
         if not error:
             payment_request = PaymentRequest(
                 matter=matter,
-                amount_requested=Decimal(balance_cents) / 100,
+                amount_requested=amount,
                 recipient_email=to,
                 status="SENT",
             )
@@ -146,6 +159,7 @@ def requests_new(request):
             "to": to,
             "cc": cc,
             "message": message,
+            "amount": amount_raw,
             "error": error,
         }
         return render(request, "invoicing/requests/form.html", context)
@@ -156,22 +170,33 @@ def requests_new(request):
         "to": "",
         "cc": "",
         "message": "",
+        "amount": "",
         "error": "",
     }
     return render(request, "invoicing/requests/form.html", context)
 
 
 @login_required
-def requests_matter_email(request):
-    """Return the To input pre-filled with the selected matter's client email —
-    htmx swaps it in when the matter dropdown changes."""
+def requests_matter_fields(request):
+    """On matter change, return the To input (client email) + the Amount input
+    (the matter's balance due, which the firm can then adjust down). htmx swaps
+    the To field and the Amount field (out-of-band) into the request modal."""
     matter_id = request.GET.get("matter")
     email = ""
+    amount = ""
     if matter_id:
         matter = Matter.objects.filter(pk=matter_id).select_related("client").first()
-        if matter and matter.client:
-            email = matter.client.email or ""
-    return render(request, "invoicing/requests/to_input.html", {"to": email})
+        if matter:
+            if matter.client:
+                email = matter.client.email or ""
+            balance_cents = matter_balance_cents(matter)
+            if balance_cents > 0:
+                amount = f"{Decimal(balance_cents) / 100:.2f}"
+    return render(
+        request,
+        "invoicing/requests/matter_fields.html",
+        {"to": email, "amount": amount},
+    )
 
 
 @login_required

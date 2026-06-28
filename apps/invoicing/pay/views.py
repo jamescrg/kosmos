@@ -28,9 +28,9 @@ from django.views.decorators.http import require_http_methods
 
 from apps.invoicing.invoices.models import Invoice
 from apps.invoicing.pay.balance import (
-    matter_balance_cents,
     matter_open_invoices,
     record_matter_balance_payment,
+    request_charge_cents,
 )
 from apps.invoicing.pay.recording import record_payment
 from apps.invoicing.processors import ChargeError, get_processor
@@ -234,8 +234,8 @@ def balance_pay_page(request, token):
     matter = pay_request.matter
     processor = get_processor()
     open_invoices = matter_open_invoices(matter)
-    balance_cents = matter_balance_cents(matter)
-    config = _balance_config(processor, open_invoices, balance_cents, matter)
+    charge_cents = request_charge_cents(pay_request)
+    config = _balance_config(processor, open_invoices, charge_cents, matter)
     from apps.settings.models import Company
 
     company = Company.objects.first()
@@ -248,9 +248,9 @@ def balance_pay_page(request, token):
         "summary_label": "Open invoices",
         "summary_value": len(open_invoices),
         "firm_name": company.name if company else "",
-        "amount_due": Decimal(balance_cents) / 100,
+        "amount_due": Decimal(charge_cents) / 100,
         "config": config,
-        "is_paid": pay_request.status == "PAID" or balance_cents <= 0,
+        "is_paid": pay_request.status == "PAID" or charge_cents <= 0,
         "dev_mode": config.processor == "fake",
         "charge_url": request.build_absolute_uri(request.path.rstrip("/") + "/charge/"),
     }
@@ -290,10 +290,10 @@ def balance_charge(request, token):
         with transaction.atomic():
             req = PaymentRequest.objects.select_for_update().get(pk=pay_request.pk)
             matter = req.matter
-            balance_cents = matter_balance_cents(matter)
-            if req.status != "SENT" or balance_cents <= 0:
+            charge_cents = request_charge_cents(req)
+            if req.status != "SENT" or charge_cents <= 0:
                 already_paid = True
-                # Balance cleared another way while still SENT — settle the request.
+                # Nothing left to charge while still SENT — settle the request.
                 if req.status == "SENT":
                     req.status = "PAID"
                     req.save(update_fields=["status"])
@@ -302,7 +302,7 @@ def balance_charge(request, token):
                 reference = f"Account balance · Matter {matter.id}"
                 result = processor.charge(
                     token=payment_token,
-                    amount_cents=balance_cents,
+                    amount_cents=charge_cents,
                     reference=reference,
                     idempotency_key=f"request:{req.id}:{payment_token}",
                     method=method,

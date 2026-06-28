@@ -1,0 +1,7 @@
+{% comment %}
+  Returned on matter change: the To input (primary swap into #request-to) plus
+  the Amount input (out-of-band swap into #request-amount), both pre-filled from
+  the selected matter.
+{% endcomment %}
+{% include "invoicing/requests/to_input.html" %}
+{% include "invoicing/requests/amount_input.html" with oob=True %}

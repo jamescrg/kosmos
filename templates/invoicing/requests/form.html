@@ -22,7 +22,7 @@
           <label for="request-matter">Matter</label>
           <select id="request-matter"
                   name="matter"
-                  hx-get="{% url 'invoicing:requests-matter-email' %}"
+                  hx-get="{% url 'invoicing:requests-matter-fields' %}"
                   hx-trigger="change"
                   hx-target="#request-to"
                   hx-swap="outerHTML"
@@ -37,6 +37,10 @@
         <div class="form-group">
           <label for="request-to">To</label>
           {% include "invoicing/requests/to_input.html" %}
+        </div>
+        <div class="form-group">
+          <label for="request-amount">Amount</label>
+          {% include "invoicing/requests/amount_input.html" %}
         </div>
         <div class="form-group">
           <label for="request-cc">Cc (optional)</label>

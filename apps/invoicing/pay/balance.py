@@ -37,6 +37,15 @@ def matter_balance_cents(matter) -> int:
     return int(Decimal(total) * 100)
 
 
+def request_charge_cents(payment_request) -> int:
+    """Cents to charge for a payment request: the firm-set amount_requested,
+    capped at the matter's current open balance so it can never overpay (e.g. if
+    some of the balance was paid another way after the request was sent)."""
+    requested = int(Decimal(payment_request.amount_requested) * 100)
+    live = matter_balance_cents(payment_request.matter)
+    return max(0, min(requested, live))
+
+
 def record_matter_balance_payment(matter, result):
     """Record an accepted charge as one Payment on the matter, applied
     oldest-invoice-first across its open invoices. Idempotent on the processor
