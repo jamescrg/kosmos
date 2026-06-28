@@ -62,6 +62,12 @@ from apps.invoicing.payments.views import (
     payments_index,
     payments_list,
 )
+from apps.invoicing.requests.views import (
+    requests_cancel,
+    requests_index,
+    requests_list,
+    requests_new,
+)
 from apps.invoicing.unbilled.views import (
     unbilled_bulk_create_invoices,
     unbilled_clear_selection,
@@ -281,6 +287,15 @@ urlpatterns = [
         "invoicing/payments-filter/order-by/<str:order>",
         order_by_payments,
         name="payments-order-by",
+    ),
+    # Requests (catch-up payment requests)
+    path("invoicing/requests/", requests_index, name="requests-index"),
+    path("invoicing/requests/list/", requests_list, name="requests-list"),
+    path("invoicing/requests-new/", requests_new, name="requests-new"),
+    path(
+        "invoicing/requests-cancel/<int:pk>/",
+        requests_cancel,
+        name="requests-cancel",
     ),
     # Credits
     path("invoicing/credits/", credits_index, name="credits-index"),

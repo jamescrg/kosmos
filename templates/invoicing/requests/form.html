@@ -1,0 +1,25 @@
+<div class="modal-dialog modal-md">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h1 class="modal-title">Request Payment</h1>
+      <div>
+        <button type="button" @click="$dispatch('close-modal')">
+          <i class="icon-x"></i>
+        </button>
+      </div>
+    </div>
+    <div class="modal-body">
+      <form id="request-form"
+            hx-post="{% url 'invoicing:requests-new' %}"
+            hx-target="#htmx-modal-container"
+            role="form"
+            class="form-compact">
+        {% csrf_token %} {{ form }}
+        <p class="help-text">The client will be asked to pay this matter's full open balance.</p>
+      </form>
+    </div>
+    <div class="modal-footer">
+      <button type="submit" form="request-form" class="btn btn-success">Create Request</button>
+    </div>
+  </div>
+</div>
