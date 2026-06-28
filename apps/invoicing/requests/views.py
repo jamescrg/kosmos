@@ -6,7 +6,6 @@ from django.http import HttpResponse
 from django.shortcuts import get_object_or_404, render
 
 from apps.invoicing.pay.balance import matter_balance_cents
-from apps.invoicing.requests.forms import PaymentRequestForm
 from apps.invoicing.requests.models import PaymentRequest
 from apps.invoicing.requests.send import (
     PaymentRequestSendError,
@@ -44,57 +43,85 @@ def requests_list(request):
     return render(request, "invoicing/requests/list.html", _requests_context(request))
 
 
+def _open_matters():
+    return Matter.objects.exclude(status__in=["Pending", "Closed"]).order_by("name")
+
+
 @login_required
 def requests_new(request):
-    """Create a payment request: snapshot the matter's full open balance and
-    record it (SENT). Emailing the link + ledger statement comes in phase 4."""
-    matters = Matter.objects.exclude(status__in=["Pending", "Closed"]).order_by("name")
-    form = PaymentRequestForm(request.POST or None, use_required_attribute=False)
-    form.fields["matter"].queryset = matters
+    """Create + send a payment request for a matter's full open balance."""
+    if request.method == "POST":
+        matter_id = request.POST.get("matter") or ""
+        to = (request.POST.get("to") or "").strip()
+        cc = (request.POST.get("cc") or "").strip()
+        message = request.POST.get("message", "")
+        matter = _open_matters().filter(pk=matter_id).first() if matter_id else None
 
-    if request.method == "POST" and form.is_valid():
-        payment_request = form.save(commit=False)
-        balance_cents = matter_balance_cents(payment_request.matter)
-        if balance_cents <= 0:
-            form.add_error("matter", "This matter has no open balance to request.")
+        error = ""
+        balance_cents = 0
+        if not matter:
+            error = "Please select a matter."
         else:
-            payment_request.amount_requested = Decimal(balance_cents) / 100
-            payment_request.status = "SENT"
-            # Persist + send together: if the email fails, roll back so we never
-            # leave an unsent request behind.
+            balance_cents = matter_balance_cents(matter)
+            if balance_cents <= 0:
+                error = "This matter has no open balance to request."
+
+        if not error:
+            payment_request = PaymentRequest(
+                matter=matter,
+                amount_requested=Decimal(balance_cents) / 100,
+                recipient_email=to,
+                status="SENT",
+            )
+            # Persist + send together: if the email fails (incl. validation),
+            # roll back so we never leave an unsent request behind.
             try:
                 with transaction.atomic():
                     payment_request.save()
-                    send_payment_request(payment_request, request=request)
+                    send_payment_request(
+                        payment_request, to=to, cc=cc, message=message, request=request
+                    )
             except PaymentRequestSendError as exc:
-                form.add_error(None, str(exc))
+                error = str(exc)
             else:
                 response = HttpResponse(
                     status=204, headers={"HX-Trigger": "requestsChanged"}
                 )
-                toast_success(
-                    response,
-                    f"Payment request sent to {payment_request.recipient_email}.",
-                )
+                toast_success(response, f"Payment request sent to {to}.")
                 return response
 
-    return render(request, "invoicing/requests/form.html", {"form": form})
+        context = {
+            "matters": _open_matters(),
+            "matter_id": matter_id,
+            "to": to,
+            "cc": cc,
+            "message": message,
+            "error": error,
+        }
+        return render(request, "invoicing/requests/form.html", context)
+
+    context = {
+        "matters": _open_matters(),
+        "matter_id": "",
+        "to": "",
+        "cc": "",
+        "message": "",
+        "error": "",
+    }
+    return render(request, "invoicing/requests/form.html", context)
 
 
 @login_required
 def requests_matter_email(request):
-    """Return the recipient_email input pre-filled with the selected matter's
-    client email — htmx swaps it in when the matter dropdown changes."""
+    """Return the To input pre-filled with the selected matter's client email —
+    htmx swaps it in when the matter dropdown changes."""
     matter_id = request.GET.get("matter")
     email = ""
     if matter_id:
         matter = Matter.objects.filter(pk=matter_id).select_related("client").first()
         if matter and matter.client:
             email = matter.client.email or ""
-    form = PaymentRequestForm(
-        use_required_attribute=False, initial={"recipient_email": email}
-    )
-    return HttpResponse(str(form["recipient_email"]))
+    return render(request, "invoicing/requests/to_input.html", {"to": email})
 
 
 @login_required

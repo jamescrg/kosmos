@@ -9,17 +9,69 @@
       </div>
     </div>
     <div class="modal-body">
+      {% if error %}<div class="alert alert-danger" role="alert">{{ error }}</div>{% endif %}
       <form id="request-form"
             hx-post="{% url 'invoicing:requests-new' %}"
             hx-target="#htmx-modal-container"
-            role="form"
+            hx-indicator="#request-submit"
+            hx-disabled-elt="#request-submit"
             class="form-compact">
-        {% csrf_token %} {{ form }}
-        <p class="help-text">The client will be asked to pay this matter's full open balance.</p>
+        {% csrf_token %}
+        <div class="form-group">
+          <label for="request-matter">Matter</label>
+          <select id="request-matter"
+                  name="matter"
+                  hx-get="{% url 'invoicing:requests-matter-email' %}"
+                  hx-trigger="change"
+                  hx-target="#request-to"
+                  hx-swap="outerHTML"
+                  required>
+            <option value="">Select a matter…</option>
+            {% for m in matters %}
+              <option value="{{ m.id }}"
+                      {% if matter_id == m.id|stringformat:'s' %}selected{% endif %}>{{ m.name }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="request-to">To</label>
+          {% include "invoicing/requests/to_input.html" %}
+        </div>
+        <div class="form-group">
+          <label for="request-cc">Cc (optional)</label>
+          <input type="email"
+                 id="request-cc"
+                 name="cc"
+                 value="{{ cc }}"
+                 autocomplete="off"
+                 multiple
+                 placeholder="name@example.com, name2@example.com">
+        </div>
+        <div class="form-group" x-data="{ max: 500, count: {{ message|length }} }">
+          <label class="message-label" for="request-message">
+            <span>Message (optional)</span>
+            <span class="char-counter" x-text="count + ' / ' + max"></span>
+          </label>
+          <textarea id="request-message"
+                    name="message"
+                    rows="4"
+                    maxlength="500"
+                    placeholder="Enter a message to the client."
+                    @input="count = $event.target.value.length">{{ message }}</textarea>
+        </div>
       </form>
     </div>
     <div class="modal-footer">
-      <button type="submit" form="request-form" class="btn btn-success">Create Request</button>
+      <button type="button"
+              class="btn btn-secondary"
+              @click="$dispatch('close-modal')">Cancel</button>
+      <button type="submit"
+              form="request-form"
+              id="request-submit"
+              class="btn btn-success btn-busy">
+        <span class="btn-busy-idle">Create Request</span>
+        <span class="btn-busy-loading"><span class="btn-spinner"></span> Sending…</span>
+      </button>
     </div>
   </div>
 </div>

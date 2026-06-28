@@ -30,7 +30,9 @@ class PaymentRequest(AuditMixin, models.Model):
         Matter, on_delete=models.CASCADE, related_name="payment_requests"
     )
     amount_requested = models.DecimalField(max_digits=10, decimal_places=2)
-    recipient_email = models.EmailField()
+    # One or more recipients, comma-joined (the "To" line; matches how the
+    # invoice transmission log stores addresses).
+    recipient_email = models.CharField(max_length=255)
     status = models.CharField(max_length=10, choices=STATUS_CHOICES, default="SENT")
     # Set when this request's link is paid; SET_NULL keeps the request's record
     # even if the payment row is later removed.

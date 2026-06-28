@@ -4,7 +4,9 @@ statement to the client. Mirrors apps.invoicing.invoices.functions.send_invoice.
 
 import os
 
+from django.core.exceptions import ValidationError
 from django.core.mail import EmailMultiAlternatives
+from django.core.validators import validate_email
 from django.template.loader import render_to_string
 
 from apps.invoicing.pay.links import request_pay_url
@@ -17,14 +19,46 @@ class PaymentRequestSendError(Exception):
     pass
 
 
-def send_payment_request(payment_request, *, message=None, request=None):
-    """Email the request's pay link + the matter ledger statement PDF to the
-    recipient. Returns True; raises PaymentRequestSendError on failure."""
+def _parse_recipients(raw):
+    """Split a comma/semicolon-delimited address string into a clean list."""
+    if not raw:
+        return []
+    return [part.strip() for part in raw.replace(";", ",").split(",") if part.strip()]
+
+
+def _invalid_addresses(addresses):
+    invalid = []
+    for addr in addresses:
+        try:
+            validate_email(addr)
+        except ValidationError:
+            invalid.append(addr)
+    return invalid
+
+
+def send_payment_request(
+    payment_request, *, to=None, cc=None, message=None, request=None
+):
+    """Email the request's pay link + the matter ledger statement PDF.
+
+    to / cc: comma-delimited address strings; `to` defaults to the request's
+    stored recipient(s). message: optional cover note. Returns True; raises
+    PaymentRequestSendError on a bad/empty address list or send failure.
+    """
     matter = payment_request.matter
     client = matter.client if matter else None
-    to = (payment_request.recipient_email or "").strip()
-    if not to:
-        raise PaymentRequestSendError("No recipient email address on file.")
+
+    to_list = _parse_recipients(to) or _parse_recipients(
+        payment_request.recipient_email
+    )
+    cc_list = _parse_recipients(cc)
+    if not to_list:
+        raise PaymentRequestSendError("Enter at least one recipient email address.")
+    invalid = _invalid_addresses(to_list + cc_list)
+    if invalid:
+        raise PaymentRequestSendError(
+            f"Invalid email address(es): {', '.join(invalid)}"
+        )
 
     company = Company.objects.first()
     bcc_list = (
@@ -51,7 +85,8 @@ def send_payment_request(payment_request, *, message=None, request=None):
             subject=subject,
             body=render_to_string("emails/payment_request_email.txt", context),
             from_email=None,  # falls back to DEFAULT_FROM_EMAIL
-            to=[to],
+            to=to_list,
+            cc=cc_list or None,
             bcc=bcc_list or None,
             reply_to=[company.email] if company and company.email else None,
         )
@@ -68,6 +103,8 @@ def send_payment_request(payment_request, *, message=None, request=None):
         finally:
             os.unlink(pdf_tmp.name)
         email.send()
+    except PaymentRequestSendError:
+        raise
     except Exception as exc:
         raise PaymentRequestSendError(
             f"Could not send the payment request: {exc}"
