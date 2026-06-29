@@ -64,7 +64,7 @@
             Thank you.
           </div>
         {% else %}
-          <div x-data='payForm({ chargeUrl: "{{ charge_url|escapejs }}", dev: {{ dev_mode|yesno:"true,false" }}, publicKey: "{{ config.public_key|escapejs }}", processor: "{{ config.processor|escapejs }}" })'>
+          <div x-data='payForm({ chargeUrl: "{{ charge_url|escapejs }}", dev: {{ dev_mode|yesno:"true,false" }}, publicKey: "{{ config.public_key|escapejs }}", processor: "{{ config.processor|escapejs }}", echeck: {{ config.echeck|yesno:"true,false" }} })'>
             <!-- Result states -->
             <template x-if="done && !pending">
               <div class="pay-alert ok">Payment received. Thank you.</div>
@@ -79,9 +79,9 @@
               <template x-if="error">
                 <div class="pay-alert error" x-text="error"></div>
               </template>
-              <!-- Method selector: eCheck encouraged (default). Stripe v1 is
-                   card-only, so the selector is hidden there. -->
-              {% if config.processor != 'stripe' %}
+              <!-- Method selector: only shown when eCheck is offered alongside
+                   card. Off → card-only form (no selector). -->
+              {% if config.echeck %}
                 <div class="pay-methods" role="group" aria-label="Payment method">
                   <button type="button"
                           class="pay-method"
@@ -154,7 +154,7 @@
                   </div>
                 {% endif %}
               </div>
-              {% if config.processor != 'stripe' %}
+              {% if config.echeck %}
                 <!-- Bank / eCheck fields. Live: routing + account are hosted fields. -->
                 <div x-show="method === 'bank'">
                   <div class="pay-field">
@@ -221,7 +221,7 @@
   <script>
     function payForm(opts) {
       return {
-        method: opts.processor === 'stripe' ? 'card' : 'bank',  // Stripe v1: card-only
+        method: opts.echeck ? 'bank' : 'card',  // card-only unless eCheck is offered
         // card
         cardName: '', cardNumber: '', exp: '', cvv: '', postalCode: '',
         // bank / eCheck
@@ -283,14 +283,16 @@
               { selector: '#hf-card-cvv', input: { type: 'cvv' } },
             ],
           }, noop);
-          this._bankFields = HF.initializeFields({
-            publicKey: opts.publicKey,
-            input: hfInput,
-            fields: [
-              { selector: '#hf-bank-routing', input: { type: 'routing_number' } },
-              { selector: '#hf-bank-account', input: { type: 'bank_account_number' } },
-            ],
-          }, noop);
+          if (opts.echeck) {
+            this._bankFields = HF.initializeFields({
+              publicKey: opts.publicKey,
+              input: hfInput,
+              fields: [
+                { selector: '#hf-bank-routing', input: { type: 'routing_number' } },
+                { selector: '#hf-bank-account', input: { type: 'bank_account_number' } },
+              ],
+            }, noop);
+          }
         },
 
         validate() {
