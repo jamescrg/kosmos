@@ -1,7 +1,20 @@
 """Email rendering helpers."""
 
+from email.utils import formataddr, parseaddr
+
+from django.conf import settings
 from django.template.loader import render_to_string
 from premailer import transform
+
+
+def firm_from_email(company):
+    """From header that shows the firm as sender: the firm name as display name
+    in front of the no-reply address — e.g. '"Craig Legal, LLC" <noreply@…>'.
+    Replies still route to the firm via Reply-To. Falls back to DEFAULT_FROM_EMAIL
+    (None) when there's no firm name."""
+    name = getattr(company, "name", "") or ""
+    address = parseaddr(settings.DEFAULT_FROM_EMAIL or "")[1]
+    return formataddr((name, address)) if name and address else None
 
 
 def render_inlined(template_name, context):
